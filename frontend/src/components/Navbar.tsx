@@ -1,15 +1,22 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/useAuth";
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const { korisnik, odjava } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
     }
+  };
+
+  const handleOdjava = () => {
+    odjava();
+    navigate("/");
   };
 
   return (
@@ -169,52 +176,118 @@ export default function Navbar() {
           </button>
 
           {/* Auth buttons */}
-          <Link
-            to="/prijava"
-            style={{
-              padding: "8px 18px",
-              borderRadius: 999,
-              border: "1.5px solid #1D4ED8",
-              color: "#1D4ED8",
-              fontWeight: 600,
-              fontSize: 14,
-              textDecoration: "none",
-              transition: "background 0.2s, color 0.2s",
-              fontFamily: "inherit",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "#EFF6FF";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-            }}
-          >
-            Prijavi se
-          </Link>
-          <Link
-            to="/registracija"
-            style={{
-              padding: "8px 18px",
-              borderRadius: 999,
-              background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
-              color: "#fff",
-              fontWeight: 600,
-              fontSize: 14,
-              textDecoration: "none",
-              transition: "opacity 0.2s, transform 0.1s",
-              boxShadow: "0 2px 8px rgba(29,78,216,0.25)",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.opacity = "0.9";
-              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.opacity = "1";
-              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
-            }}
-          >
-            Registriraj se
-          </Link>
+          {korisnik ? (
+            <>
+              {/* Avatar + ime */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  border: "1.5px solid #E5E7EB",
+                  background: "#F9FAFB",
+                }}
+              >
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: 12,
+                    flexShrink: 0,
+                  }}
+                >
+                  {korisnik.ime.charAt(0).toUpperCase()}
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>
+                  {korisnik.ime}
+                </span>
+              </div>
+              {/* Odjava */}
+              <button
+                onClick={handleOdjava}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 999,
+                  border: "1.5px solid #E5E7EB",
+                  background: "transparent",
+                  color: "#6B7280",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  transition: "border-color 0.2s, color 0.2s",
+                  fontFamily: "inherit",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "#EF4444";
+                  (e.currentTarget as HTMLButtonElement).style.color = "#EF4444";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "#E5E7EB";
+                  (e.currentTarget as HTMLButtonElement).style.color = "#6B7280";
+                }}
+              >
+                Odjavi se
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/prijava"
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 999,
+                  border: "1.5px solid #1D4ED8",
+                  color: "#1D4ED8",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  textDecoration: "none",
+                  transition: "background 0.2s, color 0.2s",
+                  fontFamily: "inherit",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = "#EFF6FF";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+                }}
+              >
+                Prijavi se
+              </Link>
+              <Link
+                to="/registracija"
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 999,
+                  background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  textDecoration: "none",
+                  transition: "opacity 0.2s, transform 0.1s",
+                  boxShadow: "0 2px 8px rgba(29,78,216,0.25)",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.opacity = "0.9";
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.opacity = "1";
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+                }}
+              >
+                Registriraj se
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

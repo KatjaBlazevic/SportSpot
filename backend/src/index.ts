@@ -2,6 +2,7 @@ import express, { type Request, type Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import objektiRoutes from "./routes/objektiRoutes.ts";
+import authRoutes from "./routes/authRoutes.ts";
 import pool from "./db.ts";
 dotenv.config();
 
@@ -11,6 +12,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use("/api/objekti", objektiRoutes);
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Ova ruta / radi");

@@ -1,0 +1,10 @@
+import { useContext } from "react";
+import { AuthContext, type AuthContextType } from "./AuthContextDef";
+
+export function useAuth(): AuthContextType {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth mora biti unutar AuthProvider-a");
+  }
+  return ctx;
+}
