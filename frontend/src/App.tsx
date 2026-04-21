@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Objekti from "./pages/Objekti";
+import ObjektDetalji from "./pages/ObjektDetalji";
 
 function App() {
   return (
@@ -9,8 +10,15 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/objekti" element={<Objekti />} />
-        <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404 - Stranica nije pronađena</h1>} />
+        <Route path="/objekt/:id" element={<ObjektDetalji />} />
+        <Route
+          path="*"
+          element={
+            <h1 className="text-center mt-20 text-2xl">
+              404 - Stranica nije pronađena
+            </h1>
+          }
+        />
       </Routes>
     </div>
   );
