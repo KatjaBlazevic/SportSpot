@@ -1,12 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
-import Objekti from "./pages/Objekti";
+import ScrollToTop from "./components/ScrollToTop";
 import ObjektDetalji from "./pages/ObjektDetalji";
 
 function App() {
   return (
     <div className="min-h-screen" style={{ background: "#F0F4FF" }}>
+      <ScrollToTop />
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
