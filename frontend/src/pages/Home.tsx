@@ -597,8 +597,7 @@ export default function Home() {
     setGreska(null);
     try {
       const params = new URLSearchParams();
-      if (odabraniSportovi.length === 1)
-        params.set("sport", odabraniSportovi[0]);
+      odabraniSportovi.forEach((sport) => params.append("sport", sport));
       if (odabraniKvart !== "Svi kvartovi") params.set("kvart", odabraniKvart);
       if (odabraniDatum) params.set("datum", odabraniDatum);
       if (odabraniPeriod) params.set("period", odabraniPeriod);
@@ -624,8 +623,7 @@ export default function Home() {
       setGreska(null);
       try {
         const params = new URLSearchParams();
-        if (odabraniSportovi.length === 1)
-          params.set("sport", odabraniSportovi[0]);
+        odabraniSportovi.forEach((sport) => params.append("sport", sport));
         if (odabraniKvart !== "Svi kvartovi")
           params.set("kvart", odabraniKvart);
         if (odabraniDatum) params.set("datum", odabraniDatum);

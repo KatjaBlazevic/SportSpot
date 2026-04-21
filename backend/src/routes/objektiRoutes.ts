@@ -8,6 +8,13 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const { sport, kvart, datum, period } = req.query;
 
+    // Normaliziraj sport u array (može biti string ili array iz query params)
+    const sportArray = sport
+      ? Array.isArray(sport)
+        ? sport
+        : [sport]
+      : [];
+
     // Određujemo vremenski raspon prema periodu dana
     let vrijemeOd = "00:00:00";
     let vrijemeDo = "23:59:59";
@@ -16,6 +23,13 @@ router.get("/", async (req: Request, res: Response) => {
     else if (period === "vecer") { vrijemeOd = "18:00:00"; vrijemeDo = "23:59:59"; }
 
     // Dohvati objekte s filterima
+    const sportJoinClause = sportArray.length > 0
+      ? `
+        INNER JOIN SPORTOVI_OBJEKTA so ON o.ID_objekta = so.ID_objekta
+        INNER JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta AND sp.Naziv_sporta IN (${sportArray.map(() => "?").join(",")})
+      `
+      : "";
+
     const objektiQuery = `
       SELECT DISTINCT
         o.ID_objekta,
@@ -33,25 +47,22 @@ router.get("/", async (req: Request, res: Response) => {
         AND t.Status = 'Slobodan'
         ${datum ? "AND t.Datum = ?" : ""}
         ${period !== undefined && period !== "" ? "AND t.Vrijeme_pocetka >= ? AND t.Vrijeme_pocetka < ?" : ""}
-      ${sport ? `
-        INNER JOIN SPORTOVI_OBJEKTA so ON o.ID_objekta = so.ID_objekta
-        INNER JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta AND sp.Naziv_sporta = ?
-      ` : ""}
+      ${sportJoinClause}
       ${kvart && kvart !== "Svi kvartovi" ? "WHERE o.Kvart = ?" : ""}
       GROUP BY o.ID_objekta
       ORDER BY ocjena DESC
     `;
 
-    // Dinamički params za query
-    const params: unknown[] = [];
-    if (datum) params.push(datum);
-    if (period && period !== "") { params.push(vrijemeOd); params.push(vrijemeDo); }
-    if (sport) params.push(sport);
-    if (kvart && kvart !== "Svi kvartovi") params.push(kvart);
+     // Dinamički params za query
+     const params: unknown[] = [];
+     if (datum) params.push(datum);
+     if (period && period !== "") { params.push(vrijemeOd); params.push(vrijemeDo); }
+     if (sportArray.length > 0) params.push(...sportArray);
+     if (kvart && kvart !== "Svi kvartovi") params.push(kvart);
 
-    const [objekti] = await pool.query(objektiQuery, params) as [any[], any];
+     const [objekti] = await pool.query(objektiQuery, params) as [any[], any];
 
-    if (objekti.length === 0) {
+     if (objekti.length === 0) {
       res.json([]);
       return;
     }
