@@ -42,9 +42,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("sportspot_korisnik");
   }, []);
 
+  const osvjezi = useCallback((noviKorisnik: Korisnik) => {
+    setKorisnik(noviKorisnik);
+    localStorage.setItem("sportspot_korisnik", JSON.stringify(noviKorisnik));
+  }, []);
+
   const contextValue: AuthContextType = useMemo(
-    () => ({ korisnik, token, prijava, odjava, ucitavanje }),
-    [korisnik, token, ucitavanje, prijava, odjava]
+    () => ({ korisnik, token, prijava, odjava, osvjezi, ucitavanje }),
+    [korisnik, token, ucitavanje, prijava, odjava, osvjezi]
   );
 
   return (

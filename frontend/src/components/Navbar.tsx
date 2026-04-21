@@ -178,8 +178,9 @@ export default function Navbar() {
           {/* Auth buttons */}
           {korisnik ? (
             <>
-              {/* Avatar + ime */}
-              <div
+              {/* Avatar + ime - link to profile */}
+              <Link
+                to="/profil"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -188,6 +189,7 @@ export default function Navbar() {
                   borderRadius: 999,
                   border: "1.5px solid #E5E7EB",
                   background: "#F9FAFB",
+                  textDecoration: "none",
                 }}
               >
                 <div
@@ -210,7 +212,7 @@ export default function Navbar() {
                 <span style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>
                   {korisnik.ime}
                 </span>
-              </div>
+              </Link>
               {/* Odjava */}
               <button
                 onClick={handleOdjava}

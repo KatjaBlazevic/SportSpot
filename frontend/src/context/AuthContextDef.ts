@@ -13,6 +13,7 @@ export interface AuthContextType {
   token: string | null;
   prijava: (token: string, korisnik: Korisnik) => void;
   odjava: () => void;
+  osvjezi: (korisnik: Korisnik) => void;
   ucitavanje: boolean;
 }
 

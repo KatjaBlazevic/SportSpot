@@ -5,6 +5,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import ObjektDetalji from "./pages/ObjektDetalji";
 import Prijava from "./pages/Prijava";
 import Registracija from "./pages/Registracija";
+import Profil from "./pages/Profil";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/objekt/:id" element={<ObjektDetalji />} />
           <Route path="/prijava" element={<Prijava />} />
           <Route path="/registracija" element={<Registracija />} />
+          <Route path="/profil" element={<Profil />} />
           <Route
             path="*"
             element={

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import { useAuth } from "../context/useAuth";
 import type { DetaljiObjekta } from "../types/index.ts";
 import InfoSekcija from "../components/InfoSekcija";
 import TerminKartica from "../components/TerminKartica";
@@ -7,7 +8,29 @@ import RecenzijaKartica from "../components/RecenzijaKartica";
 
 export default function ObjektDetalji() {
   const { id } = useParams<{ id: string }>();
+  const { korisnik } = useAuth();
   const [data, setData] = useState<DetaljiObjekta | null>(null);
+  const [omiljen, setOmiljen] = useState<boolean>(() => {
+    const saved = localStorage.getItem("sportspot_omiljeni");
+    if (saved && id) {
+      const omiljeni = JSON.parse(saved) as { id: number }[];
+      return omiljeni.some((o) => o.id === Number(id));
+    }
+    return false;
+  });
+
+  const toggleOmiljeni = () => {
+    if (!korisnik) return;
+    const saved = localStorage.getItem("sportspot_omiljeni");
+    let omiljeni = saved ? JSON.parse(saved) : [];
+    if (omiljen) {
+      omiljeni = omiljeni.filter((o: { id: number }) => o.id !== Number(id));
+    } else {
+      omiljeni.push({ id: Number(id), naziv: data?.naziv || "", adresa: data?.adresa || "" });
+    }
+    localStorage.setItem("sportspot_omiljeni", JSON.stringify(omiljeni));
+    setOmiljen(!omiljen);
+  };
 
   useEffect(() => {
     fetch(`http://localhost:5000/api/objekti/${id}`)
@@ -27,10 +50,28 @@ export default function ObjektDetalji() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* NASLOV */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 relative">
           <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase">
             {data.naziv}
           </h1>
+          {korisnik && (
+            <button
+              onClick={toggleOmiljeni}
+              className="absolute right-0 top-0 text-4xl hover:scale-110 transition-transform"
+              title={omiljen ? "Ukloni iz omiljenih" : "Dodaj u omiljene"}
+            >
+              {omiljen ? "❤️" : "🤍"}
+            </button>
+          )}
+          {!korisnik && (
+            <Link
+              to="/prijava"
+              className="absolute right-0 top-0 text-4xl hover:scale-110 transition-transform"
+              title="Prijavi se da spremiš omiljene"
+            >
+              🤍
+            </Link>
+          )}
           <div className="mt-4 flex justify-center gap-2">
             {data.sportovi.map((s) => (
               <span
