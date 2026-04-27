@@ -6,12 +6,14 @@ import InfoSekcija from "../components/InfoSekcija";
 import TerminKartica from "../components/TerminKartica";
 import RecenzijaKartica from "../components/RecenzijaKartica";
 import NovaRecenzijaObrazac from "../components/NovaRecenzijaObrazac.tsx";
+import NoviTerminObrazac from "../components/NoviTerminObrazac.tsx";
 
 export default function ObjektDetalji() {
   const { id } = useParams<{ id: string }>();
   const { korisnik } = useAuth();
   const [data, setData] = useState<DetaljiObjekta | null>(null);
   const [isObrazacOpen, setIsObrazacOpen] = useState(false);
+  const [isTerminObrazacOpen, setIsTerminObrazacOpen] = useState(false);
   const [omiljen, setOmiljen] = useState<boolean>(() => {
     const saved = localStorage.getItem("sportspot_omiljeni");
     if (saved && id) {
@@ -79,6 +81,35 @@ export default function ObjektDetalji() {
     }
   };
 
+  const handleTerminSubmit = async (terminData: any) => {
+    alert("Još malo pa ces moc dodat, kad se napravi do kraja ");
+    /* try {
+      const token = localStorage.getItem("sportspot_token");
+      const response = await fetch("http://localhost:5000/api/termini/dodaj", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...terminData,
+          idObjekta: data?.id,
+        }),
+      });
+
+      if (response.ok) {
+        alert("Termini uspješno dodani!");
+        setIsTerminObrazacOpen(false);
+        window.location.reload();
+      } else {
+        const res = await response.json();
+        alert(res.error || "Greška pri dodavanju termina.");
+      }
+    } catch (err) {
+      console.error(err);
+    } */
+  };
+
   useEffect(() => {
     fetch(`http://localhost:5000/api/objekti/${id}`)
       .then((res) => res.json())
@@ -92,6 +123,19 @@ export default function ObjektDetalji() {
         Učitavanje...
       </div>
     );
+
+  const jeVlasnik =
+    korisnik?.uloga === "Vlasnik" &&
+    Number(korisnik.id) === Number(data.idKorisnika);
+
+  console.log("Cijeli DATA objekt s backenda:", data);
+
+  console.log("DEBUG VLASNIK:", {
+    uloga: korisnik?.uloga,
+    idKorisnika: korisnik?.id,
+    idVlasnikaObjekta: data?.idKorisnika,
+    isVlasnik: jeVlasnik,
+  });
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -143,10 +187,23 @@ export default function ObjektDetalji() {
             />
           </div>
           <div className="lg:col-span-1 lg:col-start-1">
-            <div className="bg-white  p-8 rounded-[32px] border border-blue-50 shadow-xl shadow-blue-900/5">
-              <h3 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-6 text-center">
-                Termini
-              </h3>
+            <div className="bg-white p-8 rounded-[32px] border border-blue-50 shadow-xl shadow-blue-900/5">
+              <div
+                className={`flex  p-4 items-center transition-colors m-[0_auto] mb-6 ${jeVlasnik ? "justify-between bg-white w-[90%] " : "w-full justify-center"}`}
+              >
+                <h3 className="text-base font-black text-center text-blue-400 uppercase tracking-[0.2em] text-center">
+                  Termini
+                </h3>
+                {jeVlasnik && (
+                  <button
+                    onClick={() => setIsTerminObrazacOpen(true)}
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase text-xs transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-600/20"
+                  >
+                    <span>Dodaj </span>
+                    <span className="text-lg">+</span>
+                  </button>
+                )}
+              </div>
               <div className="space-y-3">
                 {data.termini && data.termini.length > 0 ? (
                   data.termini.map((t) => (
@@ -254,6 +311,12 @@ export default function ObjektDetalji() {
         isOpen={isObrazacOpen}
         onClose={() => setIsObrazacOpen(false)}
         onSubmit={handleRecenzijaSubmit}
+        objektNaziv={data.naziv}
+      />
+      <NoviTerminObrazac
+        isOpen={isTerminObrazacOpen}
+        onClose={() => setIsTerminObrazacOpen(false)}
+        onSubmit={handleTerminSubmit}
         objektNaziv={data.naziv}
       />
     </div>

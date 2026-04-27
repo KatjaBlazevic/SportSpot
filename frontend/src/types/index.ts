@@ -17,6 +17,7 @@ export interface Recenzija {
 
 export interface DetaljiObjekta {
   id: number;
+  idKorisnika: number;
   naziv: string;
   adresa: string;
   opis: string;

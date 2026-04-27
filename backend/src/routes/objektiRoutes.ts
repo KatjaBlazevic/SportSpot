@@ -159,6 +159,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     const [rows] = (await pool.query(
       `SELECT 
         o.*,
+        o.ID_korisnika,
         k.Naziv_kluba,
         k.Kontakt_telefon,
         ROUND(AVG(r.Ocjena), 1) AS ocjena,
@@ -211,6 +212,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     res.json({
       id: obj.ID_objekta,
+      idKorisnika: obj.ID_korisnika,
       naziv: obj.Naziv_objekta,
       adresa: obj.Adresa,
       opis: obj.Opis,
