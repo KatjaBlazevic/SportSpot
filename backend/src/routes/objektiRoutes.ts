@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import pool from "../db.ts";
+import { autentificiraj, type AuthRequest } from "../middleware/auth.ts";
 
 const router = express.Router();
 
@@ -9,26 +10,30 @@ router.get("/", async (req: Request, res: Response) => {
     const { sport, kvart, datum, period } = req.query;
 
     // Normaliziraj sport u array (može biti string ili array iz query params)
-    const sportArray = sport
-      ? Array.isArray(sport)
-        ? sport
-        : [sport]
-      : [];
+    const sportArray = sport ? (Array.isArray(sport) ? sport : [sport]) : [];
 
     // Određujemo vremenski raspon prema periodu dana
     let vrijemeOd = "00:00:00";
     let vrijemeDo = "23:59:59";
-    if (period === "jutro") { vrijemeOd = "06:00:00"; vrijemeDo = "12:00:00"; }
-    else if (period === "poslijepodne") { vrijemeOd = "12:00:00"; vrijemeDo = "18:00:00"; }
-    else if (period === "vecer") { vrijemeOd = "18:00:00"; vrijemeDo = "23:59:59"; }
+    if (period === "jutro") {
+      vrijemeOd = "06:00:00";
+      vrijemeDo = "12:00:00";
+    } else if (period === "poslijepodne") {
+      vrijemeOd = "12:00:00";
+      vrijemeDo = "18:00:00";
+    } else if (period === "vecer") {
+      vrijemeOd = "18:00:00";
+      vrijemeDo = "23:59:59";
+    }
 
     // Dohvati objekte s filterima
-    const sportJoinClause = sportArray.length > 0
-      ? `
+    const sportJoinClause =
+      sportArray.length > 0
+        ? `
         INNER JOIN SPORTOVI_OBJEKTA so ON o.ID_objekta = so.ID_objekta
         INNER JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta AND sp.Naziv_sporta IN (${sportArray.map(() => "?").join(",")})
       `
-      : "";
+        : "";
 
     const objektiQuery = `
       SELECT DISTINCT
@@ -53,16 +58,19 @@ router.get("/", async (req: Request, res: Response) => {
       ORDER BY ocjena DESC
     `;
 
-     // Dinamički params za query
-     const params: unknown[] = [];
-     if (datum) params.push(datum);
-     if (period && period !== "") { params.push(vrijemeOd); params.push(vrijemeDo); }
-     if (sportArray.length > 0) params.push(...sportArray);
-     if (kvart && kvart !== "Svi kvartovi") params.push(kvart);
+    // Dinamički params za query
+    const params: unknown[] = [];
+    if (datum) params.push(datum);
+    if (period && period !== "") {
+      params.push(vrijemeOd);
+      params.push(vrijemeDo);
+    }
+    if (sportArray.length > 0) params.push(...sportArray);
+    if (kvart && kvart !== "Svi kvartovi") params.push(kvart);
 
-     const [objekti] = await pool.query(objektiQuery, params) as [any[], any];
+    const [objekti] = (await pool.query(objektiQuery, params)) as [any[], any];
 
-     if (objekti.length === 0) {
+    if (objekti.length === 0) {
       res.json([]);
       return;
     }
@@ -70,13 +78,13 @@ router.get("/", async (req: Request, res: Response) => {
     const ids = objekti.map((o: any) => o.ID_objekta);
 
     // Dohvati sportove za sve objekte
-    const [sportovi] = await pool.query(
+    const [sportovi] = (await pool.query(
       `SELECT so.ID_objekta, sp.Naziv_sporta
        FROM SPORTOVI_OBJEKTA so
        JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta
        WHERE so.ID_objekta IN (?)`,
-      [ids]
-    ) as [any[], any];
+      [ids],
+    )) as [any[], any];
 
     // Dohvati slobodne termine za sve objekte
     const terminiQuery = `
@@ -98,9 +106,15 @@ router.get("/", async (req: Request, res: Response) => {
 
     const terminiParams: unknown[] = [ids];
     if (datum) terminiParams.push(datum);
-    if (period && period !== "") { terminiParams.push(vrijemeOd); terminiParams.push(vrijemeDo); }
+    if (period && period !== "") {
+      terminiParams.push(vrijemeOd);
+      terminiParams.push(vrijemeDo);
+    }
 
-    const [termini] = await pool.query(terminiQuery, terminiParams) as [any[], any];
+    const [termini] = (await pool.query(terminiQuery, terminiParams)) as [
+      any[],
+      any,
+    ];
 
     // Spoji sve zajedno
     const rezultat = objekti.map((obj: any) => ({
@@ -132,7 +146,9 @@ router.get("/", async (req: Request, res: Response) => {
     res.json(rezultat);
   } catch (error) {
     console.error("Greška pri dohvaćanju objekata:", error);
-    res.status(500).json({ error: "Greška na serveru.", details: String(error) });
+    res
+      .status(500)
+      .json({ error: "Greška na serveru.", details: String(error) });
   }
 });
 
@@ -140,8 +156,7 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
-    const [rows] = await pool.query(
+    const [rows] = (await pool.query(
       `SELECT 
         o.*,
         k.Naziv_kluba,
@@ -153,8 +168,8 @@ router.get("/:id", async (req: Request, res: Response) => {
        LEFT JOIN RECENZIJE r ON o.ID_objekta = r.ID_objekta
        WHERE o.ID_objekta = ?
        GROUP BY o.ID_objekta`,
-      [id]
-    ) as [any[], any];
+      [id],
+    )) as [any[], any];
 
     if (rows.length === 0) {
       res.status(404).json({ error: "Objekt nije pronađen." });
@@ -162,17 +177,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     }
 
     const obj = rows[0];
-
-    // Sportovi
-    const [sportovi] = await pool.query(
-      `SELECT sp.Naziv_sporta FROM SPORTOVI_OBJEKTA so
-       JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta
-       WHERE so.ID_objekta = ?`,
-      [id]
-    ) as [any[], any];
-
-    // Slobodni termini
-    const [termini] = await pool.query(
+    const [sviTermini] = (await pool.query(
       `SELECT 
         ID_termina,
         Datum,
@@ -181,13 +186,19 @@ router.get("/:id", async (req: Request, res: Response) => {
         Cijena,
         Status
        FROM TERMINI
-       WHERE ID_objekta = ? AND Status = 'Slobodan' AND Datum >= CURDATE()
+       WHERE ID_objekta = ? AND Datum >= CURDATE()
        ORDER BY Datum ASC, Vrijeme_pocetka ASC`,
-      [id]
-    ) as [any[], any];
+      [id],
+    )) as [any[], any];
 
-    // Recenzije
-    const [recenzije] = await pool.query(
+    const [sportovi] = (await pool.query(
+      `SELECT sp.Naziv_sporta FROM SPORTOVI_OBJEKTA so
+       JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta
+       WHERE so.ID_objekta = ?`,
+      [id],
+    )) as [any[], any];
+
+    const [recenzije] = (await pool.query(
       `SELECT 
         r.Ocjena, r.Komentar, r.Datum_objave,
         k.Ime, k.Prezime
@@ -195,8 +206,8 @@ router.get("/:id", async (req: Request, res: Response) => {
        JOIN KORISNIK k ON r.ID_korisnika = k.ID_korisnika
        WHERE r.ID_objekta = ?
        ORDER BY r.Datum_objave DESC`,
-      [id]
-    ) as [any[], any];
+      [id],
+    )) as [any[], any];
 
     res.json({
       id: obj.ID_objekta,
@@ -207,10 +218,11 @@ router.get("/:id", async (req: Request, res: Response) => {
       kapacitet: obj.Kapacitet,
       nazivKluba: obj.Naziv_kluba,
       kontaktTelefon: obj.Kontakt_telefon,
-      ocjena: obj.ocjena,
+      ocjena: obj.ocjena || 0,
       brojRecenzija: Number(obj.broj_recenzija),
       sportovi: sportovi.map((s: any) => s.Naziv_sporta),
-      termini: termini.map((t: any) => ({
+
+      termini: sviTermini.map((t: any) => ({
         id: t.ID_termina,
         datum: t.Datum,
         vrijemePocetka: t.vrijeme_pocetka,
@@ -231,5 +243,53 @@ router.get("/:id", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Greška na serveru." });
   }
 });
+
+// POST /api/objekti/recenzije/nova — dodavanje recenzija
+router.post(
+  "/recenzije/nova",
+  autentificiraj,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { idObjekta, ocjena, komentar } = req.body;
+      const idKorisnika = req.user?.id;
+
+      if (!idObjekta || !ocjena) {
+        res.status(400).json({ error: "Nedostaju objekt ili ocjena." });
+        return;
+      }
+
+      if (ocjena < 1 || ocjena > 5) {
+        res.status(400).json({ error: "Ocjena mora biti između 1 i 5." });
+        return;
+      }
+
+      // Provjera postoji li već recenzija (jedna recenzija dozvoljena po korisniku)
+      const [postojece] = (await pool.query(
+        "SELECT * FROM RECENZIJE WHERE ID_korisnika = ? AND ID_objekta = ?",
+        [idKorisnika, idObjekta],
+      )) as [any[], any];
+
+      if (postojece.length > 0) {
+        res
+          .status(400)
+          .json({ error: "Već ste ostavili recenziju za ovaj objekt." });
+        return;
+      }
+
+      await pool.query(
+        `INSERT INTO RECENZIJE (ID_korisnika, ID_objekta, Ocjena, Komentar) 
+       VALUES (?, ?, ?, ?)`,
+        [idKorisnika, idObjekta, ocjena, komentar || null],
+      );
+
+      res.status(201).json({ message: "Recenzija uspješno objavljena!" });
+    } catch (error) {
+      console.error("Greška pri spremanju recenzije:", error);
+      res
+        .status(500)
+        .json({ error: "Greška na serveru pri spremanju recenzije." });
+    }
+  },
+);
 
 export default router;

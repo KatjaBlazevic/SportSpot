@@ -29,6 +29,7 @@ export interface DetaljiObjekta {
   sportovi: string[];
   termini: Termin[];
   recenzije: Recenzija[];
+  slikaUrl: string;
 }
 
 export interface InfoSekcijaProps {

@@ -13,7 +13,7 @@ export default function RecenzijaKartica({ r }: { r: Recenzija }) {
   };
 
   return (
-    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 hover:border-blue-200 transition-all">
+    <div className="p-6 bg-slate-50 rounded-3xl border  border-slate-100 hover:border-blue-200 transition-all">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">

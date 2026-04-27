@@ -5,11 +5,13 @@ import type { DetaljiObjekta } from "../types/index.ts";
 import InfoSekcija from "../components/InfoSekcija";
 import TerminKartica from "../components/TerminKartica";
 import RecenzijaKartica from "../components/RecenzijaKartica";
+import NovaRecenzijaObrazac from "../components/NovaRecenzijaObrazac.tsx";
 
 export default function ObjektDetalji() {
   const { id } = useParams<{ id: string }>();
   const { korisnik } = useAuth();
   const [data, setData] = useState<DetaljiObjekta | null>(null);
+  const [isObrazacOpen, setIsObrazacOpen] = useState(false);
   const [omiljen, setOmiljen] = useState<boolean>(() => {
     const saved = localStorage.getItem("sportspot_omiljeni");
     if (saved && id) {
@@ -26,10 +28,55 @@ export default function ObjektDetalji() {
     if (omiljen) {
       omiljeni = omiljeni.filter((o: { id: number }) => o.id !== Number(id));
     } else {
-      omiljeni.push({ id: Number(id), naziv: data?.naziv || "", adresa: data?.adresa || "" });
+      omiljeni.push({
+        id: Number(id),
+        naziv: data?.naziv || "",
+        adresa: data?.adresa || "",
+      });
     }
     localStorage.setItem("sportspot_omiljeni", JSON.stringify(omiljeni));
     setOmiljen(!omiljen);
+  };
+
+  const handleRecenzijaSubmit = async (ocjena: number, komentar: string) => {
+    try {
+      const token = localStorage.getItem("sportspot_token");
+
+      if (!token) {
+        alert("Moraš biti prijavljen da bi ostavio recenziju!");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/objekti/recenzije/nova",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            idObjekta: data?.id,
+            ocjena: ocjena,
+            komentar: komentar,
+          }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("WOOHOO! Recenzija je objavljena.");
+        setIsObrazacOpen(false);
+        // Osvježavamo stranicu da se učitaju novi podaci
+        window.location.reload();
+      } else {
+        alert(result.error || "Došlo je do pogreške.");
+      }
+    } catch (error) {
+      console.error("Greška pri slanju recenzije:", error);
+      alert("Server nije dostupan.");
+    }
   };
 
   useEffect(() => {
@@ -84,32 +131,49 @@ export default function ObjektDetalji() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-          <div className="lg:col-span-5 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-8 mb-12">
+          <div className="lg:col-span-1 lg:col-start-2 lg:row-start-1 space-y-8">
             <InfoSekcija
+              slikaUrl={data.slikaUrl || ""}
               adresa={data.adresa}
               kvart={data.kvart}
               kapacitet={data.kapacitet}
               klub={data.nazivKluba}
               opis={data.opis}
             />
-
-            <div className="bg-white p-8 rounded-[32px] border border-blue-50 shadow-xl shadow-blue-900/5">
+          </div>
+          <div className="lg:col-span-1 lg:col-start-1">
+            <div className="bg-white  p-8 rounded-[32px] border border-blue-50 shadow-xl shadow-blue-900/5">
               <h3 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-6 text-center">
-                Slobodni termini
+                Termini
               </h3>
               <div className="space-y-3">
                 {data.termini && data.termini.length > 0 ? (
                   data.termini.map((t) => (
-                    <TerminKartica
-                      key={t.id}
-                      id={t.id}
-                      datum={t.datum}
-                      vrijemePocetka={t.vrijemePocetka}
-                      vrijemeKraja={t.vrijemeKraja}
-                      cijena={t.cijena}
-                      status={t.status}
-                    />
+                    <div key={t.id} className="relative">
+                      <TerminKartica
+                        id={t.id}
+                        datum={t.datum}
+                        vrijemePocetka={t.vrijemePocetka}
+                        vrijemeKraja={t.vrijemeKraja}
+                        cijena={t.cijena}
+                        status={t.status}
+                      />
+
+                      {/* Ako je termin zauzet i korisnik je logiran, prikaži gumb za listu čekanja */}
+                      {t.status !== "Slobodan" && korisnik && (
+                        <button
+                          onClick={() =>
+                            alert(
+                              `Prijavljeni ste na listu čekanja za termin ${t.id}`,
+                            )
+                          }
+                          className="mt-2 w-full py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-amber-900/20"
+                        >
+                          Prijava na listu čekanja ⏳
+                        </button>
+                      )}
+                    </div>
                   ))
                 ) : (
                   <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
@@ -121,61 +185,77 @@ export default function ObjektDetalji() {
               </div>
             </div>
           </div>
+          <section className="bg-white lg:col-start-2 p-10 rounded-[40px] border border-blue-50 shadow-xl shadow-blue-900/5">
+            {data.brojRecenzija > 0 ? (
+              <div className="flex justify-between items-start mb-8 pb-8 border-b border-slate-50">
+                <div>
+                  <p className="text-xs font-black text-blue-400 uppercase tracking-widest">
+                    Dojmovi igrača
+                  </p>
+                  <h2 className="text-5xl font-black text-slate-800 mt-2">
+                    ⭐ {data.ocjena}
+                  </h2>
+                </div>
 
-          {/* SLIKA */}
-          <div className="lg:col-span-7 h-[35rem] rounded-[40px] overflow-hidden shadow-2xl border-8 border-white">
-            <img
-              src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1200"
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-              alt={data.naziv}
-            />
-          </div>
-        </div>
-
-        <section className="bg-white p-10 rounded-[40px] border border-blue-50 shadow-xl shadow-blue-900/5">
-          {data.brojRecenzija > 0 ? (
-            <div className="flex justify-between items-end mb-10 pb-8 border-b border-slate-50">
-              <div>
-                <p className="text-xs font-black text-blue-400 uppercase tracking-widest">
-                  Dojmovi igrača
-                </p>
-                <h2 className="text-5xl font-black text-slate-800 mt-2">
-                  ⭐ {data.ocjena}
-                </h2>
+                {korisnik && (
+                  <button
+                    onClick={() => setIsObrazacOpen(true)}
+                    className="flex items-center gap-2 px-6 mt-2 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase text-xs transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-600/20"
+                  >
+                    <span>Dodaj</span>
+                    <span className="text-xl leading-none">+</span>
+                  </button>
+                )}
               </div>
-              <div className="text-right">
-                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">
+            ) : (
+              <div className="flex justify-between items-center mb-10 pb-8 border-b border-slate-50">
+                <div className="text-center lg:text-left">
+                  <p className="text-xs font-black text-slate-300 uppercase tracking-widest">
+                    Dojmovi igrača
+                  </p>
+                  <h2 className="text-2xl font-bold text-slate-400 mt-2">
+                    Još nema ocjena
+                  </h2>
+                </div>
+
+                {korisnik && (
+                  <button
+                    onClick={() => setIsObrazacOpen(true)}
+                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase text-xs transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-600/20"
+                  >
+                    <span>Budi prvi</span>
+                    <span className="text-xl leading-none">+</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {data.recenzije && data.recenzije.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                <p className="text-slate-400 font-bold uppercase text-[10px] -mb-3 tracking-widest italic">
                   Baza od {data.brojRecenzija} recenzija
                 </p>
+                {data.recenzije.map((r, i) => (
+                  <RecenzijaKartica key={i} r={r} />
+                ))}
               </div>
-            </div>
-          ) : (
-            <div className="mb-6 text-center lg:text-left">
-              <p className="text-xs font-black text-slate-300 uppercase tracking-widest">
-                Dojmovi igrača
-              </p>
-              <h2 className="text-2xl font-bold text-slate-400 mt-2">
-                Još nema ocjena
-              </h2>
-            </div>
-          )}
-
-          {data.recenzije && data.recenzije.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {data.recenzije.map((r, i) => (
-                <RecenzijaKartica key={i} r={r} />
-              ))}
-            </div>
-          ) : (
-            <div className="py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-              <div className="text-4xl mb-4 opacity-50">💬</div>
-              <p className="text-slate-400 font-medium italic">
-                Postani prvi koji će ostaviti recenziju!
-              </p>
-            </div>
-          )}
-        </section>
+            ) : (
+              <div className="py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                <div className="text-4xl mb-4 opacity-50">💬</div>
+                <p className="text-slate-400 font-medium italic">
+                  Postani prvi koji će ostaviti recenziju!
+                </p>
+              </div>
+            )}
+          </section>
+        </div>
       </main>
+      <NovaRecenzijaObrazac
+        isOpen={isObrazacOpen}
+        onClose={() => setIsObrazacOpen(false)}
+        onSubmit={handleRecenzijaSubmit}
+        objektNaziv={data.naziv}
+      />
     </div>
   );
 }
