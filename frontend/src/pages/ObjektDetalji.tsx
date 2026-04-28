@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import type { DetaljiObjekta } from "../types/index.ts";
@@ -7,6 +7,7 @@ import TerminKartica from "../components/TerminKartica";
 import RecenzijaKartica from "../components/RecenzijaKartica";
 import NovaRecenzijaObrazac from "../components/NovaRecenzijaObrazac.tsx";
 import NoviTerminObrazac from "../components/NoviTerminObrazac.tsx";
+import TjedniFilter from "../components/TjedniFilter.tsx";
 
 export default function ObjektDetalji() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ export default function ObjektDetalji() {
   const [data, setData] = useState<DetaljiObjekta | null>(null);
   const [isObrazacOpen, setIsObrazacOpen] = useState(false);
   const [isTerminObrazacOpen, setIsTerminObrazacOpen] = useState(false);
+  const [raspon, setRaspon] = useState<{ start: Date; end: Date } | null>(null);
   const [omiljen, setOmiljen] = useState<boolean>(() => {
     const saved = localStorage.getItem("sportspot_omiljeni");
     if (saved && id) {
@@ -82,8 +84,7 @@ export default function ObjektDetalji() {
   };
 
   const handleTerminSubmit = async (terminData: any) => {
-    alert("Još malo pa ces moc dodat, kad se napravi do kraja ");
-    /* try {
+    try {
       const token = localStorage.getItem("sportspot_token");
       const response = await fetch("http://localhost:5000/api/termini/dodaj", {
         method: "POST",
@@ -107,7 +108,7 @@ export default function ObjektDetalji() {
       }
     } catch (err) {
       console.error(err);
-    } */
+    }
   };
 
   useEffect(() => {
@@ -117,6 +118,19 @@ export default function ObjektDetalji() {
       .catch((err) => console.error("Greška:", err));
   }, [id]);
 
+  const handleWeekChange = (start: Date, end: Date) => {
+    setRaspon({ start, end });
+  };
+  const filtriraniTermini = useMemo(() => {
+    if (!data?.termini || !raspon) return [];
+
+    return data.termini.filter((t: any) => {
+      const datumTermina = new Date(t.datum).toLocaleDateString("sv-SE");
+      const startStr = raspon.start.toLocaleDateString("sv-SE");
+      const endStr = raspon.end.toLocaleDateString("sv-SE");
+      return datumTermina >= startStr && datumTermina <= endStr;
+    });
+  }, [data?.termini, raspon]);
   if (!data)
     return (
       <div className="h-screen flex items-center justify-center font-black text-blue-600 animate-pulse uppercase tracking-tighter">
@@ -127,15 +141,6 @@ export default function ObjektDetalji() {
   const jeVlasnik =
     korisnik?.uloga === "Vlasnik" &&
     Number(korisnik.id) === Number(data.idKorisnika);
-
-  console.log("Cijeli DATA objekt s backenda:", data);
-
-  console.log("DEBUG VLASNIK:", {
-    uloga: korisnik?.uloga,
-    idKorisnika: korisnik?.id,
-    idVlasnikaObjekta: data?.idKorisnika,
-    isVlasnik: jeVlasnik,
-  });
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -186,7 +191,7 @@ export default function ObjektDetalji() {
               opis={data.opis}
             />
           </div>
-          <div className="lg:col-span-1 lg:col-start-1">
+          <div className="lg:col-span-1 lg:row-span-2 lg:col-start-1">
             <div className="bg-white p-8 rounded-[32px] border border-blue-50 shadow-xl shadow-blue-900/5">
               <div
                 className={`flex  p-4 items-center transition-colors m-[0_auto] mb-6 ${jeVlasnik ? "justify-between bg-white w-[90%] " : "w-full justify-center"}`}
@@ -204,9 +209,10 @@ export default function ObjektDetalji() {
                   </button>
                 )}
               </div>
+              <TjedniFilter onWeekChange={handleWeekChange} />
               <div className="space-y-3">
-                {data.termini && data.termini.length > 0 ? (
-                  data.termini.map((t) => (
+                {filtriraniTermini.length > 0 ? (
+                  filtriraniTermini.map((t) => (
                     <div key={t.id} className="relative">
                       <TerminKartica
                         id={t.id}

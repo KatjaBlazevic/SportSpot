@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import objektiRoutes from "./routes/objektiRoutes.ts";
+import terminiRoutes from "./routes/terminiRoutes.ts";
 import authRoutes from "./routes/authRoutes.ts";
 import pool from "./db.ts";
 dotenv.config();
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use("/api/objekti", objektiRoutes);
+app.use("/api/termini", terminiRoutes);
 app.use("/api/auth", authRoutes);
 
 // GET /api/profile - Dohvati profil korisnika
@@ -31,15 +33,25 @@ app.get("/api/profile", async (req: Request, res: Response) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "sportspot_tajni_kljuc") as { id: number };
-    
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
+    ) as { id: number };
+
     const [rows] = await pool.query(
       "SELECT ID_korisnika, Ime, Prezime, Email, Broj_mobitela, Uloga FROM KORISNIK WHERE ID_korisnika = ?",
-      [decoded.id]
+      [decoded.id],
     );
-    
-    const korisnici = rows as { ID_korisnika: number; Ime: string; Prezime: string; Email: string; Broj_mobitela: string | null; Uloga: string }[];
-    
+
+    const korisnici = rows as {
+      ID_korisnika: number;
+      Ime: string;
+      Prezime: string;
+      Email: string;
+      Broj_mobitela: string | null;
+      Uloga: string;
+    }[];
+
     if (korisnici.length === 0) {
       res.status(404).json({ greska: "Korisnik ne postoji." });
       return;
@@ -57,7 +69,7 @@ app.get("/api/profile", async (req: Request, res: Response) => {
       email: k.Email,
       brojMobitela: k.Broj_mobitela,
       uloga: k.Uloga,
-});
+    });
   } catch (error) {
     console.error("Greška pri dohvatu objekata:", error);
     res.status(500).json({ greska: "Interna greška servera." });
@@ -79,8 +91,11 @@ app.get("/api/moje-rezervacije", async (req: Request, res: Response) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "sportspot_tajni_kljuc") as { id: number };
-    
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
+    ) as { id: number };
+
     const [rows] = await pool.query(
       `SELECT t.ID_termina, t.ID_objekta, o.Naziv_objekta, o.Adresa, o.Kvart, k.Naziv_kluba, t.Datum, 
        TIME_FORMAT(t.Vrijeme_pocetka, '%H:%i') AS vrijeme_pocetka,
@@ -90,9 +105,9 @@ app.get("/api/moje-rezervacije", async (req: Request, res: Response) => {
        LEFT JOIN KLUB k ON o.ID_objekta = k.ID_objekta
        WHERE t.ID_korisnika = ? AND t.Status != 'Slobodan'
        ORDER BY t.Datum DESC, t.Vrijeme_pocetka DESC`,
-      [decoded.id]
+      [decoded.id],
     );
-    
+
     res.json(rows);
   } catch (error) {
     console.error("Greška pri dohvatu rezervacija:", error);
@@ -115,17 +130,20 @@ app.get("/api/moji-objekti", async (req: Request, res: Response) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "sportspot_tajni_kljuc") as { id: number };
-    
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
+    ) as { id: number };
+
     const [rows] = await pool.query(
       `SELECT o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Kvart, o.Kapacitet, o.Opis, 
        (SELECT GROUP_CONCAT(s.Naziv_sporta SEPARATOR ', ') FROM SPORTOVI_OBJEKTA so JOIN SPORT s ON so.ID_sporta = s.ID_sporta WHERE so.ID_objekta = o.ID_objekta) AS sportovi
        FROM OBJEKTI o
        WHERE o.ID_korisnika = ?
        ORDER BY o.Naziv_objekta ASC`,
-      [decoded.id]
+      [decoded.id],
     );
-    
+
     res.json(rows);
   } catch (error) {
     console.error("Greška pri dohvatu objekata:", error);
@@ -150,13 +168,23 @@ app.post("/api/profile/update", async (req: Request, res: Response) => {
   const { ime, prezime, email, brojMobitela, novaLozinka } = req.body;
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "sportspot_tajni_kljuc") as { id: number };
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
+    ) as { id: number };
 
     const [currentRows] = await pool.query(
       "SELECT Ime, Prezime, Email, Broj_mobitela FROM KORISNIK WHERE ID_korisnika = ?",
-      [decoded.id]
+      [decoded.id],
     );
-    const current = (currentRows as { Ime: string; Prezime: string; Email: string; Broj_mobitela: string | null }[])[0];
+    const current = (
+      currentRows as {
+        Ime: string;
+        Prezime: string;
+        Email: string;
+        Broj_mobitela: string | null;
+      }[]
+    )[0];
     if (!current) {
       res.status(404).json({ greska: "Korisnik ne postoji." });
       return;
@@ -165,7 +193,7 @@ app.post("/api/profile/update", async (req: Request, res: Response) => {
     if (email && email !== current.Email) {
       const [existing] = await pool.query(
         "SELECT ID_korisnika FROM KORISNIK WHERE Email = ? AND ID_korisnika != ?",
-        [email, decoded.id]
+        [email, decoded.id],
       );
       const rows = existing as { ID_korisnika: number }[];
       if (rows.length > 0) {
@@ -176,7 +204,7 @@ app.post("/api/profile/update", async (req: Request, res: Response) => {
 
     let query = "UPDATE KORISNIK SET ";
     const params: (string | number)[] = [];
-    
+
     if (ime && ime !== current.Ime) {
       query += "Ime = ?, ";
       params.push(ime);
@@ -233,15 +261,20 @@ app.post("/api/objekti", async (req: Request, res: Response) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "sportspot_tajni_kljuc") as { id: number };
-    
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
+    ) as { id: number };
+
     const [result] = await pool.query(
       "INSERT INTO OBJEKTI (ID_korisnika, Naziv_objekta, Adresa, Kvart, Kapacitet, Opis) VALUES (?, ?, ?, ?, ?, ?)",
-      [decoded.id, naziv, adresa, kvart, kapacitet || null, opis || null]
+      [decoded.id, naziv, adresa, kvart, kapacitet || null, opis || null],
     );
-    
+
     const insertResult = result as { insertId: number };
-    res.status(201).json({ id: insertResult.insertId, poruka: "Objekt uspješno kreiran." });
+    res
+      .status(201)
+      .json({ id: insertResult.insertId, poruka: "Objekt uspješno kreiran." });
   } catch (error) {
     console.error("Greška pri kreiranju objekta:", error);
     res.status(500).json({ greska: "Interna greška servera." });
@@ -266,24 +299,29 @@ app.put("/api/objekti/:id", async (req: Request, res: Response) => {
   const { naziv, adresa, kvart, kapacitet, opis } = req.body;
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "sportspot_tajni_kljuc") as { id: number };
-    
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
+    ) as { id: number };
+
     // Provjeri je li objekt vlasnikov
     const [existing] = await pool.query(
       "SELECT ID_objekta FROM OBJEKTI WHERE ID_objekta = ? AND ID_korisnika = ?",
-      [id, decoded.id]
+      [id, decoded.id],
     );
     const rows = existing as { ID_objekta: number }[];
     if (rows.length === 0) {
-      res.status(404).json({ greska: "Objekt ne postoji ili nemate pravo uređivati." });
+      res
+        .status(404)
+        .json({ greska: "Objekt ne postoji ili nemate pravo uređivati." });
       return;
     }
 
     await pool.query(
       "UPDATE OBJEKTI SET Naziv_objekta = ?, Adresa = ?, Kvart = ?, Kapacitet = ?, Opis = ? WHERE ID_objekta = ?",
-      [naziv, adresa, kvart, kapacitet || null, opis || null, id]
+      [naziv, adresa, kvart, kapacitet || null, opis || null, id],
     );
-    
+
     res.json({ poruka: "Objekt uspješno ažuriran." });
   } catch (error) {
     console.error("Greška pri ažuriranju objekta:", error);
