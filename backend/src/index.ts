@@ -115,6 +115,17 @@ app.get("/api/moje-rezervacije", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/sportovi - Lista svih sportova
+app.get("/api/sportovi", async (req: Request, res: Response) => {
+  try {
+    const [rows] = await pool.query("SELECT ID_sporta, Naziv_sporta FROM SPORT ORDER BY Naziv_sporta");
+    res.json(rows);
+  } catch (error) {
+    console.error("Greška pri dohvaćanju sportova:", error);
+    res.status(500).json({ greska: "Interna greška servera." });
+  }
+});
+
 // GET /api/moji-objekti - Objekti vlasnika
 app.get("/api/moji-objekti", async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
@@ -253,7 +264,7 @@ app.post("/api/objekti", async (req: Request, res: Response) => {
     return;
   }
 
-  const { naziv, adresa, kvart, kapacitet, opis } = req.body;
+  const { naziv, adresa, kvart, kapacitet, opis, sportovi } = req.body;
 
   if (!naziv || !adresa || !kvart) {
     res.status(400).json({ greska: "Naziv, adresa i kvart su obavezni." });
@@ -272,9 +283,20 @@ app.post("/api/objekti", async (req: Request, res: Response) => {
     );
 
     const insertResult = result as { insertId: number };
+    const noviId = insertResult.insertId;
+
+    // Dodaj sportove ako su proslijeđeni
+    if (sportovi && Array.isArray(sportovi) && sportovi.length > 0) {
+      const sportValues = sportovi.map((idSporta: number) => [noviId, idSporta]);
+      await pool.query(
+        "INSERT INTO SPORTOVI_OBJEKTA (ID_objekta, ID_sporta) VALUES ?",
+        [sportValues],
+      );
+    }
+
     res
       .status(201)
-      .json({ id: insertResult.insertId, poruka: "Objekt uspješno kreiran." });
+      .json({ id: noviId, poruka: "Objekt uspješno kreiran." });
   } catch (error) {
     console.error("Greška pri kreiranju objekta:", error);
     res.status(500).json({ greska: "Interna greška servera." });
@@ -296,7 +318,7 @@ app.put("/api/objekti/:id", async (req: Request, res: Response) => {
   }
 
   const { id } = req.params;
-  const { naziv, adresa, kvart, kapacitet, opis } = req.body;
+  const { naziv, adresa, kvart, kapacitet, opis, sportovi } = req.body;
 
   try {
     const decoded = jwt.verify(
@@ -321,6 +343,17 @@ app.put("/api/objekti/:id", async (req: Request, res: Response) => {
       "UPDATE OBJEKTI SET Naziv_objekta = ?, Adresa = ?, Kvart = ?, Kapacitet = ?, Opis = ? WHERE ID_objekta = ?",
       [naziv, adresa, kvart, kapacitet || null, opis || null, id],
     );
+
+    // Ažuriraj sportove - prvo izbriši stare, pa dodaj nove
+    await pool.query("DELETE FROM SPORTOVI_OBJEKTA WHERE ID_objekta = ?", [id]);
+    
+    if (sportovi && Array.isArray(sportovi) && sportovi.length > 0) {
+      const sportValues = sportovi.map((idSporta: number) => [id, idSporta]);
+      await pool.query(
+        "INSERT INTO SPORTOVI_OBJEKTA (ID_objekta, ID_sporta) VALUES ?",
+        [sportValues],
+      );
+    }
 
     res.json({ poruka: "Objekt uspješno ažuriran." });
   } catch (error) {
