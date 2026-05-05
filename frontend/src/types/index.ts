@@ -1,5 +1,6 @@
 export interface Termin {
   id: number;
+  idKorisnika: number | null;
   datum: string;
   vrijemePocetka: string;
   vrijemeKraja: string;

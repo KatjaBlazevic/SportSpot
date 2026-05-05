@@ -180,15 +180,16 @@ router.get("/:id", async (req: Request, res: Response) => {
     const obj = rows[0];
     const [sviTermini] = (await pool.query(
       `SELECT 
-        ID_termina,
-        Datum,
-        TIME_FORMAT(Vrijeme_pocetka, '%H:%i') AS vrijeme_pocetka,
-        TIME_FORMAT(Vrijeme_kraja, '%H:%i') AS vrijeme_kraja,
-        Cijena,
-        Status
-       FROM TERMINI
-       WHERE ID_objekta = ? AND Datum >= CURDATE()
-       ORDER BY Datum ASC, Vrijeme_pocetka ASC`,
+    ID_termina,
+    ID_korisnika,
+    Datum,
+    TIME_FORMAT(Vrijeme_pocetka, '%H:%i') AS vrijeme_pocetka,
+    TIME_FORMAT(Vrijeme_kraja, '%H:%i') AS vrijeme_kraja,
+    Cijena,
+    Status
+   FROM TERMINI
+   WHERE ID_objekta = ? 
+   ORDER BY Datum DESC, Vrijeme_pocetka ASC`,
       [id],
     )) as [any[], any];
 
@@ -226,6 +227,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
       termini: sviTermini.map((t: any) => ({
         id: t.ID_termina,
+        idKorisnika: t.ID_korisnika !== undefined ? t.ID_korisnika : null,
         datum: t.Datum,
         vrijemePocetka: t.vrijeme_pocetka,
         vrijemeKraja: t.vrijeme_kraja,

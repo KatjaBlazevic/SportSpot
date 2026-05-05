@@ -25,6 +25,15 @@ export default function ObjektDetalji() {
     return false;
   });
 
+  const dohvatiPodatke = () => {
+    fetch(`http://localhost:5000/api/objekti/${id}`)
+      .then((res) => res.json())
+      .then((json: DetaljiObjekta) => {
+        setData(json);
+      })
+      .catch((err) => console.error("Greška:", err));
+  };
+
   const toggleOmiljeni = () => {
     if (!korisnik) return;
     const saved = localStorage.getItem("sportspot_omiljeni");
@@ -72,7 +81,6 @@ export default function ObjektDetalji() {
       if (response.ok) {
         alert("WOOHOO! Recenzija je objavljena.");
         setIsObrazacOpen(false);
-        // Osvježavamo stranicu da se učitaju novi podaci
         window.location.reload();
       } else {
         alert(result.error || "Došlo je do pogreške.");
@@ -112,10 +120,7 @@ export default function ObjektDetalji() {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/objekti/${id}`)
-      .then((res) => res.json())
-      .then((json: DetaljiObjekta) => setData(json))
-      .catch((err) => console.error("Greška:", err));
+    dohvatiPodatke();
   }, [id]);
 
   const handleWeekChange = (start: Date, end: Date) => {
@@ -145,7 +150,6 @@ export default function ObjektDetalji() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* NASLOV */}
         <div className="text-center mb-12 relative">
           <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase">
             {data.naziv}
@@ -212,36 +216,49 @@ export default function ObjektDetalji() {
               <TjedniFilter onWeekChange={handleWeekChange} />
               <div className="space-y-3">
                 {filtriraniTermini.length > 0 ? (
-                  filtriraniTermini.map((t) => (
-                    <div key={t.id} className="relative">
-                      <TerminKartica
-                        id={t.id}
-                        datum={t.datum}
-                        vrijemePocetka={t.vrijemePocetka}
-                        vrijemeKraja={t.vrijemeKraja}
-                        cijena={t.cijena}
-                        status={t.status}
-                      />
+                  filtriraniTermini.map((t) => {
+                    // Logika za provjeru vlasništva
+                    const jeMojTermin = !!(
+                      t.status !== "Slobodan" &&
+                      korisnik?.id &&
+                      Number(t.idKorisnika) === Number(korisnik.id)
+                    );
 
-                      {/* Ako je termin zauzet i korisnik je logiran, prikaži gumb za listu čekanja */}
-                      {t.status !== "Slobodan" && korisnik && (
-                        <button
-                          onClick={() =>
-                            alert(
-                              `Prijavljeni ste na listu čekanja za termin ${t.id}`,
-                            )
-                          }
-                          className="mt-2 w-full py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-amber-900/20"
-                        >
-                          Prijava na listu čekanja ⏳
-                        </button>
-                      )}
-                    </div>
-                  ))
+                    return (
+                      <div key={t.id} className="relative">
+                        <TerminKartica
+                          id={t.id}
+                          idKorisnika={t.idKorisnika}
+                          datum={t.datum}
+                          vrijemePocetka={t.vrijemePocetka}
+                          vrijemeKraja={t.vrijemeKraja}
+                          cijena={t.cijena}
+                          status={t.status}
+                          onRezervacija={dohvatiPodatke}
+                          jeMojTermin={jeMojTermin}
+                        />
+
+                        {t.status !== "Slobodan" &&
+                          korisnik &&
+                          !jeMojTermin && (
+                            <button
+                              onClick={() =>
+                                alert(
+                                  `Prijavljeni ste na listu čekanja za termin ${t.id}`,
+                                )
+                              }
+                              className="mt-2 w-full py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-amber-900/20"
+                            >
+                              Prijava na listu čekanja ⏳
+                            </button>
+                          )}
+                      </div>
+                    );
+                  })
                 ) : (
                   <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                     <p className="text-slate-400 text-sm font-medium italic">
-                      Trenutno nema slobodnih termina
+                      Nema termina ovaj tjedan
                     </p>
                   </div>
                 )}

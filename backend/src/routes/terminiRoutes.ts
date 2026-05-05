@@ -69,4 +69,79 @@ router.post(
     }
   },
 );
+
+// POST /api/termini/rezerviraj/:id
+router.post(
+  "/rezerviraj/:id",
+  autentificiraj,
+  async (req: AuthRequest, res: Response) => {
+    const idTermina = req.params.id;
+    const idKorisnika = req.user?.id;
+
+    //Termin slobodan?
+    try {
+      const [termini] = (await pool.query(
+        "SELECT Status FROM TERMINI WHERE ID_termina = ?",
+        [idTermina],
+      )) as [any[], any];
+
+      if (termini.length === 0) {
+        return res.status(404).json({ error: "Termin nije pronađen." });
+      }
+
+      if (termini[0].Status !== "Slobodan") {
+        return res
+          .status(400)
+          .json({ error: "Ovaj termin više nije dostupan za rezervaciju." });
+      }
+
+      await pool.query(
+        "UPDATE TERMINI SET Status = 'Zauzet', ID_korisnika = ? WHERE ID_termina = ?",
+        [idKorisnika, idTermina],
+      );
+
+      res.status(200).json({ message: "Termin uspješno rezerviran!" });
+    } catch (error) {
+      console.error("Greška pri rezervaciji:", error);
+      res.status(500).json({ error: "Interna greška servera." });
+    }
+  },
+);
+
+router.put(
+  "/otkazi/:id",
+  autentificiraj,
+  async (req: AuthRequest, res: Response) => {
+    const idTermina = req.params.id;
+    const idKorisnika = req.user?.id;
+
+    try {
+      //Provjeri postoji li termin i tko ga je rezervirao
+      const [termini] = (await pool.query(
+        "SELECT ID_korisnika, Status FROM TERMINI WHERE ID_termina = ?",
+        [idTermina],
+      )) as [any[], any];
+
+      if (termini.length === 0) {
+        return res.status(404).json({ error: "Termin nije pronađen." });
+      }
+
+      if (Number(termini[0].ID_korisnika) !== Number(idKorisnika)) {
+        return res
+          .status(403)
+          .json({ error: "Nemate dozvolu za otkazivanje tuđe rezervacije." });
+      }
+
+      await pool.query(
+        "UPDATE TERMINI SET Status = 'Slobodan', ID_korisnika = NULL WHERE ID_termina = ?",
+        [idTermina],
+      );
+
+      res.status(200).json({ message: "Rezervacija uspješno otkazana!" });
+    } catch (error) {
+      console.error("Greška pri otkazivanju:", error);
+      res.status(500).json({ error: "Interna greška servera." });
+    }
+  },
+);
 export default router;
