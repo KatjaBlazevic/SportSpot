@@ -32,10 +32,30 @@ interface MojObjekt {
   sportovi: string | null;
 }
 
-// Dodano sučelje za sportove iz baze
 interface Sport {
   ID_sporta: number;
   Naziv_sporta: string;
+}
+
+// NOVO: Sučelja za statistiku
+interface StatistikaMjesec {
+  mjesec: string;
+  brojRezervacija: number;
+  prihod: number;
+}
+
+interface StatistikaObjekt {
+  id: number;
+  naziv: string;
+  zauzeti: number;
+  slobodni: number;
+  ukupnoTermina: number;
+  ukupniPrihod: number;
+}
+
+interface Statistika {
+  poMjesecima: StatistikaMjesec[];
+  poObjektima: StatistikaObjekt[];
 }
 
 export default function ProfilVlasnik() {
@@ -52,16 +72,19 @@ export default function ProfilVlasnik() {
     }
     return [];
   });
-  
+
   const [rezervacije, setRezervacije] = useState<Rezervacija[]>([]);
   const [mojiObjekti, setMojiObjekti] = useState<MojObjekt[]>([]);
-  const [aktivnaTab, setAktivnaTab] = useState<"mojiObjekti" | "rezervacije" | "omiljeni">("mojiObjekti");
+  const [aktivnaTab, setAktivnaTab] = useState<"mojiObjekti" | "rezervacije" | "omiljeni" | "statistika">("mojiObjekti");
   const [ucitavanjeRez, setUcitavanjeRez] = useState(false);
   const [ucitavanjeObjekti, setUcitavanjeObjekti] = useState(false);
 
-  // NOVO: State za sportove iz baze
   const [sviSportovi, setSviSportovi] = useState<Sport[]>([]);
   const [odabraniSportovi, setOdabraniSportovi] = useState<number[]>([]);
+
+  // NOVO: State za statistiku
+  const [statistika, setStatistika] = useState<Statistika | null>(null);
+  const [ucitavanjeStatistike, setUcitavanjeStatistike] = useState(false);
 
   // Profil modal
   const [showModal, setShowModal] = useState(false);
@@ -85,7 +108,6 @@ export default function ProfilVlasnik() {
     if (!ucitavanje && !korisnik) navigate("/prijava");
   }, [ucitavanje, korisnik, navigate]);
 
-  // Dohvat sportova iz baze pri učitavanju komponente
   useEffect(() => {
     if (token) {
       fetch("http://localhost:5000/api/sportovi", { headers: { Authorization: `Bearer ${token}` } })
@@ -114,6 +136,19 @@ export default function ProfilVlasnik() {
         .catch(() => setUcitavanjeRez(false));
     }
   }, [aktivnaTab, token]);
+
+  // NOVO: Dohvat statistike
+  useEffect(() => {
+    if (aktivnaTab === "statistika" && token && !statistika) {
+      setUcitavanjeStatistike(true);
+      fetch("http://localhost:5000/api/objekti/vlasnik/statistika", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => { setStatistika(data); setUcitavanjeStatistike(false); })
+        .catch(() => setUcitavanjeStatistike(false));
+    }
+  }, [aktivnaTab, token, statistika]);
 
   // --- Profil modal funkcije ---
   const otvoriModal = async () => {
@@ -169,18 +204,13 @@ export default function ProfilVlasnik() {
       kapacitet: obj.Kapacitet !== null ? String(obj.Kapacitet) : "",
       opis: obj.Opis || "",
     });
-
-    // Parsiranje sportova (ako dolaze kao string "Nogomet, Tenis") u ID-ove
     if (obj.sportovi) {
       const imena = obj.sportovi.split(", ");
-      const idjevi = sviSportovi
-        .filter((s) => imena.includes(s.Naziv_sporta))
-        .map((s) => s.ID_sporta);
+      const idjevi = sviSportovi.filter((s) => imena.includes(s.Naziv_sporta)).map((s) => s.ID_sporta);
       setOdabraniSportovi(idjevi);
     } else {
       setOdabraniSportovi([]);
     }
-
     setObjektMod("uredi");
     setEditObjektId(obj.ID_objekta);
     setObjektPoruka("");
@@ -190,7 +220,7 @@ export default function ProfilVlasnik() {
   const zatvoriObjektModal = () => { setShowObjektModal(false); setObjektPoruka(""); };
 
   const handleSportToggle = (id: number) => {
-    setOdabraniSportovi(prev => 
+    setOdabraniSportovi(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
@@ -206,7 +236,7 @@ export default function ProfilVlasnik() {
         ...objektData,
         kapacitet: objektData.kapacitet ? Number(objektData.kapacitet) : null,
         opis: objektData.opis || null,
-        sportovi: odabraniSportovi, // Šaljemo niz ID-ova
+        sportovi: odabraniSportovi,
       };
       const url = objektMod === "uredi" ? `http://localhost:5000/api/objekti/${editObjektId}` : "http://localhost:5000/api/objekti";
       const method = objektMod === "uredi" ? "PUT" : "POST";
@@ -225,29 +255,71 @@ export default function ProfilVlasnik() {
   const formatirajDatum = (d: string) => { const d1 = new Date(d); const m = ["sij", "velj", "ožu", "tra", "svi", "lip", "srp", "kol", "ruj", "lis", "stu", "pro"]; return `${d1.getDate()}. ${m[d1.getMonth()]} ${d1.getFullYear()}.`; };
   const getStatusBoja = (s: string) => s === "Potvrđeno" ? { bg: "#D1FAE5", color: "#059669" } : s === "Odbijeno" ? { bg: "#FEE2E2", color: "#DC2626" } : { bg: "#FEF3C7", color: "#D97706" };
 
+  // NOVO: Pomoćna funkcija za formatiranje naziva mjeseca
+  const formatirajMjesec = (mjesecStr: string) => {
+    const [godina, mj] = mjesecStr.split("-");
+    const nazivi = ["Sij", "Velj", "Ožu", "Tra", "Svi", "Lip", "Srp", "Kol", "Ruj", "Lis", "Stu", "Pro"];
+    return `${nazivi[parseInt(mj) - 1]} ${godina}`;
+  };
+
   if (ucitavanje || !korisnik) return null;
+
+  // NOVO: Izračun ukupnih agregata za summary kartice
+  const ukupnoRezervacija = statistika?.poObjektima.reduce((s, o) => s + o.zauzeti, 0) ?? 0;
+  const ukupniPrihod = statistika?.poObjektima.reduce((s, o) => s + o.ukupniPrihod, 0) ?? 0;
+  const ukupnoTermina = statistika?.poObjektima.reduce((s, o) => s + o.ukupnoTermina, 0) ?? 0;
+  const popunjenost = ukupnoTermina > 0 ? Math.round((ukupnoRezervacija / ukupnoTermina) * 100) : 0;
+
+  // NOVO: Max vrijednost za graf (za skaliranje stupaca)
+  const maxRezervacija = statistika ? Math.max(...statistika.poMjesecima.map((m) => m.brojRezervacija), 1) : 1;
 
   return (
     <div style={{ minHeight: "calc(100vh - 64px)", background: "#F5F7FA", padding: "32px 16px" }}>
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
+
         {/* Header Profila */}
         <div style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", borderRadius: 24, padding: 32, marginBottom: 24, color: "#fff", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 24, position: "relative", zIndex: 1 }}>
             <div style={{ width: 100, height: 100, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 800, color: "#1D4ED8" }}>{korisnik.ime.charAt(0)}{korisnik.prezime.charAt(0)}</div>
-            <div style={{ flex: 1 }}><h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>{korisnik.ime} {korisnik.prezime}</h1><p style={{ fontSize: 16, margin: "8px 0 0", opacity: 0.9 }}>{korisnik.email}</p></div>
+            <div style={{ flex: 1 }}>
+              <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>{korisnik.ime} {korisnik.prezime}</h1>
+              <p style={{ fontSize: 16, margin: "8px 0 0", opacity: 0.9 }}>{korisnik.email}</p>
+            </div>
             <button onClick={otvoriModal} style={{ padding: "12px 24px", borderRadius: 12, background: "#fff", color: "#1D4ED8", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>Uredi profil</button>
           </div>
         </div>
 
         {/* Tabs navigacija */}
         <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-          <button onClick={() => setAktivnaTab("mojiObjekti")} style={{ padding: "14px 24px", borderRadius: 14, background: aktivnaTab === "mojiObjekti" ? "#1D4ED8" : "#fff", color: aktivnaTab === "mojiObjekti" ? "#fff" : "#374151", fontWeight: 600, fontSize: 15, border: "none", cursor: "pointer" }}>🏟️ Moji objekti</button>
-          <button onClick={() => setAktivnaTab("rezervacije")} style={{ padding: "14px 24px", borderRadius: 14, background: aktivnaTab === "rezervacije" ? "#1D4ED8" : "#fff", color: aktivnaTab === "rezervacije" ? "#fff" : "#374151", fontWeight: 600, fontSize: 15, border: "none", cursor: "pointer" }}>📅 Moje rezervacije</button>
-          <button onClick={() => setAktivnaTab("omiljeni")} style={{ padding: "14px 24px", borderRadius: 14, background: aktivnaTab === "omiljeni" ? "#1D4ED8" : "#fff", color: aktivnaTab === "omiljeni" ? "#fff" : "#374151", fontWeight: 600, fontSize: 15, border: "none", cursor: "pointer" }}>❤️ Omiljeni {omiljeni.length > 0 && <span style={{ marginLeft: 4, padding: "2px 8px", borderRadius: 10, background: aktivnaTab === "omiljeni" ? "rgba(255,255,255,0.2)" : "#FEE2E2", fontSize: 12, color: aktivnaTab === "omiljeni" ? "#fff" : "#EF4444" }}>{omiljeni.length}</span>}</button>
+          {(["mojiObjekti", "rezervacije", "omiljeni", "statistika"] as const).map((tab) => {
+            const labels: Record<string, string> = {
+              mojiObjekti: "🏟️ Moji objekti",
+              rezervacije: "📅 Moje rezervacije",
+              omiljeni: "❤️ Omiljeni",
+              statistika: "📊 Statistika",
+            };
+            return (
+              <button
+                key={tab}
+                onClick={() => setAktivnaTab(tab)}
+                style={{
+                  padding: "14px 24px", borderRadius: 14,
+                  background: aktivnaTab === tab ? "#1D4ED8" : "#fff",
+                  color: aktivnaTab === tab ? "#fff" : "#374151",
+                  fontWeight: 600, fontSize: 15, border: "none", cursor: "pointer",
+                }}
+              >
+                {labels[tab]}
+                {tab === "omiljeni" && omiljeni.length > 0 && (
+                  <span style={{ marginLeft: 4, padding: "2px 8px", borderRadius: 10, background: aktivnaTab === tab ? "rgba(255,255,255,0.2)" : "#FEE2E2", fontSize: 12, color: aktivnaTab === tab ? "#fff" : "#EF4444" }}>{omiljeni.length}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Tab Sadržaj: Moji Objekti */}
+        {/* Tab: Moji Objekti */}
         {aktivnaTab === "mojiObjekti" && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -273,7 +345,7 @@ export default function ProfilVlasnik() {
           </div>
         )}
 
-        {/* Tab Sadržaj: Rezervacije */}
+        {/* Tab: Rezervacije */}
         {aktivnaTab === "rezervacije" && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: "0 0 20px" }}>📅 Moje rezervacije</h2>
@@ -292,7 +364,11 @@ export default function ProfilVlasnik() {
                         </Link>
                         <span style={{ padding: "6px 12px", borderRadius: 8, background: st.bg, color: st.color, fontSize: 12, fontWeight: 700 }}>{rez.Status}</span>
                       </div>
-                      <div style={{ marginTop: 12, display: "flex", gap: 16, fontSize: 14 }}><span>📆 {formatirajDatum(rez.Datum)}</span><span>⏰ {rez.vrijeme_pocetka} - {rez.vrijeme_kraja}</span><span style={{ fontWeight: 700, color: "#1D4ED8" }}>{rez.Cijena} €</span></div>
+                      <div style={{ marginTop: 12, display: "flex", gap: 16, fontSize: 14 }}>
+                        <span>📆 {formatirajDatum(rez.Datum)}</span>
+                        <span>⏰ {rez.vrijeme_pocetka} - {rez.vrijeme_kraja}</span>
+                        <span style={{ fontWeight: 700, color: "#1D4ED8" }}>{rez.Cijena} €</span>
+                      </div>
                     </div>
                   );
                 })}
@@ -301,7 +377,7 @@ export default function ProfilVlasnik() {
           </div>
         )}
 
-        {/* Tab Sadržaj: Omiljeni */}
+        {/* Tab: Omiljeni */}
         {aktivnaTab === "omiljeni" && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: "0 0 20px" }}>❤️ Omiljeni objekti</h2>
@@ -312,10 +388,154 @@ export default function ProfilVlasnik() {
                 {omiljeni.map((obj) => (
                   <div key={obj.id} style={{ padding: 20, borderRadius: 16, border: "1px solid #E5E7EB", position: "relative" }}>
                     <Link to={`/objekt/${obj.id}`}><div style={{ fontWeight: 700 }}>{obj.naziv}</div><div style={{ fontSize: 14, color: "#6B7280" }}>{obj.adresa}</div></Link>
-                    <button onClick={() => ukloniOmiljeni(obj.id)} style={{ position: "absolute", top: 12, right: 12, width: 28, height: 28, borderRadius: "50%", border: "1px solid #FEE2E2", background: "#FEF2F2", color: "#EF4444" }}>✕</button>
+                    <button onClick={() => ukloniOmiljeni(obj.id)} style={{ position: "absolute", top: 12, right: 12, width: 28, height: 28, borderRadius: "50%", border: "1px solid #FEE2E2", background: "#FEF2F2", color: "#EF4444", cursor: "pointer" }}>✕</button>
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        )}
+
+        {/* NOVO Tab: Statistika */}
+        {aktivnaTab === "statistika" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+            {ucitavanjeStatistike ? (
+              <div style={{ background: "#fff", borderRadius: 20, padding: 60, textAlign: "center", color: "#6B7280", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
+                <p>Učitavam statistiku...</p>
+              </div>
+            ) : !statistika || statistika.poObjektima.length === 0 ? (
+              <div style={{ background: "#fff", borderRadius: 20, padding: 60, textAlign: "center", color: "#9CA3AF", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>📊</div>
+                <p style={{ fontSize: 16 }}>Nemate još podataka za prikaz statistike.</p>
+                <p style={{ fontSize: 14 }}>Dodajte objekte i termine kako bi se statistika počela prikazivati.</p>
+              </div>
+            ) : (
+              <>
+                {/* Summary kartice */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: 16 }}>
+                  {[
+                    { ikona: "📅", label: "Ukupno rezervacija", vrijednost: ukupnoRezervacija, boja: "#1D4ED8", bg: "#EEF2FF" },
+                    { ikona: "💰", label: "Ukupni prihod", vrijednost: `${ukupniPrihod.toFixed(2)} €`, boja: "#059669", bg: "#D1FAE5" },
+                    { ikona: "🏟️", label: "Ukupno termina", vrijednost: ukupnoTermina, boja: "#7C3AED", bg: "#EDE9FE" },
+                    { ikona: "📈", label: "Popunjenost", vrijednost: `${popunjenost}%`, boja: "#D97706", bg: "#FEF3C7" },
+                  ].map((k) => (
+                    <div key={k.label} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", borderTop: `4px solid ${k.boja}` }}>
+                      <div style={{ fontSize: 28, marginBottom: 8 }}>{k.ikona}</div>
+                      <div style={{ fontSize: 26, fontWeight: 800, color: k.boja }}>{k.vrijednost}</div>
+                      <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>{k.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Graf rezervacija po mjesecima */}
+                {statistika.poMjesecima.length > 0 && (
+                  <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: "0 0 24px" }}>📅 Rezervacije po mjesecima (zadnjih 6 mj.)</h2>
+                    <div style={{ display: "flex", alignItems: "flex-end", gap: 12, height: 180, paddingBottom: 8 }}>
+                      {statistika.poMjesecima.map((m) => {
+                        const visina = Math.round((m.brojRezervacija / maxRezervacija) * 140);
+                        return (
+                          <div key={m.mjesec} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: "#1D4ED8" }}>{m.brojRezervacija}</span>
+                            <div
+                              style={{
+                                width: "100%", height: visina || 6, borderRadius: "6px 6px 0 0",
+                                background: "linear-gradient(180deg, #3B82F6 0%, #1D4ED8 100%)",
+                                transition: "height 0.3s ease",
+                                minHeight: 6,
+                              }}
+                              title={`Prihod: ${m.prihod.toFixed(2)} €`}
+                            />
+                            <span style={{ fontSize: 11, color: "#6B7280", textAlign: "center" }}>{formatirajMjesec(m.mjesec)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Prihod po mjesecima */}
+                {statistika.poMjesecima.length > 0 && (
+                  <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: "0 0 16px" }}>💰 Prihod po mjesecima</h2>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {statistika.poMjesecima.map((m) => {
+                        const maxPrihod = Math.max(...statistika.poMjesecima.map((x) => x.prihod), 1);
+                        const sirina = Math.round((m.prihod / maxPrihod) * 100);
+                        return (
+                          <div key={m.mjesec} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <span style={{ fontSize: 13, color: "#6B7280", width: 70, flexShrink: 0 }}>{formatirajMjesec(m.mjesec)}</span>
+                            <div style={{ flex: 1, height: 28, background: "#F3F4F6", borderRadius: 8, overflow: "hidden" }}>
+                              <div style={{ width: `${sirina}%`, height: "100%", background: "linear-gradient(90deg, #059669, #10B981)", borderRadius: 8, display: "flex", alignItems: "center", paddingLeft: 10, minWidth: 40 }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", whiteSpace: "nowrap" }}>{m.prihod.toFixed(2)} €</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Statistika po objektima */}
+                <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: "0 0 20px" }}>🏟️ Statistika po objektima</h2>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    {statistika.poObjektima.map((obj) => {
+                      const popunjenostObj = obj.ukupnoTermina > 0
+                        ? Math.round((obj.zauzeti / obj.ukupnoTermina) * 100)
+                        : 0;
+                      return (
+                        <div key={obj.id} style={{ padding: 20, borderRadius: 16, border: "1px solid #E5E7EB" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                            <div>
+                              <Link to={`/objekt/${obj.id}`} style={{ fontWeight: 700, fontSize: 16, color: "#111827", textDecoration: "none" }}>{obj.naziv}</Link>
+                            </div>
+                            <span style={{ padding: "6px 14px", borderRadius: 20, background: "#D1FAE5", color: "#059669", fontWeight: 700, fontSize: 14 }}>
+                              {obj.ukupniPrihod.toFixed(2)} €
+                            </span>
+                          </div>
+                          {/* Traka popunjenosti */}
+                          <div style={{ marginBottom: 12 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                              <span style={{ fontSize: 13, color: "#6B7280" }}>Popunjenost termina</span>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: popunjenostObj >= 70 ? "#059669" : popunjenostObj >= 40 ? "#D97706" : "#EF4444" }}>{popunjenostObj}%</span>
+                            </div>
+                            <div style={{ height: 10, background: "#F3F4F6", borderRadius: 10, overflow: "hidden" }}>
+                              <div style={{
+                                height: "100%",
+                                width: `${popunjenostObj}%`,
+                                borderRadius: 10,
+                                background: popunjenostObj >= 70
+                                  ? "linear-gradient(90deg, #059669, #10B981)"
+                                  : popunjenostObj >= 40
+                                    ? "linear-gradient(90deg, #D97706, #F59E0B)"
+                                    : "linear-gradient(90deg, #DC2626, #EF4444)",
+                                transition: "width 0.4s ease",
+                              }} />
+                            </div>
+                          </div>
+                          {/* Brojevi */}
+                          <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                            {[
+                              { l: "Zauzeti termini", v: obj.zauzeti, c: "#1D4ED8" },
+                              { l: "Slobodni termini", v: obj.slobodni, c: "#6B7280" },
+                              { l: "Ukupno termina", v: obj.ukupnoTermina, c: "#374151" },
+                            ].map((st) => (
+                              <div key={st.l} style={{ textAlign: "center" }}>
+                                <div style={{ fontSize: 22, fontWeight: 800, color: st.c }}>{st.v}</div>
+                                <div style={{ fontSize: 12, color: "#9CA3AF" }}>{st.l}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
@@ -326,11 +546,19 @@ export default function ProfilVlasnik() {
             <div style={{ background: "#fff", borderRadius: 20, padding: 32, width: "90%", maxWidth: 480 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 24 }}>
                 <h2 style={{ fontSize: 22, fontWeight: 800 }}>Uredi profil</h2>
-                <button onClick={zatvoriModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #E5E7EB", background: "#fff", color: "#6B7280" }}>✕</button>
+                <button onClick={zatvoriModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #E5E7EB", background: "#fff", color: "#6B7280", cursor: "pointer" }}>✕</button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {[{ l: "Ime", k: "ime" }, { l: "Prezime", k: "prezime" }, { l: "Email", k: "email" }].map((f) => <div key={f.k}><label style={{ fontSize: 13, fontWeight: 600 }}>{f.l}</label><input type={f.k === "email" ? "email" : "text"} value={(editData as any)[f.k]} onChange={(e) => setEditData({ ...editData, [f.k]: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15 }} /></div>)}
-                <div><label style={{ fontSize: 13, fontWeight: 600 }}>Broj mobitela <span style={{ color: "#9CA3AF" }}>(opcionalno)</span></label><input type="tel" value={editData.brojMobitela} onChange={(e) => setEditData({ ...editData, brojMobitela: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15 }} /></div>
+                {[{ l: "Ime", k: "ime" }, { l: "Prezime", k: "prezime" }, { l: "Email", k: "email" }].map((f) => (
+                  <div key={f.k}>
+                    <label style={{ fontSize: 13, fontWeight: 600 }}>{f.l}</label>
+                    <input type={f.k === "email" ? "email" : "text"} value={(editData as any)[f.k]} onChange={(e) => setEditData({ ...editData, [f.k]: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15 }} />
+                  </div>
+                ))}
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 600 }}>Broj mobitela <span style={{ color: "#9CA3AF" }}>(opcionalno)</span></label>
+                  <input type="tel" value={editData.brojMobitela} onChange={(e) => setEditData({ ...editData, brojMobitela: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15 }} />
+                </div>
                 <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: 16 }}>
                   <label style={{ fontSize: 13, fontWeight: 600 }}>Nova lozinka <span style={{ color: "#9CA3AF" }}>(ostavi prazno)</span></label>
                   <input type="password" value={editData.novaLozinka} onChange={(e) => setEditData({ ...editData, novaLozinka: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15, marginBottom: 12 }} />
@@ -353,35 +581,26 @@ export default function ProfilVlasnik() {
             <div style={{ background: "#fff", borderRadius: 20, padding: 32, width: "90%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 24 }}>
                 <h2 style={{ fontSize: 22, fontWeight: 800 }}>{objektMod === "dodaj" ? "Dodaj objekt" : "Uredi objekt"}</h2>
-                <button onClick={zatvoriObjektModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #E5E7EB", background: "#fff", color: "#6B7280" }}>✕</button>
+                <button onClick={zatvoriObjektModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #E5E7EB", background: "#fff", color: "#6B7280", cursor: "pointer" }}>✕</button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div><label style={{ fontSize: 13, fontWeight: 600 }}>Naziv <span style={{ color: "#EF4444" }}>*</span></label><input type="text" value={objektData.naziv} onChange={(e) => setObjektData({ ...objektData, naziv: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15 }} /></div>
                 <div><label style={{ fontSize: 13, fontWeight: 600 }}>Adresa <span style={{ color: "#EF4444" }}>*</span></label><input type="text" value={objektData.adresa} onChange={(e) => setObjektData({ ...objektData, adresa: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15 }} /></div>
                 <div><label style={{ fontSize: 13, fontWeight: 600 }}>Kvart <span style={{ color: "#EF4444" }}>*</span></label><input type="text" value={objektData.kvart} onChange={(e) => setObjektData({ ...objektData, kvart: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15 }} /></div>
                 <div><label style={{ fontSize: 13, fontWeight: 600 }}>Kapacitet</label><input type="number" value={objektData.kapacitet} onChange={(e) => setObjektData({ ...objektData, kapacitet: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15 }} /></div>
-                
-                {/* NOVO: Lista sportova iz baze s checkboxovima */}
                 <div>
                   <label style={{ fontSize: 13, fontWeight: 600, display: "block", marginBottom: 8 }}>Sportovi</label>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", maxHeight: "150px", overflowY: "auto", padding: "12px", border: "1.5px solid #E5E7EB", borderRadius: "10px" }}>
                     {sviSportovi.map((sport) => (
                       <label key={sport.ID_sporta} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: 14, cursor: "pointer" }}>
-                        <input 
-                          type="checkbox" 
-                          checked={odabraniSportovi.includes(sport.ID_sporta)}
-                          onChange={() => handleSportToggle(sport.ID_sporta)}
-                        />
+                        <input type="checkbox" checked={odabraniSportovi.includes(sport.ID_sporta)} onChange={() => handleSportToggle(sport.ID_sporta)} />
                         {sport.Naziv_sporta}
                       </label>
                     ))}
                   </div>
                 </div>
-
                 <div><label style={{ fontSize: 13, fontWeight: 600 }}>Opis</label><textarea value={objektData.opis} onChange={(e) => setObjektData({ ...objektData, opis: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 15, minHeight: 80 }} /></div>
-                
                 {objektPoruka && <div style={{ padding: 12, borderRadius: 10, background: "#FEE2E2", color: "#DC2626" }}>{objektPoruka}</div>}
-                
                 <div style={{ display: "flex", gap: 12 }}>
                   <button onClick={zatvoriObjektModal} style={{ flex: 1, padding: 14, borderRadius: 10, background: "#fff", border: "1.5px solid #E5E7EB", cursor: "pointer" }}>Odustani</button>
                   <button onClick={spremiObjekt} disabled={objektSpremanje} style={{ flex: 1, padding: 14, borderRadius: 10, background: objektSpremanje ? "#93C5FD" : "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", color: "#fff", border: "none", cursor: objektSpremanje ? "not-allowed" : "pointer" }}>{objektSpremanje ? "Spremam..." : "Spremi"}</button>
@@ -390,6 +609,7 @@ export default function ProfilVlasnik() {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );

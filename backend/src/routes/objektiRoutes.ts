@@ -296,4 +296,66 @@ router.post(
   },
 );
 
+// GET /api/vlasnik/statistika
+router.get(
+  "/vlasnik/statistika",
+  autentificiraj,
+  async (req: AuthRequest, res: Response) => {
+    const idKorisnika = req.user?.id;
+
+    try {
+      // 1. Rezervacije po mjesecima (zadnjih 6 mjeseci), za sve objekte vlasnika
+      const [poMjesecima] = (await pool.query(
+        `SELECT 
+          DATE_FORMAT(t.Datum, '%Y-%m') AS mjesec,
+          COUNT(*) AS broj_rezervacija,
+          SUM(t.Cijena) AS prihod
+         FROM TERMINI t
+         JOIN OBJEKTI o ON t.ID_objekta = o.ID_objekta
+         WHERE o.ID_korisnika = ?
+           AND t.Status = 'Zauzet'
+           AND t.Datum >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+         GROUP BY DATE_FORMAT(t.Datum, '%Y-%m')
+         ORDER BY mjesec ASC`,
+        [idKorisnika],
+      )) as [any[], any];
+
+      // 2. Statistika po svakom objektu
+      const [poObjektima] = (await pool.query(
+        `SELECT 
+          o.ID_objekta,
+          o.Naziv_objekta,
+          COUNT(CASE WHEN t.Status = 'Zauzet' THEN 1 END) AS zauzeti,
+          COUNT(CASE WHEN t.Status = 'Slobodan' THEN 1 END) AS slobodni,
+          COUNT(*) AS ukupno_termina,
+          COALESCE(SUM(CASE WHEN t.Status = 'Zauzet' THEN t.Cijena END), 0) AS ukupni_prihod
+         FROM OBJEKTI o
+         LEFT JOIN TERMINI t ON o.ID_objekta = t.ID_objekta
+         WHERE o.ID_korisnika = ?
+         GROUP BY o.ID_objekta, o.Naziv_objekta`,
+        [idKorisnika],
+      )) as [any[], any];
+
+      res.json({
+        poMjesecima: poMjesecima.map((r: any) => ({
+          mjesec: r.mjesec,
+          brojRezervacija: Number(r.broj_rezervacija),
+          prihod: Number(r.prihod),
+        })),
+        poObjektima: poObjektima.map((r: any) => ({
+          id: r.ID_objekta,
+          naziv: r.Naziv_objekta,
+          zauzeti: Number(r.zauzeti),
+          slobodni: Number(r.slobodni),
+          ukupnoTermina: Number(r.ukupno_termina),
+          ukupniPrihod: Number(r.ukupni_prihod),
+        })),
+      });
+    } catch (error) {
+      console.error("Greška pri dohvatu statistike:", error);
+      res.status(500).json({ error: "Greška na serveru." });
+    }
+  },
+);
+
 export default router;
