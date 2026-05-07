@@ -118,7 +118,7 @@ router.get("/", async (req: Request, res: Response) => {
       opis: obj.Opis,
       kvart: obj.Kvart,
       kapacitet: obj.Kapacitet,
-      slikaUrl: obj.Slika_url || null, 
+      slikaUrl: obj.Slika_url || null,
       ocjena: obj.ocjena ?? null,
       brojRecenzija: Number(obj.broj_recenzija),
       cijenaOd: obj.cijena_od ?? 0,
@@ -141,7 +141,9 @@ router.get("/", async (req: Request, res: Response) => {
     res.json(rezultat);
   } catch (error) {
     console.error("Greška pri dohvaćanju objekata:", error);
-    res.status(500).json({ error: "Greška na serveru.", details: String(error) });
+    res
+      .status(500)
+      .json({ error: "Greška na serveru.", details: String(error) });
   }
 });
 
@@ -175,16 +177,19 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     const [sviTermini] = (await pool.query(
       `SELECT 
-        ID_termina,
-        ID_korisnika,
-        Datum,
-        TIME_FORMAT(Vrijeme_pocetka, '%H:%i') AS vrijeme_pocetka,
-        TIME_FORMAT(Vrijeme_kraja, '%H:%i') AS vrijeme_kraja,
-        Cijena,
-        Status
-       FROM TERMINI
-       WHERE ID_objekta = ? 
-       ORDER BY Datum DESC, Vrijeme_pocetka ASC`,
+        t.ID_termina,
+        t.ID_korisnika,
+        t.Datum,
+        TIME_FORMAT(t.Vrijeme_pocetka, '%H:%i') AS vrijeme_pocetka,
+        TIME_FORMAT(t.Vrijeme_kraja, '%H:%i') AS vrijeme_kraja,
+        t.Cijena,
+        t.Status,
+        (SELECT GROUP_CONCAT(ID_korisnika ORDER BY Vrijeme_prijave ASC) 
+         FROM LISTA_CEKANJA 
+         WHERE ID_termina = t.ID_termina) AS lista_ids
+       FROM TERMINI t
+       WHERE t.ID_objekta = ? 
+       ORDER BY t.Datum DESC, t.Vrijeme_pocetka ASC`,
       [id],
     )) as [any[], any];
 
@@ -228,12 +233,13 @@ router.get("/:id", async (req: Request, res: Response) => {
         vrijemeKraja: t.vrijeme_kraja,
         cijena: Number(t.Cijena),
         status: t.Status,
+        lista_ids: t.lista_ids ? t.lista_ids.split(",").map(Number) : [],
       })),
       recenzije: recenzije.map((r: any) => ({
         ime: r.Ime,
         prezime: r.Prezime,
         ocjena: r.Ocjena,
-        komentar: r.Komentar,
+        commentar: r.Komentar,
         datumObjave: r.Datum_objave,
       })),
     });
@@ -268,7 +274,9 @@ router.post(
       )) as [any[], any];
 
       if (postojece.length > 0) {
-        res.status(400).json({ error: "Već ste ostavili recenziju za ovaj objekt." });
+        res
+          .status(400)
+          .json({ error: "Već ste ostavili recenziju za ovaj objekt." });
         return;
       }
 
@@ -281,7 +289,9 @@ router.post(
       res.status(201).json({ message: "Recenzija uspješno objavljena!" });
     } catch (error) {
       console.error("Greška pri spremanju recenzije:", error);
-      res.status(500).json({ error: "Greška na serveru pri spremanju recenzije." });
+      res
+        .status(500)
+        .json({ error: "Greška na serveru pri spremanju recenzije." });
     }
   },
 );

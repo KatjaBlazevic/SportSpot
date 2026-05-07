@@ -6,6 +6,7 @@ export interface Termin {
   vrijemeKraja: string;
   cijena: number;
   status: string;
+  lista_ids: number[];
 }
 
 export interface Recenzija {

@@ -216,45 +216,104 @@ export default function ObjektDetalji() {
               <TjedniFilter onWeekChange={handleWeekChange} />
               <div className="space-y-3">
                 {filtriraniTermini.length > 0 ? (
-                  filtriraniTermini.map((t) => {
-                    // Logika za provjeru vlasništva
-                    const jeMojTermin = !!(
-                      t.status !== "Slobodan" &&
-                      korisnik?.id &&
-                      Number(t.idKorisnika) === Number(korisnik.id)
-                    );
+                  //Dodano sortiranje zbog promjena na backendu
+                  [...filtriraniTermini]
+                    .sort((a, b) => {
+                      const datumA = new Date(a.datum).getTime();
+                      const datumB = new Date(b.datum).getTime();
+                      if (datumA !== datumB) return datumA - datumB;
 
-                    return (
-                      <div key={t.id} className="relative">
-                        <TerminKartica
-                          id={t.id}
-                          idKorisnika={t.idKorisnika}
-                          datum={t.datum}
-                          vrijemePocetka={t.vrijemePocetka}
-                          vrijemeKraja={t.vrijemeKraja}
-                          cijena={t.cijena}
-                          status={t.status}
-                          onRezervacija={dohvatiPodatke}
-                          jeMojTermin={jeMojTermin}
-                        />
+                      return a.vrijemePocetka.localeCompare(b.vrijemePocetka);
+                    })
+                    .map((t) => {
+                      const jeMojTermin = !!(
+                        t.status !== "Slobodan" &&
+                        korisnik?.id &&
+                        Number(t.idKorisnika) === Number(korisnik.id)
+                      );
+                      const listaIds = t.lista_ids || [];
+                      const indexNaListi = listaIds.indexOf(
+                        korisnik?.id ? Number(korisnik.id) : -1,
+                      );
+                      const jeNaListi = indexNaListi !== -1;
+                      const redniBroj = indexNaListi + 1;
 
-                        {t.status !== "Slobodan" &&
-                          korisnik &&
-                          !jeMojTermin && (
-                            <button
-                              onClick={() =>
-                                alert(
-                                  `Prijavljeni ste na listu čekanja za termin ${t.id}`,
-                                )
-                              }
-                              className="mt-2 w-full py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-amber-900/20"
-                            >
-                              Prijava na listu čekanja ⏳
-                            </button>
-                          )}
-                      </div>
-                    );
-                  })
+                      return (
+                        <div key={t.id} className="relative">
+                          <TerminKartica
+                            id={t.id}
+                            idKorisnika={t.idKorisnika}
+                            datum={t.datum}
+                            vrijemePocetka={t.vrijemePocetka}
+                            vrijemeKraja={t.vrijemeKraja}
+                            cijena={t.cijena}
+                            status={t.status}
+                            onRezervacija={dohvatiPodatke}
+                            jeMojTermin={jeMojTermin}
+                            jeVlasnikObjekta={jeVlasnik}
+                            lista_ids={t.lista_ids}
+                          />
+
+                          {t.status !== "Slobodan" &&
+                            korisnik &&
+                            !jeMojTermin &&
+                            !jeVlasnik && (
+                              <div className="mt-2 w-full">
+                                {jeNaListi ? (
+                                  /* AKO JE KORISNIK VEĆ NA LISTI ČEKANJA */
+                                  <div className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-50 border border-amber-200 rounded-xl shadow-inner">
+                                    <span className="text-amber-800 text-[10px] font-black uppercase tracking-tight">
+                                      {redniBroj}. na listi čekanja
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      try {
+                                        const token =
+                                          localStorage.getItem(
+                                            "sportspot_token",
+                                          );
+                                        const res = await fetch(
+                                          "http://localhost:5000/api/termini/lista-cekanja/prijava",
+                                          {
+                                            method: "POST",
+                                            headers: {
+                                              "Content-Type":
+                                                "application/json",
+                                              Authorization: `Bearer ${token}`,
+                                            },
+                                            body: JSON.stringify({
+                                              idTermina: t.id,
+                                            }),
+                                          },
+                                        );
+
+                                        if (res.ok) {
+                                          dohvatiPodatke();
+                                        } else {
+                                          const errorData = await res.json();
+                                          alert(
+                                            errorData.error ||
+                                              "Greška pri prijavi.",
+                                          );
+                                        }
+                                      } catch (err) {
+                                        console.error("Greška:", err);
+                                        alert("Server nije dostupan.");
+                                      }
+                                    }}
+                                    className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-amber-900/20"
+                                  >
+                                    Prijava na listu čekanja
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                        </div>
+                      );
+                    })
                 ) : (
                   <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                     <p className="text-slate-400 text-sm font-medium italic">
