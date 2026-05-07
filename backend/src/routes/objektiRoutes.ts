@@ -9,10 +9,8 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const { sport, kvart, datum, period } = req.query;
 
-    // Normaliziraj sport u array (može biti string ili array iz query params)
     const sportArray = sport ? (Array.isArray(sport) ? sport : [sport]) : [];
 
-    // Određujemo vremenski raspon prema periodu dana
     let vrijemeOd = "00:00:00";
     let vrijemeDo = "23:59:59";
     if (period === "jutro") {
@@ -26,7 +24,6 @@ router.get("/", async (req: Request, res: Response) => {
       vrijemeDo = "23:59:59";
     }
 
-    // Dohvati objekte s filterima
     const sportJoinClause =
       sportArray.length > 0
         ? `
@@ -43,6 +40,7 @@ router.get("/", async (req: Request, res: Response) => {
         o.Opis,
         o.Kvart,
         o.Kapacitet,
+        o.Slika_url,
         ROUND(AVG(r.Ocjena), 1) AS ocjena,
         COUNT(DISTINCT r.ID_korisnika) AS broj_recenzija,
         MIN(t.Cijena) AS cijena_od
@@ -58,7 +56,6 @@ router.get("/", async (req: Request, res: Response) => {
       ORDER BY ocjena DESC
     `;
 
-    // Dinamički params za query
     const params: unknown[] = [];
     if (datum) params.push(datum);
     if (period && period !== "") {
@@ -77,7 +74,6 @@ router.get("/", async (req: Request, res: Response) => {
 
     const ids = objekti.map((o: any) => o.ID_objekta);
 
-    // Dohvati sportove za sve objekte
     const [sportovi] = (await pool.query(
       `SELECT so.ID_objekta, sp.Naziv_sporta
        FROM SPORTOVI_OBJEKTA so
@@ -86,7 +82,6 @@ router.get("/", async (req: Request, res: Response) => {
       [ids],
     )) as [any[], any];
 
-    // Dohvati slobodne termine za sve objekte
     const terminiQuery = `
       SELECT 
         t.ID_termina,
@@ -116,7 +111,6 @@ router.get("/", async (req: Request, res: Response) => {
       any,
     ];
 
-    // Spoji sve zajedno
     const rezultat = objekti.map((obj: any) => ({
       id: obj.ID_objekta,
       naziv: obj.Naziv_objekta,
@@ -124,6 +118,7 @@ router.get("/", async (req: Request, res: Response) => {
       opis: obj.Opis,
       kvart: obj.Kvart,
       kapacitet: obj.Kapacitet,
+      slikaUrl: obj.Slika_url || null, 
       ocjena: obj.ocjena ?? null,
       brojRecenzija: Number(obj.broj_recenzija),
       cijenaOd: obj.cijena_od ?? 0,
@@ -146,9 +141,7 @@ router.get("/", async (req: Request, res: Response) => {
     res.json(rezultat);
   } catch (error) {
     console.error("Greška pri dohvaćanju objekata:", error);
-    res
-      .status(500)
-      .json({ error: "Greška na serveru.", details: String(error) });
+    res.status(500).json({ error: "Greška na serveru.", details: String(error) });
   }
 });
 
@@ -160,6 +153,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       `SELECT 
         o.*,
         o.ID_korisnika,
+        o.Slika_url,
         k.Naziv_kluba,
         k.Kontakt_telefon,
         ROUND(AVG(r.Ocjena), 1) AS ocjena,
@@ -178,18 +172,19 @@ router.get("/:id", async (req: Request, res: Response) => {
     }
 
     const obj = rows[0];
+
     const [sviTermini] = (await pool.query(
       `SELECT 
-    ID_termina,
-    ID_korisnika,
-    Datum,
-    TIME_FORMAT(Vrijeme_pocetka, '%H:%i') AS vrijeme_pocetka,
-    TIME_FORMAT(Vrijeme_kraja, '%H:%i') AS vrijeme_kraja,
-    Cijena,
-    Status
-   FROM TERMINI
-   WHERE ID_objekta = ? 
-   ORDER BY Datum DESC, Vrijeme_pocetka ASC`,
+        ID_termina,
+        ID_korisnika,
+        Datum,
+        TIME_FORMAT(Vrijeme_pocetka, '%H:%i') AS vrijeme_pocetka,
+        TIME_FORMAT(Vrijeme_kraja, '%H:%i') AS vrijeme_kraja,
+        Cijena,
+        Status
+       FROM TERMINI
+       WHERE ID_objekta = ? 
+       ORDER BY Datum DESC, Vrijeme_pocetka ASC`,
       [id],
     )) as [any[], any];
 
@@ -219,12 +214,12 @@ router.get("/:id", async (req: Request, res: Response) => {
       opis: obj.Opis,
       kvart: obj.Kvart,
       kapacitet: obj.Kapacitet,
+      slikaUrl: obj.Slika_url || null,
       nazivKluba: obj.Naziv_kluba,
       kontaktTelefon: obj.Kontakt_telefon,
       ocjena: obj.ocjena || 0,
       brojRecenzija: Number(obj.broj_recenzija),
       sportovi: sportovi.map((s: any) => s.Naziv_sporta),
-
       termini: sviTermini.map((t: any) => ({
         id: t.ID_termina,
         idKorisnika: t.ID_korisnika !== undefined ? t.ID_korisnika : null,
@@ -267,36 +262,31 @@ router.post(
         return;
       }
 
-      // Provjera postoji li već recenzija (jedna recenzija dozvoljena po korisniku)
       const [postojece] = (await pool.query(
         "SELECT * FROM RECENZIJE WHERE ID_korisnika = ? AND ID_objekta = ?",
         [idKorisnika, idObjekta],
       )) as [any[], any];
 
       if (postojece.length > 0) {
-        res
-          .status(400)
-          .json({ error: "Već ste ostavili recenziju za ovaj objekt." });
+        res.status(400).json({ error: "Već ste ostavili recenziju za ovaj objekt." });
         return;
       }
 
       await pool.query(
         `INSERT INTO RECENZIJE (ID_korisnika, ID_objekta, Ocjena, Komentar) 
-       VALUES (?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?)`,
         [idKorisnika, idObjekta, ocjena, komentar || null],
       );
 
       res.status(201).json({ message: "Recenzija uspješno objavljena!" });
     } catch (error) {
       console.error("Greška pri spremanju recenzije:", error);
-      res
-        .status(500)
-        .json({ error: "Greška na serveru pri spremanju recenzije." });
+      res.status(500).json({ error: "Greška na serveru pri spremanju recenzije." });
     }
   },
 );
 
-// GET /api/vlasnik/statistika
+// GET /api/objekti/vlasnik/statistika
 router.get(
   "/vlasnik/statistika",
   autentificiraj,
@@ -304,7 +294,6 @@ router.get(
     const idKorisnika = req.user?.id;
 
     try {
-      // 1. Rezervacije po mjesecima (zadnjih 6 mjeseci), za sve objekte vlasnika
       const [poMjesecima] = (await pool.query(
         `SELECT 
           DATE_FORMAT(t.Datum, '%Y-%m') AS mjesec,
@@ -320,7 +309,6 @@ router.get(
         [idKorisnika],
       )) as [any[], any];
 
-      // 2. Statistika po svakom objektu
       const [poObjektima] = (await pool.query(
         `SELECT 
           o.ID_objekta,

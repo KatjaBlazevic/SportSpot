@@ -264,7 +264,7 @@ app.post("/api/objekti", async (req: Request, res: Response) => {
     return;
   }
 
-  const { naziv, adresa, kvart, kapacitet, opis, sportovi } = req.body;
+  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, sportovi } = req.body;
 
   if (!naziv || !adresa || !kvart) {
     res.status(400).json({ greska: "Naziv, adresa i kvart su obavezni." });
@@ -278,8 +278,8 @@ app.post("/api/objekti", async (req: Request, res: Response) => {
     ) as { id: number };
 
     const [result] = await pool.query(
-      "INSERT INTO OBJEKTI (ID_korisnika, Naziv_objekta, Adresa, Kvart, Kapacitet, Opis) VALUES (?, ?, ?, ?, ?, ?)",
-      [decoded.id, naziv, adresa, kvart, kapacitet || null, opis || null],
+      "INSERT INTO OBJEKTI (ID_korisnika, Naziv_objekta, Adresa, Kvart, Kapacitet, Opis, Slika_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
+[decoded.id, naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null],
     );
 
     const insertResult = result as { insertId: number };
@@ -318,7 +318,7 @@ app.put("/api/objekti/:id", async (req: Request, res: Response) => {
   }
 
   const { id } = req.params;
-  const { naziv, adresa, kvart, kapacitet, opis, sportovi } = req.body;
+  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, sportovi } = req.body;
 
   try {
     const decoded = jwt.verify(
@@ -340,8 +340,8 @@ app.put("/api/objekti/:id", async (req: Request, res: Response) => {
     }
 
     await pool.query(
-      "UPDATE OBJEKTI SET Naziv_objekta = ?, Adresa = ?, Kvart = ?, Kapacitet = ?, Opis = ? WHERE ID_objekta = ?",
-      [naziv, adresa, kvart, kapacitet || null, opis || null, id],
+      "UPDATE OBJEKTI SET Naziv_objekta = ?, Adresa = ?, Kvart = ?, Kapacitet = ?, Opis = ?, Slika_url = ? WHERE ID_objekta = ?",
+[naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null, id],
     );
 
     // Ažuriraj sportove - prvo izbriši stare, pa dodaj nove
