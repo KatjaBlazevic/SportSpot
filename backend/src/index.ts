@@ -14,9 +14,126 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
-app.use("/api/objekti", objektiRoutes);
 app.use("/api/termini", terminiRoutes);
 app.use("/api/auth", authRoutes);
+
+// POST /api/objekti - Kreiraj novi objekt (samo vlasnik)
+app.post("/api/objekti", async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    res.status(401).json({ greska: "Niste prijavljeni." });
+    return;
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    res.status(401).json({ greska: "Neispravan token." });
+    return;
+  }
+
+  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, sportovi } = req.body;
+
+  if (!naziv || !adresa || !kvart) {
+    res.status(400).json({ greska: "Naziv, adresa i kvart su obavezni." });
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
+    ) as { id: number };
+
+    const [result] = await pool.query(
+      "INSERT INTO OBJEKTI (ID_korisnika, Naziv_objekta, Adresa, Kvart, Kapacitet, Opis, Slika_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
+[decoded.id, naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null],
+    );
+
+    const insertResult = result as { insertId: number };
+    const noviId = insertResult.insertId;
+
+    // Dodaj sportove ako su proslijeđeni
+    if (sportovi && Array.isArray(sportovi) && sportovi.length > 0) {
+      const sportValues = sportovi.map((idSporta: number) => [noviId, idSporta]);
+      await pool.query(
+        "INSERT INTO SPORTOVI_OBJEKTA (ID_objekta, ID_sporta) VALUES ?",
+        [sportValues],
+      );
+    }
+
+    res
+      .status(201)
+      .json({ id: noviId, poruka: "Objekt uspješno kreiran." });
+} catch (error: any) {
+  if (error.code === 'ER_DUP_ENTRY') {
+    res.status(409).json({ greska: "Objekt s tim nazivom već postoji." });
+    return;
+  }
+  console.error("Greška pri kreiranju objekta:", error);
+  res.status(500).json({ greska: "Interna greška servera." });
+}
+});
+
+// PUT /api/objekti/:id - Ažuriraj objekt (samo vlasnik)
+app.put("/api/objekti/:id", async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    res.status(401).json({ greska: "Niste prijavljeni." });
+    return;
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    res.status(401).json({ greska: "Neispravan token." });
+    return;
+  }
+
+  const { id } = req.params;
+  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, sportovi } = req.body;
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
+    ) as { id: number };
+
+    // Provjeri je li objekt vlasnikov
+    const [existing] = await pool.query(
+      "SELECT ID_objekta FROM OBJEKTI WHERE ID_objekta = ? AND ID_korisnika = ?",
+      [id, decoded.id],
+    );
+    const rows = existing as { ID_objekta: number }[];
+    if (rows.length === 0) {
+      res
+        .status(404)
+        .json({ greska: "Objekt ne postoji ili nemate pravo uređivati." });
+      return;
+    }
+
+    await pool.query(
+      "UPDATE OBJEKTI SET Naziv_objekta = ?, Adresa = ?, Kvart = ?, Kapacitet = ?, Opis = ?, Slika_url = ? WHERE ID_objekta = ?",
+[naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null, id],
+    );
+
+    // Ažuriraj sportove - prvo izbriši stare, pa dodaj nove
+    await pool.query("DELETE FROM SPORTOVI_OBJEKTA WHERE ID_objekta = ?", [id]);
+    
+    if (sportovi && Array.isArray(sportovi) && sportovi.length > 0) {
+      const sportValues = sportovi.map((idSporta: number) => [id, idSporta]);
+      await pool.query(
+        "INSERT INTO SPORTOVI_OBJEKTA (ID_objekta, ID_sporta) VALUES ?",
+        [sportValues],
+      );
+    }
+
+    res.json({ poruka: "Objekt uspješno ažuriran." });
+  } catch (error) {
+    console.error("Greška pri ažuriranju objekta:", error);
+    res.status(500).json({ greska: "Interna greška servera." });
+  }
+});
+
+app.use("/api/objekti", objektiRoutes);
 
 // GET /api/profile - Dohvati profil korisnika
 app.get("/api/profile", async (req: Request, res: Response) => {
@@ -146,14 +263,14 @@ app.get("/api/moji-objekti", async (req: Request, res: Response) => {
       process.env.JWT_SECRET || "sportspot_tajni_kljuc",
     ) as { id: number };
 
-    const [rows] = await pool.query(
-      `SELECT o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Kvart, o.Kapacitet, o.Opis, 
-       (SELECT GROUP_CONCAT(s.Naziv_sporta SEPARATOR ', ') FROM SPORTOVI_OBJEKTA so JOIN SPORT s ON so.ID_sporta = s.ID_sporta WHERE so.ID_objekta = o.ID_objekta) AS sportovi
-       FROM OBJEKTI o
-       WHERE o.ID_korisnika = ?
-       ORDER BY o.Naziv_objekta ASC`,
-      [decoded.id],
-    );
+const [rows] = await pool.query(
+  `SELECT o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Kvart, o.Kapacitet, o.Opis, o.Slika_url,
+   (SELECT GROUP_CONCAT(s.Naziv_sporta SEPARATOR ', ') FROM SPORTOVI_OBJEKTA so JOIN SPORT s ON so.ID_sporta = s.ID_sporta WHERE so.ID_objekta = o.ID_objekta) AS sportovi
+   FROM OBJEKTI o
+   WHERE o.ID_korisnika = ?
+   ORDER BY o.Naziv_objekta ASC`,
+  [decoded.id],
+);
 
     res.json(rows);
   } catch (error) {
@@ -237,7 +354,10 @@ app.post("/api/profile/update", async (req: Request, res: Response) => {
       query += "Lozinka = ?, ";
       params.push(hash);
     }
-
+    if (params.length === 0) {
+  res.json({ poruka: "Nema promjena za ažurirati." });
+  return;
+}
     query = query.slice(0, -2) + " WHERE ID_korisnika = ?";
     params.push(decoded.id);
 
@@ -246,118 +366,6 @@ app.post("/api/profile/update", async (req: Request, res: Response) => {
     res.json({ poruka: "Profil uspješno ažuriran." });
   } catch (error) {
     console.error("Greška pri ažuriranju profila:", error);
-    res.status(500).json({ greska: "Interna greška servera." });
-  }
-});
-
-// POST /api/objekti - Kreiraj novi objekt (samo vlasnik)
-app.post("/api/objekti", async (req: Request, res: Response) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
-    res.status(401).json({ greska: "Niste prijavljeni." });
-    return;
-  }
-
-  const token = authHeader.split(" ")[1];
-  if (!token) {
-    res.status(401).json({ greska: "Neispravan token." });
-    return;
-  }
-
-  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, sportovi } = req.body;
-
-  if (!naziv || !adresa || !kvart) {
-    res.status(400).json({ greska: "Naziv, adresa i kvart su obavezni." });
-    return;
-  }
-
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
-    ) as { id: number };
-
-    const [result] = await pool.query(
-      "INSERT INTO OBJEKTI (ID_korisnika, Naziv_objekta, Adresa, Kvart, Kapacitet, Opis, Slika_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
-[decoded.id, naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null],
-    );
-
-    const insertResult = result as { insertId: number };
-    const noviId = insertResult.insertId;
-
-    // Dodaj sportove ako su proslijeđeni
-    if (sportovi && Array.isArray(sportovi) && sportovi.length > 0) {
-      const sportValues = sportovi.map((idSporta: number) => [noviId, idSporta]);
-      await pool.query(
-        "INSERT INTO SPORTOVI_OBJEKTA (ID_objekta, ID_sporta) VALUES ?",
-        [sportValues],
-      );
-    }
-
-    res
-      .status(201)
-      .json({ id: noviId, poruka: "Objekt uspješno kreiran." });
-  } catch (error) {
-    console.error("Greška pri kreiranju objekta:", error);
-    res.status(500).json({ greska: "Interna greška servera." });
-  }
-});
-
-// PUT /api/objekti/:id - Ažuriraj objekt (samo vlasnik)
-app.put("/api/objekti/:id", async (req: Request, res: Response) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
-    res.status(401).json({ greska: "Niste prijavljeni." });
-    return;
-  }
-
-  const token = authHeader.split(" ")[1];
-  if (!token) {
-    res.status(401).json({ greska: "Neispravan token." });
-    return;
-  }
-
-  const { id } = req.params;
-  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, sportovi } = req.body;
-
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "sportspot_tajni_kljuc",
-    ) as { id: number };
-
-    // Provjeri je li objekt vlasnikov
-    const [existing] = await pool.query(
-      "SELECT ID_objekta FROM OBJEKTI WHERE ID_objekta = ? AND ID_korisnika = ?",
-      [id, decoded.id],
-    );
-    const rows = existing as { ID_objekta: number }[];
-    if (rows.length === 0) {
-      res
-        .status(404)
-        .json({ greska: "Objekt ne postoji ili nemate pravo uređivati." });
-      return;
-    }
-
-    await pool.query(
-      "UPDATE OBJEKTI SET Naziv_objekta = ?, Adresa = ?, Kvart = ?, Kapacitet = ?, Opis = ?, Slika_url = ? WHERE ID_objekta = ?",
-[naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null, id],
-    );
-
-    // Ažuriraj sportove - prvo izbriši stare, pa dodaj nove
-    await pool.query("DELETE FROM SPORTOVI_OBJEKTA WHERE ID_objekta = ?", [id]);
-    
-    if (sportovi && Array.isArray(sportovi) && sportovi.length > 0) {
-      const sportValues = sportovi.map((idSporta: number) => [id, idSporta]);
-      await pool.query(
-        "INSERT INTO SPORTOVI_OBJEKTA (ID_objekta, ID_sporta) VALUES ?",
-        [sportValues],
-      );
-    }
-
-    res.json({ poruka: "Objekt uspješno ažuriran." });
-  } catch (error) {
-    console.error("Greška pri ažuriranju objekta:", error);
     res.status(500).json({ greska: "Interna greška servera." });
   }
 });
