@@ -34,10 +34,10 @@ export default function ProfilAdmin() {
   const [recenzije, setRecenzije] = useState<AdminRecenzija[]>([]);
   const [sviSportovi, setSviSportovi] = useState<Sport[]>([]);
   const [sviVlasnici, setSviVlasnici] = useState<AdminKorisnik[]>([]);
+  const [sviKvartovi, setSviKvartovi] = useState<string[]>([]);
   const [ucitava, setUcitava] = useState(false);
   const [poruka, setPoruka] = useState("");
 
-  // Termini
   const [terminiObjektId, setTerminiObjektId] = useState<number | null>(null);
   const [terminiObjektNaziv, setTerminiObjektNaziv] = useState("");
   const [termini, setTermini] = useState<AdminTermin[]>([]);
@@ -46,18 +46,16 @@ export default function ProfilAdmin() {
   const [editTermin, setEditTermin] = useState<AdminTermin | null>(null);
   const [terminData, setTerminData] = useState({ datum: "", vrijemePocetka: "", vrijemeKraja: "", cijena: "", ponavljajDo: "", ponavljaj: false });
 
-  // Objekt modal
   const [showObjektModal, setShowObjektModal] = useState(false);
   const [objektMod, setObjektMod] = useState<"dodaj" | "uredi">("dodaj");
   const [editObjektId, setEditObjektId] = useState<number | null>(null);
+  const [noviKvartAdmin, setNoviKvartAdmin] = useState(false);
   const [objektData, setObjektData] = useState({ naziv: "", adresa: "", kvart: "", kapacitet: "", opis: "", slikaUrl: "", vlasnikId: "", idKluba: "" });
   const [odabraniSportovi, setOdabraniSportovi] = useState<number[]>([]);
 
-  // Korisnik modal
   const [showKorisnikModal, setShowKorisnikModal] = useState(false);
   const [noviKorisnik, setNoviKorisnik] = useState({ ime: "", prezime: "", email: "", lozinka: "", brojMobitela: "", uloga: "User" });
 
-  // Klub modal
   const [showKlubModal, setShowKlubModal] = useState(false);
   const [klubMod, setKlubMod] = useState<"dodaj" | "uredi">("dodaj");
   const [editKlubId, setEditKlubId] = useState<number | null>(null);
@@ -73,6 +71,7 @@ export default function ProfilAdmin() {
   useEffect(() => {
     if (!token) return;
     fetch("http://localhost:5000/api/sportovi", { headers }).then(r => r.json()).then(setSviSportovi).catch(() => {});
+    fetch("http://localhost:5000/api/objekti/kvartovi").then(r => r.json()).then(setSviKvartovi).catch(() => {});
   }, [token]);
 
   const ucitajObjekte = () => {
@@ -85,9 +84,7 @@ export default function ProfilAdmin() {
     });
   };
 
-  const ucitajKlubove = () => {
-    return fetch(`${API}/klubovi`, { headers }).then(r => r.json()).then(setKlubovi);
-  };
+  const ucitajKlubove = () => fetch(`${API}/klubovi`, { headers }).then(r => r.json()).then(setKlubovi);
 
   useEffect(() => {
     if (!token) return;
@@ -101,7 +98,6 @@ export default function ProfilAdmin() {
     }
     if (aktivnaTab === "objekti") {
       setUcitava(true);
-      // Učitaj i objekte i klubove jer modal za objekt treba listu klubova
       Promise.all([
         fetch(`${API}/objekti`, { headers }).then(r => r.json()),
         fetch(`${API}/korisnici`, { headers }).then(r => r.json()),
@@ -114,14 +110,8 @@ export default function ProfilAdmin() {
     }
     if (aktivnaTab === "klubovi") {
       setUcitava(true);
-      // Učitaj i klubove i objekte jer tablica klubova prikazuje objekte
-      Promise.all([
-        fetch(`${API}/klubovi`, { headers }).then(r => r.json()),
-        fetch(`${API}/objekti`, { headers }).then(r => r.json()),
-      ]).then(([klu, obj]) => {
-        setKlubovi(klu);
-        setObjekti(obj);
-      }).finally(() => setUcitava(false));
+      Promise.all([fetch(`${API}/klubovi`, { headers }).then(r => r.json()), fetch(`${API}/objekti`, { headers }).then(r => r.json())])
+        .then(([klu, obj]) => { setKlubovi(klu); setObjekti(obj); }).finally(() => setUcitava(false));
     }
     if (aktivnaTab === "recenzije") {
       setUcitava(true);
@@ -154,13 +144,7 @@ export default function ProfilAdmin() {
   };
 
   const spremiObjekt = async () => {
-    const body = {
-      ...objektData,
-      kapacitet: objektData.kapacitet ? Number(objektData.kapacitet) : null,
-      vlasnikId: objektData.vlasnikId ? Number(objektData.vlasnikId) : null,
-      idKluba: objektData.idKluba ? Number(objektData.idKluba) : null,
-      sportovi: odabraniSportovi
-    };
+    const body = { ...objektData, kapacitet: objektData.kapacitet ? Number(objektData.kapacitet) : null, vlasnikId: objektData.vlasnikId ? Number(objektData.vlasnikId) : null, idKluba: objektData.idKluba ? Number(objektData.idKluba) : null, sportovi: odabraniSportovi };
     if (objektMod === "dodaj") {
       await fetch(`${API}/objekti`, { method: "POST", headers: jsonHeaders, body: JSON.stringify(body) });
     } else {
@@ -180,6 +164,19 @@ export default function ProfilAdmin() {
     if (!confirm("Obrisati objekt?")) return;
     await fetch(`${API}/objekti/${id}`, { method: "DELETE", headers });
     setObjekti(o => o.filter(obj => obj.id !== id));
+  };
+
+  const potvrdiObrisiObjekt = async (id: number) => {
+    if (!confirm("Potvrditi brisanje objekta? Ova akcija je nepovratna.")) return;
+    await fetch(`${API}/objekti/${id}/potvrdi-brisanje`, { method: "PUT", headers });
+    setObjekti(o => o.filter(obj => obj.id !== id));
+    prikaziPoruku("Objekt obrisan.");
+  };
+
+  const odbijObrisiObjekt = async (id: number) => {
+    await fetch(`${API}/objekti/${id}/odbij-brisanje`, { method: "PUT", headers });
+    setObjekti(o => o.map(obj => obj.id === id ? { ...obj, status_objekta: "Aktivan" } : obj));
+    prikaziPoruku("Zahtjev za brisanje odbijen.");
   };
 
   const spremiKorisnika = async () => {
@@ -248,7 +245,6 @@ export default function ProfilAdmin() {
     <div style={{ minHeight: "100vh", background: "#F0F4FF", paddingTop: 90, paddingBottom: 60 }}>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }}>
 
-        {/* Header */}
         <div style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", borderRadius: 20, padding: "28px 32px", marginBottom: 24, color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 22, fontWeight: 800 }}>🛡️ Admin panel</div>
@@ -257,7 +253,6 @@ export default function ProfilAdmin() {
           {poruka && <div style={{ padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.2)", fontWeight: 600 }}>✓ {poruka}</div>}
         </div>
 
-        {/* Tabs */}
         <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
           {(["dashboard", "korisnici", "objekti", "klubovi", "recenzije"] as Tab[]).map(t => (
             <button key={t} onClick={() => setAktivnaTab(t)} style={tabStyle(t)}>
@@ -268,7 +263,6 @@ export default function ProfilAdmin() {
 
         {ucitava && <div style={{ textAlign: "center", padding: 40, color: "#6B7280" }}>Učitavanje...</div>}
 
-        {/* DASHBOARD */}
         {aktivnaTab === "dashboard" && !ucitava && dashboard && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
             {[
@@ -289,7 +283,6 @@ export default function ProfilAdmin() {
           </div>
         )}
 
-        {/* KORISNICI */}
         {aktivnaTab === "korisnici" && !ucitava && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -331,7 +324,6 @@ export default function ProfilAdmin() {
           </div>
         )}
 
-        {/* OBJEKTI */}
         {aktivnaTab === "objekti" && !ucitava && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -342,46 +334,51 @@ export default function ProfilAdmin() {
                     {objekti.filter(o => o.status_objekta === "Pending").length} na čekanju
                   </span>
                 )}
+                {objekti.filter(o => o.status_objekta === "PendingDelete").length > 0 && (
+                  <span style={{ marginLeft: 6, padding: "3px 10px", borderRadius: 8, background: "#FEE2E2", color: "#DC2626", fontSize: 13 }}>
+                    {objekti.filter(o => o.status_objekta === "PendingDelete").length} čeka brisanje
+                  </span>
+                )}
               </h2>
               <button onClick={() => {
                 setObjektMod("dodaj"); setEditObjektId(null);
                 setObjektData({ naziv: "", adresa: "", kvart: "", kapacitet: "", opis: "", slikaUrl: "", vlasnikId: "", idKluba: "" });
-                setOdabraniSportovi([]); setShowObjektModal(true);
+                setOdabraniSportovi([]); setNoviKvartAdmin(false); setShowObjektModal(true);
               }} style={btnPrimary}>+ Dodaj objekt</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {objekti.map(o => (
-                <div key={o.id} style={{ padding: 16, borderRadius: 12, border: `1px solid ${o.status_objekta === "Pending" ? "#FDE68A" : "#E5E7EB"}`, background: o.status_objekta === "Pending" ? "#FFFBEB" : "#fff" }}>
+                <div key={o.id} style={{ padding: 16, borderRadius: 12, border: `1px solid ${o.status_objekta === "Pending" ? "#FDE68A" : o.status_objekta === "PendingDelete" ? "#FECACA" : "#E5E7EB"}`, background: o.status_objekta === "Pending" ? "#FFFBEB" : o.status_objekta === "PendingDelete" ? "#FEF2F2" : "#fff" }}>
                   <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
                     {o.slikaUrl && <img src={o.slikaUrl} alt="" style={{ width: 72, height: 56, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />}
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                         <a href={`/objekt/${o.id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, fontSize: 15, color: "#111827", textDecoration: "none" }}>
-  {o.naziv} <span style={{ fontSize: 12, color: "#3B82F6" }}>↗</span>
-</a>
-                        <span style={{ padding: "2px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700, background: o.status_objekta === "Pending" ? "#FEF3C7" : "#D1FAE5", color: o.status_objekta === "Pending" ? "#D97706" : "#059669" }}>
-                          {o.status_objekta === "Pending" ? "⏳ Na čekanju" : "✅ Aktivan"}
+                          {o.naziv} <span style={{ fontSize: 12, color: "#3B82F6" }}>↗</span>
+                        </a>
+                        <span style={{ padding: "2px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700,
+                          background: o.status_objekta === "Pending" ? "#FEF3C7" : o.status_objekta === "PendingDelete" ? "#FEE2E2" : "#D1FAE5",
+                          color: o.status_objekta === "Pending" ? "#D97706" : o.status_objekta === "PendingDelete" ? "#DC2626" : "#059669" }}>
+                          {o.status_objekta === "Pending" ? "⏳ Na čekanju" : o.status_objekta === "PendingDelete" ? "🗑️ Čeka brisanje" : "✅ Aktivan"}
                         </span>
                       </div>
                       <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>{o.adresa}, {o.kvart}</div>
-                      <div style={{ fontSize: 13, color: "#9CA3AF" }}>
-                        Vlasnik: {o.vlasnik} · Klub: {o.nazivKluba || "—"} · {o.sportovi || "bez sportova"}
-                      </div>
+                      <div style={{ fontSize: 13, color: "#9CA3AF" }}>Vlasnik: {o.vlasnik} · Klub: {o.nazivKluba || "—"} · {o.sportovi || "bez sportova"}</div>
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: 0 }}>
                       {o.status_objekta === "Pending" && <button onClick={() => odobriObjekt(o.id)} style={btnSuccess}>✓ Odobri</button>}
+                      {o.status_objekta === "PendingDelete" && (
+                        <>
+                          <button onClick={() => potvrdiObrisiObjekt(o.id)} style={{ ...btnDanger, background: "#DC2626", color: "#fff" }}>🗑️ Potvrdi brisanje</button>
+                          <button onClick={() => odbijObrisiObjekt(o.id)} style={btnSecondary}>↩ Odbij</button>
+                        </>
+                      )}
                       <button onClick={() => ucitajTermine(o.id, o.naziv)} style={btnSecondary}>Termini</button>
                       <button onClick={() => {
                         setObjektMod("uredi"); setEditObjektId(o.id);
-                        setObjektData({
-                          naziv: o.naziv, adresa: o.adresa, kvart: o.kvart,
-                          kapacitet: o.kapacitet ? String(o.kapacitet) : "",
-                          opis: o.opis || "", slikaUrl: o.slikaUrl || "",
-                          vlasnikId: o.vlasnikId ? String(o.vlasnikId) : "",
-                          idKluba: o.idKluba ? String(o.idKluba) : ""
-                        });
+                        setObjektData({ naziv: o.naziv, adresa: o.adresa, kvart: o.kvart, kapacitet: o.kapacitet ? String(o.kapacitet) : "", opis: o.opis || "", slikaUrl: o.slikaUrl || "", vlasnikId: o.vlasnikId ? String(o.vlasnikId) : "", idKluba: o.idKluba ? String(o.idKluba) : "" });
                         const sportIdjevi = o.sportovi ? sviSportovi.filter(s => o.sportovi.split(", ").includes(s.Naziv_sporta)).map(s => s.ID_sporta) : [];
-                        setOdabraniSportovi(sportIdjevi); setShowObjektModal(true);
+                        setOdabraniSportovi(sportIdjevi); setNoviKvartAdmin(false); setShowObjektModal(true);
                       }} style={btnSecondary}>Uredi</button>
                       <button onClick={() => obrisiObjekt(o.id)} style={btnDanger}>Obriši</button>
                     </div>
@@ -392,16 +389,11 @@ export default function ProfilAdmin() {
           </div>
         )}
 
-        {/* KLUBOVI */}
         {aktivnaTab === "klubovi" && !ucitava && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Klubovi ({klubovi.length})</h2>
-              <button onClick={() => {
-                setKlubMod("dodaj"); setEditKlubId(null);
-                setKlubData({ naziv: "", oib: "", kontakt: "" });
-                setShowKlubModal(true);
-              }} style={btnPrimary}>+ Dodaj klub</button>
+              <button onClick={() => { setKlubMod("dodaj"); setEditKlubId(null); setKlubData({ naziv: "", oib: "", kontakt: "" }); setShowKlubModal(true); }} style={btnPrimary}>+ Dodaj klub</button>
             </div>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
@@ -418,18 +410,10 @@ export default function ProfilAdmin() {
                       <td style={{ padding: "12px 16px", fontWeight: 600 }}>{k.naziv}</td>
                       <td style={{ padding: "12px 16px", color: "#6B7280", fontFamily: "monospace" }}>{k.oib}</td>
                       <td style={{ padding: "12px 16px", color: "#6B7280" }}>{k.kontakt || "—"}</td>
-                      <td style={{ padding: "12px 16px", color: "#6B7280" }}>
-                        {k.objektiNazivi.length > 0
-                          ? k.objektiNazivi.map((n, i) => <div key={i} style={{ fontSize: 13 }}>• {n}</div>)
-                          : "—"}
-                      </td>
+                      <td style={{ padding: "12px 16px", color: "#6B7280" }}>{k.objektiNazivi.length > 0 ? k.objektiNazivi.map((n, i) => <div key={i} style={{ fontSize: 13 }}>• {n}</div>) : "—"}</td>
                       <td style={{ padding: "12px 16px" }}>
                         <div style={{ display: "flex", gap: 8 }}>
-                          <button onClick={() => {
-                            setKlubMod("uredi"); setEditKlubId(k.id);
-                            setKlubData({ naziv: k.naziv, oib: k.oib, kontakt: k.kontakt || "" });
-                            setShowKlubModal(true);
-                          }} style={btnSecondary}>Uredi</button>
+                          <button onClick={() => { setKlubMod("uredi"); setEditKlubId(k.id); setKlubData({ naziv: k.naziv, oib: k.oib, kontakt: k.kontakt || "" }); setShowKlubModal(true); }} style={btnSecondary}>Uredi</button>
                           <button onClick={() => obrisiKlub(k.id)} style={btnDanger}>Obriši</button>
                         </div>
                       </td>
@@ -441,7 +425,6 @@ export default function ProfilAdmin() {
           </div>
         )}
 
-        {/* RECENZIJE */}
         {aktivnaTab === "recenzije" && !ucitava && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Recenzije ({recenzije.length})</h2>
@@ -466,7 +449,6 @@ export default function ProfilAdmin() {
           </div>
         )}
 
-        {/* MODAL: Termini */}
         {showTerminiModal && (
           <Modal onClose={() => { setShowTerminiModal(false); setShowDodajTermin(false); setEditTermin(null); }} title={`Termini — ${terminiObjektNaziv}`}>
             <button onClick={() => { setShowDodajTermin(true); setEditTermin(null); setTerminData({ datum: "", vrijemePocetka: "", vrijemeKraja: "", cijena: "", ponavljajDo: "", ponavljaj: false }); }} style={{ ...btnPrimary, marginBottom: 16 }}>+ Dodaj termin</button>
@@ -510,13 +492,28 @@ export default function ProfilAdmin() {
           </Modal>
         )}
 
-        {/* MODAL: Dodaj/Uredi Objekt */}
         {showObjektModal && (
           <Modal onClose={() => setShowObjektModal(false)} title={objektMod === "dodaj" ? "Dodaj objekt" : "Uredi objekt"}>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div><label style={{ fontSize: 13, fontWeight: 600 }}>Naziv *</label><input value={objektData.naziv} onChange={e => setObjektData({ ...objektData, naziv: e.target.value })} style={inputStyle} /></div>
               <div><label style={{ fontSize: 13, fontWeight: 600 }}>Adresa *</label><input value={objektData.adresa} onChange={e => setObjektData({ ...objektData, adresa: e.target.value })} style={inputStyle} /></div>
-              <div><label style={{ fontSize: 13, fontWeight: 600 }}>Kvart *</label><input value={objektData.kvart} onChange={e => setObjektData({ ...objektData, kvart: e.target.value })} style={inputStyle} /></div>
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 600 }}>Kvart *</label>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  {!noviKvartAdmin ? (
+                    <select value={objektData.kvart} onChange={(e) => setObjektData({ ...objektData, kvart: e.target.value })} style={{ ...inputStyle, flex: 1 }}>
+                      <option value="">— odaberi kvart —</option>
+                      {sviKvartovi.map((k) => <option key={k} value={k}>{k}</option>)}
+                    </select>
+                  ) : (
+                    <input type="text" placeholder="Novi kvart..." value={objektData.kvart} onChange={(e) => setObjektData({ ...objektData, kvart: e.target.value })} style={{ ...inputStyle, flex: 1 }} />
+                  )}
+                  <button type="button" onClick={() => { setNoviKvartAdmin(!noviKvartAdmin); setObjektData({ ...objektData, kvart: "" }); }}
+                    style={{ padding: "10px 14px", borderRadius: 10, border: "1.5px solid #E5E7EB", background: noviKvartAdmin ? "#EEF2FF" : "#fff", color: "#1D4ED8", cursor: "pointer", fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}>
+                    {noviKvartAdmin ? "↩ Odaberi" : "+ Novi"}
+                  </button>
+                </div>
+              </div>
               <div><label style={{ fontSize: 13, fontWeight: 600 }}>Kapacitet</label><input type="number" value={objektData.kapacitet} onChange={e => setObjektData({ ...objektData, kapacitet: e.target.value })} style={inputStyle} /></div>
               <div>
                 <label style={{ fontSize: 13, fontWeight: 600, display: "block", marginBottom: 6 }}>Vlasnik</label>
@@ -557,7 +554,6 @@ export default function ProfilAdmin() {
           </Modal>
         )}
 
-        {/* MODAL: Dodaj korisnika */}
         {showKorisnikModal && (
           <Modal onClose={() => setShowKorisnikModal(false)} title="Dodaj korisnika">
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -582,7 +578,6 @@ export default function ProfilAdmin() {
           </Modal>
         )}
 
-        {/* MODAL: Dodaj/Uredi Klub */}
         {showKlubModal && (
           <Modal onClose={() => setShowKlubModal(false)} title={klubMod === "dodaj" ? "Dodaj klub" : "Uredi klub"}>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

@@ -4,43 +4,26 @@ import { autentificiraj, type AuthRequest } from "../middleware/auth.ts";
 
 const router = express.Router();
 
-// GET /api/objekti — svi objekti sa sportovima, ocjenama i slobodnim terminima
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const { sport, kvart, datum, period } = req.query;
+    const { sport, kvart, datum, period, cijenaMin, cijenaMax, besplatni } = req.query;
 
     const sportArray = sport ? (Array.isArray(sport) ? sport : [sport]) : [];
 
     let vrijemeOd = "00:00:00";
     let vrijemeDo = "23:59:59";
-    if (period === "jutro") {
-      vrijemeOd = "06:00:00";
-      vrijemeDo = "12:00:00";
-    } else if (period === "poslijepodne") {
-      vrijemeOd = "12:00:00";
-      vrijemeDo = "18:00:00";
-    } else if (period === "vecer") {
-      vrijemeOd = "18:00:00";
-      vrijemeDo = "23:59:59";
-    }
+    if (period === "jutro") { vrijemeOd = "06:00:00"; vrijemeDo = "12:00:00"; }
+    else if (period === "poslijepodne") { vrijemeOd = "12:00:00"; vrijemeDo = "18:00:00"; }
+    else if (period === "vecer") { vrijemeOd = "18:00:00"; vrijemeDo = "23:59:59"; }
 
-    const sportJoinClause =
-      sportArray.length > 0
-        ? `
-        INNER JOIN SPORTOVI_OBJEKTA so ON o.ID_objekta = so.ID_objekta
-        INNER JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta AND sp.Naziv_sporta IN (${sportArray.map(() => "?").join(",")})
-      `
-        : "";
+    const sportJoinClause = sportArray.length > 0
+      ? `INNER JOIN SPORTOVI_OBJEKTA so ON o.ID_objekta = so.ID_objekta
+         INNER JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta AND sp.Naziv_sporta IN (${sportArray.map(() => "?").join(",")})`
+      : "";
 
     const objektiQuery = `
       SELECT DISTINCT
-        o.ID_objekta,
-        o.Naziv_objekta,
-        o.Adresa,
-        o.Opis,
-        o.Kvart,
-        o.Kapacitet,
-        o.Slika_url,
+        o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Opis, o.Kvart, o.Kapacitet, o.Slika_url,
         ROUND(AVG(r.Ocjena), 1) AS ocjena,
         COUNT(DISTINCT r.ID_korisnika) AS broj_recenzija,
         MIN(t.Cijena) AS cijena_od
@@ -53,44 +36,37 @@ router.get("/", async (req: Request, res: Response) => {
       ${sportJoinClause}
       ${kvart && kvart !== "Svi kvartovi" ? "WHERE o.Kvart = ? AND o.Status_objekta = 'Aktivan'" : "WHERE o.Status_objekta = 'Aktivan'"}
       GROUP BY o.ID_objekta
+      HAVING 1=1
+        ${besplatni === "true" ? "AND (cijena_od IS NULL OR cijena_od = 0)" : ""}
+        ${!besplatni && cijenaMin ? "AND cijena_od >= ?" : ""}
+        ${!besplatni && cijenaMax ? "AND cijena_od <= ?" : ""}
       ORDER BY ocjena DESC
     `;
 
     const params: unknown[] = [];
     if (datum) params.push(datum);
-    if (period && period !== "") {
-      params.push(vrijemeOd);
-      params.push(vrijemeDo);
-    }
+    if (period && period !== "") { params.push(vrijemeOd); params.push(vrijemeDo); }
     if (sportArray.length > 0) params.push(...sportArray);
     if (kvart && kvart !== "Svi kvartovi") params.push(kvart);
+    if (!besplatni && cijenaMin) params.push(Number(cijenaMin));
+    if (!besplatni && cijenaMax) params.push(Number(cijenaMax));
 
     const [objekti] = (await pool.query(objektiQuery, params)) as [any[], any];
 
-    if (objekti.length === 0) {
-      res.json([]);
-      return;
-    }
+    if (objekti.length === 0) { res.json([]); return; }
 
     const ids = objekti.map((o: any) => o.ID_objekta);
 
     const [sportovi] = (await pool.query(
-      `SELECT so.ID_objekta, sp.Naziv_sporta
-       FROM SPORTOVI_OBJEKTA so
-       JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta
-       WHERE so.ID_objekta IN (?)`,
+      `SELECT so.ID_objekta, sp.Naziv_sporta FROM SPORTOVI_OBJEKTA so JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta WHERE so.ID_objekta IN (?)`,
       [ids],
     )) as [any[], any];
 
     const terminiQuery = `
-      SELECT 
-        t.ID_termina,
-        t.ID_objekta,
-        t.Datum,
+      SELECT t.ID_termina, t.ID_objekta, t.Datum,
         TIME_FORMAT(t.Vrijeme_pocetka, '%H:%i') AS vrijeme_pocetka,
         TIME_FORMAT(t.Vrijeme_kraja, '%H:%i') AS vrijeme_kraja,
-        t.Cijena,
-        t.Status
+        t.Cijena, t.Status
       FROM TERMINI t
       WHERE t.ID_objekta IN (?)
         AND t.Status = 'Slobodan'
@@ -101,15 +77,9 @@ router.get("/", async (req: Request, res: Response) => {
 
     const terminiParams: unknown[] = [ids];
     if (datum) terminiParams.push(datum);
-    if (period && period !== "") {
-      terminiParams.push(vrijemeOd);
-      terminiParams.push(vrijemeDo);
-    }
+    if (period && period !== "") { terminiParams.push(vrijemeOd); terminiParams.push(vrijemeDo); }
 
-    const [termini] = (await pool.query(terminiQuery, terminiParams)) as [
-      any[],
-      any,
-    ];
+    const [termini] = (await pool.query(terminiQuery, terminiParams)) as [any[], any];
 
     const rezultat = objekti.map((obj: any) => ({
       id: obj.ID_objekta,
@@ -122,44 +92,124 @@ router.get("/", async (req: Request, res: Response) => {
       ocjena: obj.ocjena ?? null,
       brojRecenzija: Number(obj.broj_recenzija),
       cijenaOd: obj.cijena_od ?? 0,
-      sportovi: sportovi
-        .filter((s: any) => s.ID_objekta === obj.ID_objekta)
-        .map((s: any) => s.Naziv_sporta),
-      termini: termini
-        .filter((t: any) => t.ID_objekta === obj.ID_objekta)
-        .map((t: any) => ({
-          id: t.ID_termina,
-          naziv: `Teren ${t.ID_termina}`,
-          datum: t.Datum,
-          vrijemePocetka: t.vrijeme_pocetka,
-          vrijemeKraja: t.vrijeme_kraja,
-          cijena: Number(t.Cijena),
-          status: t.Status,
-        })),
+      sportovi: sportovi.filter((s: any) => s.ID_objekta === obj.ID_objekta).map((s: any) => s.Naziv_sporta),
+      termini: termini.filter((t: any) => t.ID_objekta === obj.ID_objekta).map((t: any) => ({
+        id: t.ID_termina,
+        naziv: `Teren ${t.ID_termina}`,
+        datum: t.Datum,
+        vrijemePocetka: t.vrijeme_pocetka,
+        vrijemeKraja: t.vrijeme_kraja,
+        cijena: Number(t.Cijena),
+        status: t.Status,
+      })),
     }));
 
     res.json(rezultat);
   } catch (error) {
     console.error("Greška pri dohvaćanju objekata:", error);
-    res
-      .status(500)
-      .json({ error: "Greška na serveru.", details: String(error) });
+    res.status(500).json({ error: "Greška na serveru.", details: String(error) });
   }
 });
 
-// GET /api/objekti/:id — jedan objekt s detaljima
+router.get("/kvartovi", async (_req: Request, res: Response) => {
+  try {
+    const [rows] = (await pool.query(
+      "SELECT DISTINCT Kvart FROM OBJEKTI WHERE Status_objekta = 'Aktivan' ORDER BY Kvart ASC"
+    )) as [any[], any];
+    res.json(rows.map((r: any) => r.Kvart));
+  } catch (error) {
+    res.status(500).json({ error: "Greška na serveru." });
+  }
+});
+
+router.post("/recenzije/nova", autentificiraj, async (req: AuthRequest, res: Response) => {
+  try {
+    const { idObjekta, ocjena, komentar } = req.body;
+    const idKorisnika = req.user?.id;
+
+    if (!idObjekta || !ocjena) { res.status(400).json({ error: "Nedostaju objekt ili ocjena." }); return; }
+    if (ocjena < 1 || ocjena > 5) { res.status(400).json({ error: "Ocjena mora biti između 1 i 5." }); return; }
+
+    const [postojece] = (await pool.query(
+      "SELECT * FROM RECENZIJE WHERE ID_korisnika = ? AND ID_objekta = ?",
+      [idKorisnika, idObjekta],
+    )) as [any[], any];
+
+    if (postojece.length > 0) { res.status(400).json({ error: "Već ste ostavili recenziju za ovaj objekt." }); return; }
+
+    await pool.query(
+      `INSERT INTO RECENZIJE (ID_korisnika, ID_objekta, Ocjena, Komentar) VALUES (?, ?, ?, ?)`,
+      [idKorisnika, idObjekta, ocjena, komentar || null],
+    );
+
+    res.status(201).json({ message: "Recenzija uspješno objavljena!" });
+  } catch (error) {
+    console.error("Greška pri spremanju recenzije:", error);
+    res.status(500).json({ error: "Greška na serveru pri spremanju recenzije." });
+  }
+});
+
+router.get("/vlasnik/statistika", autentificiraj, async (req: AuthRequest, res: Response) => {
+  const idKorisnika = req.user?.id;
+  try {
+    const [poMjesecima] = (await pool.query(
+      `SELECT DATE_FORMAT(t.Datum, '%Y-%m') AS mjesec, COUNT(*) AS broj_rezervacija, SUM(t.Cijena) AS prihod
+       FROM TERMINI t JOIN OBJEKTI o ON t.ID_objekta = o.ID_objekta
+       WHERE o.ID_korisnika = ? AND t.Status = 'Zauzet' AND t.Datum >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+       GROUP BY DATE_FORMAT(t.Datum, '%Y-%m') ORDER BY mjesec ASC`,
+      [idKorisnika],
+    )) as [any[], any];
+
+    const [poObjektima] = (await pool.query(
+      `SELECT o.ID_objekta, o.Naziv_objekta,
+        COUNT(CASE WHEN t.Status = 'Zauzet' THEN 1 END) AS zauzeti,
+        COUNT(CASE WHEN t.Status = 'Slobodan' THEN 1 END) AS slobodni,
+        COUNT(*) AS ukupno_termina,
+        COALESCE(SUM(CASE WHEN t.Status = 'Zauzet' THEN t.Cijena END), 0) AS ukupni_prihod
+       FROM OBJEKTI o LEFT JOIN TERMINI t ON o.ID_objekta = t.ID_objekta
+       WHERE o.ID_korisnika = ? GROUP BY o.ID_objekta, o.Naziv_objekta`,
+      [idKorisnika],
+    )) as [any[], any];
+
+    res.json({
+      poMjesecima: poMjesecima.map((r: any) => ({ mjesec: r.mjesec, brojRezervacija: Number(r.broj_rezervacija), prihod: Number(r.prihod) })),
+      poObjektima: poObjektima.map((r: any) => ({ id: r.ID_objekta, naziv: r.Naziv_objekta, zauzeti: Number(r.zauzeti), slobodni: Number(r.slobodni), ukupnoTermina: Number(r.ukupno_termina), ukupniPrihod: Number(r.ukupni_prihod) })),
+    });
+  } catch (error) {
+    console.error("Greška pri dohvatu statistike:", error);
+    res.status(500).json({ error: "Greška na serveru." });
+  }
+});
+
+router.delete("/obrisi/:id", autentificiraj, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const idKorisnika = req.user?.id;
+    const [rows] = (await pool.query(
+      "SELECT ID_korisnika, Status_objekta FROM OBJEKTI WHERE ID_objekta = ?",
+      [id]
+    )) as [any[], any];
+
+    if (rows.length === 0) { res.status(404).json({ error: "Objekt nije pronađen." }); return; }
+    if (rows[0].ID_korisnika !== idKorisnika) { res.status(403).json({ error: "Nemate ovlasti." }); return; }
+
+    await pool.query(
+      "UPDATE OBJEKTI SET Status_objekta = 'PendingDelete' WHERE ID_objekta = ?",
+      [id]
+    );
+
+    res.json({ message: "Zahtjev za brisanje poslan administratoru." });
+  } catch (error) {
+    res.status(500).json({ error: "Greška na serveru." });
+  }
+});
+
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const [rows] = (await pool.query(
-      `SELECT 
-        o.*,
-        o.ID_korisnika,
-        o.Slika_url,
-        k.Naziv_kluba,
-        k.Kontakt_telefon,
-        ROUND(AVG(r.Ocjena), 1) AS ocjena,
-        COUNT(DISTINCT r.ID_korisnika) AS broj_recenzija
+      `SELECT o.*, o.ID_korisnika, o.Slika_url, k.Naziv_kluba, k.Kontakt_telefon,
+        ROUND(AVG(r.Ocjena), 1) AS ocjena, COUNT(DISTINCT r.ID_korisnika) AS broj_recenzija
        FROM OBJEKTI o
        LEFT JOIN KLUB k ON o.ID_kluba = k.ID_kluba
        LEFT JOIN RECENZIJE r ON o.ID_objekta = r.ID_objekta
@@ -168,46 +218,31 @@ router.get("/:id", async (req: Request, res: Response) => {
       [id],
     )) as [any[], any];
 
-    if (rows.length === 0) {
-      res.status(404).json({ error: "Objekt nije pronađen." });
-      return;
-    }
+    if (rows.length === 0) { res.status(404).json({ error: "Objekt nije pronađen." }); return; }
 
     const obj = rows[0];
 
     const [sviTermini] = (await pool.query(
-      `SELECT 
-        t.ID_termina,
-        t.ID_korisnika,
-        t.Datum,
+      `SELECT t.ID_termina, t.ID_korisnika, t.Datum,
         TIME_FORMAT(t.Vrijeme_pocetka, '%H:%i') AS vrijeme_pocetka,
         TIME_FORMAT(t.Vrijeme_kraja, '%H:%i') AS vrijeme_kraja,
-        t.Cijena,
-        t.Status,
-        (SELECT GROUP_CONCAT(ID_korisnika ORDER BY Vrijeme_prijave ASC) 
-         FROM LISTA_CEKANJA 
-         WHERE ID_termina = t.ID_termina) AS lista_ids
+        t.Cijena, t.Status,
+        (SELECT GROUP_CONCAT(ID_korisnika ORDER BY Vrijeme_prijave ASC) FROM LISTA_CEKANJA WHERE ID_termina = t.ID_termina) AS lista_ids
        FROM TERMINI t
-       WHERE t.ID_objekta = ? 
+       WHERE t.ID_objekta = ?
        ORDER BY t.Datum DESC, t.Vrijeme_pocetka ASC`,
       [id],
     )) as [any[], any];
 
     const [sportovi] = (await pool.query(
-      `SELECT sp.Naziv_sporta FROM SPORTOVI_OBJEKTA so
-       JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta
-       WHERE so.ID_objekta = ?`,
+      `SELECT sp.Naziv_sporta FROM SPORTOVI_OBJEKTA so JOIN SPORT sp ON so.ID_sporta = sp.ID_sporta WHERE so.ID_objekta = ?`,
       [id],
     )) as [any[], any];
 
     const [recenzije] = (await pool.query(
-      `SELECT 
-        r.Ocjena, r.Komentar, r.Datum_objave,
-        k.Ime, k.Prezime
-       FROM RECENZIJE r
-       JOIN KORISNIK k ON r.ID_korisnika = k.ID_korisnika
-       WHERE r.ID_objekta = ?
-       ORDER BY r.Datum_objave DESC`,
+      `SELECT r.Ocjena, r.Komentar, r.Datum_objave, k.Ime, k.Prezime
+       FROM RECENZIJE r JOIN KORISNIK k ON r.ID_korisnika = k.ID_korisnika
+       WHERE r.ID_objekta = ? ORDER BY r.Datum_objave DESC`,
       [id],
     )) as [any[], any];
 
@@ -248,112 +283,5 @@ router.get("/:id", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Greška na serveru." });
   }
 });
-
-// POST /api/objekti/recenzije/nova — dodavanje recenzija
-router.post(
-  "/recenzije/nova",
-  autentificiraj,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      const { idObjekta, ocjena, komentar } = req.body;
-      const idKorisnika = req.user?.id;
-
-      if (!idObjekta || !ocjena) {
-        res.status(400).json({ error: "Nedostaju objekt ili ocjena." });
-        return;
-      }
-
-      if (ocjena < 1 || ocjena > 5) {
-        res.status(400).json({ error: "Ocjena mora biti između 1 i 5." });
-        return;
-      }
-
-      const [postojece] = (await pool.query(
-        "SELECT * FROM RECENZIJE WHERE ID_korisnika = ? AND ID_objekta = ?",
-        [idKorisnika, idObjekta],
-      )) as [any[], any];
-
-      if (postojece.length > 0) {
-        res
-          .status(400)
-          .json({ error: "Već ste ostavili recenziju za ovaj objekt." });
-        return;
-      }
-
-      await pool.query(
-        `INSERT INTO RECENZIJE (ID_korisnika, ID_objekta, Ocjena, Komentar) 
-         VALUES (?, ?, ?, ?)`,
-        [idKorisnika, idObjekta, ocjena, komentar || null],
-      );
-
-      res.status(201).json({ message: "Recenzija uspješno objavljena!" });
-    } catch (error) {
-      console.error("Greška pri spremanju recenzije:", error);
-      res
-        .status(500)
-        .json({ error: "Greška na serveru pri spremanju recenzije." });
-    }
-  },
-);
-
-// GET /api/objekti/vlasnik/statistika
-router.get(
-  "/vlasnik/statistika",
-  autentificiraj,
-  async (req: AuthRequest, res: Response) => {
-    const idKorisnika = req.user?.id;
-
-    try {
-      const [poMjesecima] = (await pool.query(
-        `SELECT 
-          DATE_FORMAT(t.Datum, '%Y-%m') AS mjesec,
-          COUNT(*) AS broj_rezervacija,
-          SUM(t.Cijena) AS prihod
-         FROM TERMINI t
-         JOIN OBJEKTI o ON t.ID_objekta = o.ID_objekta
-         WHERE o.ID_korisnika = ?
-           AND t.Status = 'Zauzet'
-           AND t.Datum >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-         GROUP BY DATE_FORMAT(t.Datum, '%Y-%m')
-         ORDER BY mjesec ASC`,
-        [idKorisnika],
-      )) as [any[], any];
-
-      const [poObjektima] = (await pool.query(
-        `SELECT 
-          o.ID_objekta,
-          o.Naziv_objekta,
-          COUNT(CASE WHEN t.Status = 'Zauzet' THEN 1 END) AS zauzeti,
-          COUNT(CASE WHEN t.Status = 'Slobodan' THEN 1 END) AS slobodni,
-          COUNT(*) AS ukupno_termina,
-          COALESCE(SUM(CASE WHEN t.Status = 'Zauzet' THEN t.Cijena END), 0) AS ukupni_prihod
-         FROM OBJEKTI o
-         LEFT JOIN TERMINI t ON o.ID_objekta = t.ID_objekta
-         WHERE o.ID_korisnika = ?
-         GROUP BY o.ID_objekta, o.Naziv_objekta`,
-        [idKorisnika],
-      )) as [any[], any];
-
-      res.json({
-        poMjesecima: poMjesecima.map((r: any) => ({
-          mjesec: r.mjesec,
-          brojRezervacija: Number(r.broj_rezervacija),
-          prihod: Number(r.prihod),
-        })),
-        poObjektima: poObjektima.map((r: any) => ({
-          id: r.ID_objekta,
-          naziv: r.Naziv_objekta,
-          zauzeti: Number(r.zauzeti),
-          slobodni: Number(r.slobodni),
-          ukupnoTermina: Number(r.ukupno_termina),
-          ukupniPrihod: Number(r.ukupni_prihod),
-        })),
-      });
-    } catch (error) {
-      console.error("Greška pri dohvatu statistike:", error);
-      res.status(500).json({ error: "Greška na serveru." });
-    }
-  },
-);
 
 export default router;
