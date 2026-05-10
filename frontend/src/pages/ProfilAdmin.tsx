@@ -144,15 +144,37 @@ export default function ProfilAdmin() {
   };
 
   const spremiObjekt = async () => {
-    const body = { ...objektData, kapacitet: objektData.kapacitet ? Number(objektData.kapacitet) : null, vlasnikId: objektData.vlasnikId ? Number(objektData.vlasnikId) : null, idKluba: objektData.idKluba ? Number(objektData.idKluba) : null, sportovi: odabraniSportovi };
-    if (objektMod === "dodaj") {
-      await fetch(`${API}/objekti`, { method: "POST", headers: jsonHeaders, body: JSON.stringify(body) });
-    } else {
-      await fetch(`${API}/objekti/${editObjektId}`, { method: "PUT", headers: jsonHeaders, body: JSON.stringify(body) });
+  let lat = null, lng = null;
+  try {
+    const upit = encodeURIComponent(`${objektData.adresa}, Rijeka`);
+    const geoRes = await fetch(`https://photon.komoot.io/api/?q=${upit}&limit=1&lang=default`);
+    const geoData = await geoRes.json();
+    const feature = geoData.features?.[0];
+    if (feature) {
+      lng = feature.geometry.coordinates[0];
+      lat = feature.geometry.coordinates[1];
     }
-    ucitajObjekte();
-    setShowObjektModal(false); prikaziPoruku("Objekt spremljen.");
+  } catch (e) {
+    console.warn("Geocoding nije uspio:", e);
+  }
+
+  const body = { 
+    ...objektData, 
+    kapacitet: objektData.kapacitet ? Number(objektData.kapacitet) : null, 
+    vlasnikId: objektData.vlasnikId ? Number(objektData.vlasnikId) : null, 
+    idKluba: objektData.idKluba ? Number(objektData.idKluba) : null, 
+    sportovi: odabraniSportovi,
+    lat,
+    lng,
   };
+  if (objektMod === "dodaj") {
+    await fetch(`${API}/objekti`, { method: "POST", headers: jsonHeaders, body: JSON.stringify(body) });
+  } else {
+    await fetch(`${API}/objekti/${editObjektId}`, { method: "PUT", headers: jsonHeaders, body: JSON.stringify(body) });
+  }
+  ucitajObjekte();
+  setShowObjektModal(false); prikaziPoruku("Objekt spremljen.");
+};
 
   const odobriObjekt = async (id: number) => {
     await fetch(`${API}/objekti/${id}/odobri`, { method: "PUT", headers });

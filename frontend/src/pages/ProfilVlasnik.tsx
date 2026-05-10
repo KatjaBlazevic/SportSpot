@@ -185,18 +185,40 @@ export default function ProfilVlasnik() {
   };
 
   const spremiObjekt = async () => {
-    if (!objektData.naziv || !objektData.adresa || !objektData.kvart) { setObjektPoruka("Naziv, adresa i kvart su obavezni."); return; }
-    setObjektSpremanje(true);
+  if (!objektData.naziv || !objektData.adresa || !objektData.kvart) { setObjektPoruka("Naziv, adresa i kvart su obavezni."); return; }
+  setObjektSpremanje(true);
+  try {
+    let lat = null, lng = null;
     try {
-      const body = { ...objektData, kapacitet: objektData.kapacitet ? Number(objektData.kapacitet) : null, opis: objektData.opis || null, slikaUrl: objektData.slikaUrl || null, sportovi: odabraniSportovi };
-      const url = objektMod === "uredi" ? `http://localhost:5000/api/objekti/${editObjektId}` : "http://localhost:5000/api/objekti";
-      const method = objektMod === "uredi" ? "PUT" : "POST";
-      const res = await fetch(url, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
-      if (res.ok) { osvjeziObjekte(); zatvoriObjektModal(); }
-      else { setObjektPoruka("Greška pri spremanju."); }
-    } catch { setObjektPoruka("Greška sa serverom."); }
-    finally { setObjektSpremanje(false); }
-  };
+      const upit = encodeURIComponent(`${objektData.adresa}, Rijeka`);
+      const geoRes = await fetch(`https://photon.komoot.io/api/?q=${upit}&limit=1&lang=default`);
+      const geoData = await geoRes.json();
+      const feature = geoData.features?.[0];
+      if (feature) {
+        lng = feature.geometry.coordinates[0];
+        lat = feature.geometry.coordinates[1];
+      }
+    } catch (e) {
+      console.warn("Geocoding nije uspio:", e);
+    }
+
+    const body = { 
+      ...objektData, 
+      kapacitet: objektData.kapacitet ? Number(objektData.kapacitet) : null, 
+      opis: objektData.opis || null, 
+      slikaUrl: objektData.slikaUrl || null, 
+      sportovi: odabraniSportovi,
+      lat,
+      lng,
+    };
+    const url = objektMod === "uredi" ? `http://localhost:5000/api/objekti/${editObjektId}` : "http://localhost:5000/api/objekti";
+    const method = objektMod === "uredi" ? "PUT" : "POST";
+    const res = await fetch(url, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
+    if (res.ok) { osvjeziObjekte(); zatvoriObjektModal(); }
+    else { setObjektPoruka("Greška pri spremanju."); }
+  } catch { setObjektPoruka("Greška sa serverom."); }
+  finally { setObjektSpremanje(false); }
+};
 
   const zatraziObrisiObjekt = async (id: number, naziv: string) => {
     if (!confirm(`Poslati zahtjev za brisanje objekta "${naziv}"? Administrator mora potvrditi brisanje.`)) return;

@@ -23,7 +23,7 @@ router.get("/", async (req: Request, res: Response) => {
 
     const objektiQuery = `
       SELECT DISTINCT
-        o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Opis, o.Kvart, o.Kapacitet, o.Slika_url,
+        o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Opis, o.Kvart, o.Kapacitet, o.Slika_url,o.Lat, o.Lng,
         ROUND(AVG(r.Ocjena), 1) AS ocjena,
         COUNT(DISTINCT r.ID_korisnika) AS broj_recenzija,
         MIN(t.Cijena) AS cijena_od
@@ -89,6 +89,8 @@ router.get("/", async (req: Request, res: Response) => {
       kvart: obj.Kvart,
       kapacitet: obj.Kapacitet,
       slikaUrl: obj.Slika_url || null,
+      lat: obj.Lat ?? null,
+      lng: obj.Lng ?? null,
       ocjena: obj.ocjena ?? null,
       brojRecenzija: Number(obj.broj_recenzija),
       cijenaOd: obj.cijena_od ?? 0,
@@ -255,6 +257,8 @@ router.get("/:id", async (req: Request, res: Response) => {
       kvart: obj.Kvart,
       kapacitet: obj.Kapacitet,
       slikaUrl: obj.Slika_url || null,
+      lat: obj.Lat ?? null,
+      lng: obj.Lng ?? null,
       nazivKluba: obj.Naziv_kluba,
       kontaktTelefon: obj.Kontakt_telefon,
       ocjena: obj.ocjena || 0,

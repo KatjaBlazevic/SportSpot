@@ -17,7 +17,6 @@ const samoAdmin = async (req: AuthRequest, res: Response, next: any) => {
   next();
 };
 
-// GET /api/admin/dashboard
 router.get("/dashboard", autentificiraj, samoAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const [[{ ukupnoKorisnika }]] = await pool.query("SELECT COUNT(*) AS ukupnoKorisnika FROM KORISNIK WHERE Uloga = 'User'") as [any[], any];
@@ -81,7 +80,7 @@ router.delete("/korisnici/:id", autentificiraj, samoAdmin, async (req: AuthReque
 router.get("/objekti", autentificiraj, samoAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const [rows] = await pool.query(
-      `SELECT o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Kvart, o.Kapacitet, o.Opis, o.Slika_url, o.Status_objekta,
+      `SELECT o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Kvart, o.Kapacitet, o.Opis, o.Slika_url, o.Status_objekta, o.Lat, o.Lng,
               o.ID_kluba, k.Naziv_kluba,
               vl.Ime AS vlasnikIme, vl.Prezime AS vlasnikPrezime, vl.ID_korisnika AS vlasnikId,
               GROUP_CONCAT(DISTINCT sp.Naziv_sporta ORDER BY sp.Naziv_sporta SEPARATOR ', ') AS sportovi
@@ -96,6 +95,8 @@ router.get("/objekti", autentificiraj, samoAdmin, async (req: AuthRequest, res: 
       id: r.ID_objekta, naziv: r.Naziv_objekta, adresa: r.Adresa, kvart: r.Kvart,
       kapacitet: r.Kapacitet, opis: r.Opis, slikaUrl: r.Slika_url,
       status_objekta: r.Status_objekta,
+      lat: r.Lat ?? null,
+      lng: r.Lng ?? null,
       idKluba: r.ID_kluba || null,
       nazivKluba: r.Naziv_kluba || null,
       vlasnik: r.vlasnikIme ? `${r.vlasnikIme} ${r.vlasnikPrezime}` : "—",
@@ -106,12 +107,12 @@ router.get("/objekti", autentificiraj, samoAdmin, async (req: AuthRequest, res: 
 });
 
 router.post("/objekti", autentificiraj, samoAdmin, async (req: AuthRequest, res: Response) => {
-  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, vlasnikId, idKluba, sportovi } = req.body;
+  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, vlasnikId, idKluba, sportovi, lat, lng } = req.body;
   if (!naziv || !adresa || !kvart) { res.status(400).json({ error: "Naziv, adresa i kvart su obavezni." }); return; }
   try {
     const [result] = await pool.query(
-      "INSERT INTO OBJEKTI (Naziv_objekta, Adresa, Kvart, Kapacitet, Opis, Slika_url, ID_korisnika, ID_kluba, Status_objekta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Aktivan')",
-      [naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null, vlasnikId || null, idKluba || null]
+      "INSERT INTO OBJEKTI (Naziv_objekta, Adresa, Kvart, Kapacitet, Opis, Slika_url, ID_korisnika, ID_kluba, Status_objekta, Lat, Lng) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Aktivan', ?, ?)",
+      [naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null, vlasnikId || null, idKluba || null, lat ?? null, lng ?? null]
     ) as [any, any];
     const idObjekta = result.insertId;
     if (sportovi && sportovi.length > 0) {
@@ -124,11 +125,11 @@ router.post("/objekti", autentificiraj, samoAdmin, async (req: AuthRequest, res:
 
 router.put("/objekti/:id", autentificiraj, samoAdmin, async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, vlasnikId, idKluba, sportovi } = req.body;
+  const { naziv, adresa, kvart, kapacitet, opis, slikaUrl, vlasnikId, idKluba, sportovi, lat, lng } = req.body;
   try {
     await pool.query(
-      "UPDATE OBJEKTI SET Naziv_objekta=?, Adresa=?, Kvart=?, Kapacitet=?, Opis=?, Slika_url=?, ID_korisnika=?, ID_kluba=? WHERE ID_objekta=?",
-      [naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null, vlasnikId || null, idKluba || null, id]
+      "UPDATE OBJEKTI SET Naziv_objekta=?, Adresa=?, Kvart=?, Kapacitet=?, Opis=?, Slika_url=?, ID_korisnika=?, ID_kluba=?, Lat=?, Lng=? WHERE ID_objekta=?",
+      [naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null, vlasnikId || null, idKluba || null, lat ?? null, lng ?? null, id]
     );
     await pool.query("DELETE FROM SPORTOVI_OBJEKTA WHERE ID_objekta = ?", [id]);
     if (sportovi && sportovi.length > 0) {
@@ -149,6 +150,18 @@ router.delete("/objekti/:id", autentificiraj, samoAdmin, async (req: AuthRequest
   const { id } = req.params;
   await pool.query("DELETE FROM OBJEKTI WHERE ID_objekta = ?", [id]);
   res.json({ message: "Objekt obrisan." });
+});
+
+router.put("/objekti/:id/potvrdi-brisanje", autentificiraj, samoAdmin, async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  await pool.query("DELETE FROM OBJEKTI WHERE ID_objekta = ?", [id]);
+  res.json({ message: "Objekt obrisan." });
+});
+
+router.put("/objekti/:id/odbij-brisanje", autentificiraj, samoAdmin, async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  await pool.query("UPDATE OBJEKTI SET Status_objekta = 'Aktivan' WHERE ID_objekta = ?", [id]);
+  res.json({ message: "Zahtjev za brisanje odbijen." });
 });
 
 // ===================== TERMINI =====================
@@ -216,12 +229,9 @@ router.get("/klubovi", autentificiraj, samoAdmin, async (req: AuthRequest, res: 
        ORDER BY k.ID_kluba DESC`
     ) as [any[], any];
     res.json(rows.map((r: any) => ({
-      id: r.ID_kluba,
-      naziv: r.Naziv_kluba,
-      oib: r.OIB,
-      kontakt: r.Kontakt_telefon,
+      id: r.ID_kluba, naziv: r.Naziv_kluba, oib: r.OIB, kontakt: r.Kontakt_telefon,
       objektiIds: r.objekti_ids ? r.objekti_ids.split(',').map(Number) : [],
-      objektiNazivi: r.objekti_nazivi ? r.objekti_nazivi.split('|||') : []
+      objektiNazivi: r.objekti_nazivi ? r.objekti_nazivi.split('|||') : [],
     })));
   } catch (e) { res.status(500).json({ error: "Greška na serveru." }); }
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 
@@ -23,6 +23,8 @@ interface Objekt {
   brojRecenzija: number;
   cijenaOd: number;
   termini: Termin[];
+  lat: number | null;
+  lng: number | null;
 }
 
 const SVE_SPORTOVI = ["Nogomet","Mali nogomet","Košarka","Tenis","Padel","Odbojka","Vaterpolo","Plivanje"];
@@ -153,58 +155,155 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
   );
 }
 
+// ─── MapaLeaflet ──────────────────────────────────────────────────────────────
 function MapaPlaceholder({ objekti }: { objekti: Objekt[] }) {
-  const pinPoints = objekti.slice(0, 4).map((obj, i) => ({
-    x: [52, 68, 44, 35][i] ?? 50,
-    y: [38, 58, 62, 48][i] ?? 50,
-    objekt: obj,
-  }));
+  const mapaRef = useRef<HTMLDivElement>(null);
+  const leafletMapRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    if (!mapaRef.current) return;
+    const L = (window as any).L;
+    if (!L) return;
+
+    if (!leafletMapRef.current) {
+      const map = L.map(mapaRef.current, {
+        center: [45.3271, 14.4422],
+        zoom: 13,
+        zoomControl: true,
+        attributionControl: false,
+      });
+
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        { maxZoom: 19, subdomains: "abcd" }
+      ).addTo(map);
+
+      leafletMapRef.current = map;
+    }
+
+    const map = leafletMapRef.current;
+
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    if (objekti.length === 0) return;
+
+    const sportIkone: Record<string, string> = {
+      Tenis: "🎾", Padel: "🏓", Nogomet: "⚽",
+      "Mali nogomet": "⚽", Košarka: "🏀",
+      Odbojka: "🏐", Plivanje: "🏊", Vaterpolo: "🤽",
+    };
+
+    const geocodeCache: Record<string, [number, number]> = {};
+    const cekaj = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const geocodeAdresa = async (adresa: string): Promise<[number, number] | null> => {
+      if (geocodeCache[adresa]) return geocodeCache[adresa];
+
+      try {
+        const upit = encodeURIComponent(`${adresa}, Rijeka, Hrvatska`);
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${upit}&format=json&limit=1`,
+          { headers: { "Accept-Language": "hr" } }
+        );
+        const data = await res.json();
+        if (data.length > 0) {
+          const koord: [number, number] = [
+            parseFloat(data[0].lat),
+            parseFloat(data[0].lon),
+          ];
+          geocodeCache[adresa] = koord;
+          return koord;
+        }
+      } catch (e) {
+        console.error("Geocoding greška za:", adresa, e);
+      }
+      return null;
+    };
+
+// Zamijeni cijeli dodajMarkere() async blok s ovim:
+const dodajMarkere = () => {
+  const bounds: [number, number][] = [];
+
+  for (const obj of objekti) {
+    if (!obj.lat || !obj.lng) continue; // preskoči objekte bez koordinata
+
+    const koord: [number, number] = [obj.lat, obj.lng];
+    const ikona = sportIkone[obj.sportovi[0]] ?? "🏟️";
+    const cijena = obj.cijenaOd === 0 ? "Besplatno" : `${obj.cijenaOd}€/h`;
+
+    const customIcon = L.divIcon({
+      className: "",
+      html: `
+        <div style="
+          background: #1D4ED8; border: 2.5px solid #60A5FA;
+          border-radius: 50% 50% 50% 0; width: 36px; height: 36px;
+          transform: rotate(-45deg);
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 2px 12px rgba(29,78,216,0.5); cursor: pointer;
+        ">
+          <span style="transform: rotate(45deg); font-size: 16px;">${ikona}</span>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -36],
+    });
+
+    const marker = L.marker(koord, { icon: customIcon }).addTo(map);
+    marker.bindPopup(`
+      <div style="font-family: 'DM Sans', sans-serif; min-width: 180px; padding: 4px 2px;">
+        <div style="font-weight: 700; font-size: 14px; color: #111827; margin-bottom: 4px;">${obj.naziv}</div>
+        <div style="font-size: 12px; color: #6B7280; margin-bottom: 6px;">📍 ${obj.adresa}, ${obj.kvart}</div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="background: #EFF6FF; color: #1D4ED8; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;">${obj.sportovi[0] ?? "Sport"}</span>
+          <span style="font-weight: 700; color: #1D4ED8; font-size: 13px;">${cijena}</span>
+        </div>
+        ${obj.ocjena ? `<div style="font-size: 12px; color: #6B7280; margin-top: 4px;">⭐ ${obj.ocjena} (${obj.brojRecenzija} recenzija)</div>` : ""}
+      </div>
+    `);
+
+    markersRef.current.push(marker);
+    bounds.push(koord);
+  }
+
+  if (bounds.length > 0) {
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+  }
+};
+
+dodajMarkere();
+  }, [objekti]);
+
   return (
-    <div style={{ position: "sticky", top: 80, height: "calc(100vh - 96px)", borderRadius: 20, overflow: "hidden", background: "#1E293B", border: "1.5px solid #334155", boxShadow: "0 4px 24px rgba(0,0,0,0.15)" }}>
-      <svg width="100%" height="100%" viewBox="0 0 400 600" style={{ position: "absolute", inset: 0 }}>
-        <rect width="400" height="600" fill="#1E293B" />
-        {[80, 140, 200, 260, 320, 380, 440, 490].map((y) => (
-          <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#334155" strokeWidth="1.5" />
-        ))}
-        {[60, 120, 180, 240, 300, 360].map((x) => (
-          <line key={x} x1={x} y1="0" x2={x} y2="600" stroke="#334155" strokeWidth="1.5" />
-        ))}
-        <line x1="0" y1="0" x2="400" y2="300" stroke="#2D3E55" strokeWidth="1" />
-        <line x1="400" y1="0" x2="0" y2="400" stroke="#2D3E55" strokeWidth="1" />
-        <rect x="80" y="160" width="60" height="40" rx="4" fill="#1A3A2A" opacity="0.8" />
-        <rect x="260" y="300" width="80" height="60" rx="4" fill="#1A3A2A" opacity="0.8" />
-        <path d="M0 520 Q100 500 200 515 Q300 530 400 510 L400 600 L0 600 Z" fill="#0F2744" opacity="0.9" />
-      </svg>
-      {pinPoints.map(({ x, y, objekt }, i) => (
-        <div key={i} style={{ position: "absolute", left: `${x}%`, top: `${y}%`, transform: "translate(-50%, -50%)", cursor: "pointer", zIndex: 10 }}>
-          <div style={{ background: "#1D4ED8", color: "#fff", padding: "4px 10px", borderRadius: 999, fontSize: 13, fontWeight: 700, boxShadow: "0 3px 12px rgba(29,78,216,0.5)", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4, border: "2px solid rgba(255,255,255,0.2)" }}>
-            <SportIcon sport={objekt?.sportovi[0] ?? "Nogomet"} />
-            {objekt?.cijenaOd === 0 ? "Bespl." : `${objekt?.cijenaOd}€`}
-          </div>
-          <div style={{ width: 8, height: 8, background: "#3B82F6", borderRadius: "50%", margin: "4px auto 0", boxShadow: "0 0 0 3px rgba(59,130,246,0.3)" }} />
-        </div>
-      ))}
-      {objekti[0] && (
-        <div style={{ position: "absolute", bottom: 16, left: 16, right: 16, background: "#fff", borderRadius: 14, padding: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.25)", display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 10, background: "linear-gradient(135deg, #DBEAFE, #EDE9FE)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>
-            <SportIcon sport={objekti[0].sportovi[0] ?? "Nogomet"} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>{objekti[0].naziv}</div>
-            <div style={{ fontSize: 12, color: "#6B7280" }}>{objekti[0].kvart}, Rijeka</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#1D4ED8" }}>
-                {objekti[0].cijenaOd === 0 ? "Besplatno" : `${objekti[0].cijenaOd}€/h`}
-              </span>
-              {objekti[0].termini.length > 0 && (
-                <span style={{ fontSize: 12, color: "#EA580C", fontWeight: 600 }}>⚡ Brza rezervacija</span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      <div style={{ position: "absolute", top: 12, right: 12, background: "rgba(0,0,0,0.5)", color: "#94A3B8", fontSize: 11, padding: "4px 10px", borderRadius: 999, fontWeight: 500 }}>
-        Google karta (uskoro)
+    <div
+      style={{
+        position: "sticky",
+        top: 80,
+        height: "calc(100vh - 96px)",
+        borderRadius: 20,
+        overflow: "hidden",
+        border: "1.5px solid #334155",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+      }}
+    >
+      <div ref={mapaRef} style={{ width: "100%", height: "100%" }} />
+      <div
+        style={{
+          position: "absolute",
+          top: 12,
+          right: 12,
+          background: "rgba(15,23,42,0.85)",
+          color: "#94A3B8",
+          fontSize: 11,
+          padding: "4px 10px",
+          borderRadius: 999,
+          fontWeight: 500,
+          zIndex: 1000,
+          backdropFilter: "blur(6px)",
+        }}
+      >
+        📍 {objekti.length} objekata
       </div>
     </div>
   );
