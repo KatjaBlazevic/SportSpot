@@ -51,7 +51,7 @@ router.get("/", async (req: Request, res: Response) => {
         ${datum ? "AND t.Datum = ?" : ""}
         ${period !== undefined && period !== "" ? "AND t.Vrijeme_pocetka >= ? AND t.Vrijeme_pocetka < ?" : ""}
       ${sportJoinClause}
-      ${kvart && kvart !== "Svi kvartovi" ? "WHERE o.Kvart = ?" : ""}
+      ${kvart && kvart !== "Svi kvartovi" ? "WHERE o.Kvart = ? AND o.Status_objekta = 'Aktivan'" : "WHERE o.Status_objekta = 'Aktivan'"}
       GROUP BY o.ID_objekta
       ORDER BY ocjena DESC
     `;
@@ -161,7 +161,7 @@ router.get("/:id", async (req: Request, res: Response) => {
         ROUND(AVG(r.Ocjena), 1) AS ocjena,
         COUNT(DISTINCT r.ID_korisnika) AS broj_recenzija
        FROM OBJEKTI o
-       LEFT JOIN KLUB k ON o.ID_objekta = k.ID_objekta
+       LEFT JOIN KLUB k ON o.ID_kluba = k.ID_kluba
        LEFT JOIN RECENZIJE r ON o.ID_objekta = r.ID_objekta
        WHERE o.ID_objekta = ?
        GROUP BY o.ID_objekta`,

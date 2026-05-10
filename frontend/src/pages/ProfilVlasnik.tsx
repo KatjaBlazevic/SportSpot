@@ -31,6 +31,7 @@ interface MojObjekt {
   Opis: string | null;
   sportovi: string | null;
   Slika_url: string | null;
+  Status_objekta: string;
 }
 
 interface Sport {
@@ -318,6 +319,9 @@ export default function ProfilVlasnik() {
   <div key={obj.ID_objekta} style={{ padding: 20, borderRadius: 16, border: "1px solid #E5E7EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <Link to={`/objekt/${obj.ID_objekta}`} style={{ flex: 1, textDecoration: "none" }}>
       <div style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>{obj.Naziv_objekta}</div>
+      <span style={{ display: "inline-block", marginTop: 4, padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: obj.Status_objekta === "Pending" ? "#FEF3C7" : "#D1FAE5", color: obj.Status_objekta === "Pending" ? "#D97706" : "#059669" }}>
+                {obj.Status_objekta === "Pending" ? "⏳ Na čekanju" : "✅ Aktivan"}
+              </span>
       <div style={{ fontSize: 14, color: "#6B7280", marginTop: 2 }}>{obj.Adresa}, {obj.Kvart}</div>
       {obj.sportovi && <div style={{ fontSize: 13, color: "#3B82F6", marginTop: 4 }}>{obj.sportovi}</div>}
       {obj.Slika_url && (

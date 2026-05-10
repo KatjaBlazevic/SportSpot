@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import objektiRoutes from "./routes/objektiRoutes.ts";
 import terminiRoutes from "./routes/terminiRoutes.ts";
 import authRoutes from "./routes/authRoutes.ts";
+import adminRoutes from "./routes/adminRoutes.ts";
 import pool from "./db.ts";
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/termini", terminiRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 
 // POST /api/objekti - Kreiraj novi objekt (samo vlasnik)
 app.post("/api/objekti", async (req: Request, res: Response) => {
@@ -45,7 +47,7 @@ app.post("/api/objekti", async (req: Request, res: Response) => {
     ) as { id: number };
 
     const [result] = await pool.query(
-      "INSERT INTO OBJEKTI (ID_korisnika, Naziv_objekta, Adresa, Kvart, Kapacitet, Opis, Slika_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO OBJEKTI (ID_korisnika, Naziv_objekta, Adresa, Kvart, Kapacitet, Opis, Slika_url, Status_objekta) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')",
 [decoded.id, naziv, adresa, kvart, kapacitet || null, opis || null, slikaUrl || null],
     );
 
@@ -219,7 +221,7 @@ app.get("/api/moje-rezervacije", async (req: Request, res: Response) => {
        TIME_FORMAT(t.Vrijeme_kraja, '%H:%i') AS vrijeme_kraja, t.Cijena, t.Status
        FROM TERMINI t
        JOIN OBJEKTI o ON t.ID_objekta = o.ID_objekta
-       LEFT JOIN KLUB k ON o.ID_objekta = k.ID_objekta
+       LEFT JOIN KLUB k ON o.ID_kluba = k.ID_kluba
        WHERE t.ID_korisnika = ? AND t.Status != 'Slobodan'
        ORDER BY t.Datum DESC, t.Vrijeme_pocetka DESC`,
       [decoded.id],
@@ -264,7 +266,7 @@ app.get("/api/moji-objekti", async (req: Request, res: Response) => {
     ) as { id: number };
 
 const [rows] = await pool.query(
-  `SELECT o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Kvart, o.Kapacitet, o.Opis, o.Slika_url,
+  `SELECT o.ID_objekta, o.Naziv_objekta, o.Adresa, o.Kvart, o.Kapacitet, o.Opis, o.Slika_url, o.Status_objekta,
    (SELECT GROUP_CONCAT(s.Naziv_sporta SEPARATOR ', ') FROM SPORTOVI_OBJEKTA so JOIN SPORT s ON so.ID_sporta = s.ID_sporta WHERE so.ID_objekta = o.ID_objekta) AS sportovi
    FROM OBJEKTI o
    WHERE o.ID_korisnika = ?
