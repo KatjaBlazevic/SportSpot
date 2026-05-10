@@ -33,6 +33,8 @@ export interface DetaljiObjekta {
   termini: Termin[];
   recenzije: Recenzija[];
   slikaUrl: string;
+  lat: number | null;
+  lng: number | null;
 }
 
 export interface InfoSekcijaProps {
@@ -41,4 +43,7 @@ export interface InfoSekcijaProps {
   kapacitet: number;
   klub: string;
   opis: string;
+  lat?: number | null;
+  lng?: number | null;
+  naziv?: string;
 }

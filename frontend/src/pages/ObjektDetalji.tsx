@@ -187,13 +187,17 @@ export default function ObjektDetalji() {
         <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-8 mb-12">
           <div className="lg:col-span-1 lg:col-start-2 lg:row-start-1 space-y-8">
             <InfoSekcija
-              slikaUrl={data.slikaUrl || ""}
-              adresa={data.adresa}
-              kvart={data.kvart}
-              kapacitet={data.kapacitet}
-              klub={data.nazivKluba}
-              opis={data.opis}
-            />
+  slikaUrl={data.slikaUrl || ""}
+  adresa={data.adresa}
+  kvart={data.kvart}
+  kapacitet={data.kapacitet}
+  klub={data.nazivKluba}
+  opis={data.opis}
+  lat={data.lat}
+  lng={data.lng}
+  naziv={data.naziv}
+  sportovi={data.sportovi}
+/>
           </div>
           <div className="lg:col-span-1 lg:row-span-2 lg:col-start-1">
             <div className="bg-white p-8 rounded-[32px] border border-blue-50 shadow-xl shadow-blue-900/5">

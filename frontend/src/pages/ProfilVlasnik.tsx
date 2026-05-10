@@ -2,62 +2,15 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
-interface OmiljeniObjekt {
-  id: number;
-  naziv: string;
-  adresa: string;
-}
+interface OmiljeniObjekt { id: number; naziv: string; adresa: string; }
+interface Rezervacija { ID_termina: number; ID_objekta: number; Naziv_objekta: string; Adresa: string; Kvart: string; Naziv_kluba: string | null; Datum: string; vrijeme_pocetka: string; vrijeme_kraja: string; Cijena: number; Status: string; }
+interface MojObjekt { ID_objekta: number; Naziv_objekta: string; Adresa: string; Kvart: string; Kapacitet: number | null; Opis: string | null; sportovi: string | null; Slika_url: string | null; Status_objekta: string; }
+interface Sport { ID_sporta: number; Naziv_sporta: string; }
+interface StatistikaMjesec { mjesec: string; brojRezervacija: number; prihod: number; }
+interface StatistikaObjekt { id: number; naziv: string; zauzeti: number; slobodni: number; ukupnoTermina: number; ukupniPrihod: number; }
+interface Statistika { poMjesecima: StatistikaMjesec[]; poObjektima: StatistikaObjekt[]; }
 
-interface Rezervacija {
-  ID_termina: number;
-  ID_objekta: number;
-  Naziv_objekta: string;
-  Adresa: string;
-  Kvart: string;
-  Naziv_kluba: string | null;
-  Datum: string;
-  vrijeme_pocetka: string;
-  vrijeme_kraja: string;
-  Cijena: number;
-  Status: string;
-}
-
-interface MojObjekt {
-  ID_objekta: number;
-  Naziv_objekta: string;
-  Adresa: string;
-  Kvart: string;
-  Kapacitet: number | null;
-  Opis: string | null;
-  sportovi: string | null;
-  Slika_url: string | null;
-  Status_objekta: string;
-}
-
-interface Sport {
-  ID_sporta: number;
-  Naziv_sporta: string;
-}
-
-interface StatistikaMjesec {
-  mjesec: string;
-  brojRezervacija: number;
-  prihod: number;
-}
-
-interface StatistikaObjekt {
-  id: number;
-  naziv: string;
-  zauzeti: number;
-  slobodni: number;
-  ukupnoTermina: number;
-  ukupniPrihod: number;
-}
-
-interface Statistika {
-  poMjesecima: StatistikaMjesec[];
-  poObjektima: StatistikaObjekt[];
-}
+const API = "http://localhost:5000/api";
 
 export default function ProfilVlasnik() {
   const { korisnik, token, ucitavanje, osvjezi } = useAuth();
@@ -67,7 +20,6 @@ export default function ProfilVlasnik() {
     if (saved) { try { return JSON.parse(saved); } catch { return []; } }
     return [];
   });
-
   const [rezervacije, setRezervacije] = useState<Rezervacija[]>([]);
   const [mojiObjekti, setMojiObjekti] = useState<MojObjekt[]>([]);
   const [aktivnaTab, setAktivnaTab] = useState<"mojiObjekti" | "rezervacije" | "omiljeni" | "statistika">("mojiObjekti");
@@ -78,14 +30,10 @@ export default function ProfilVlasnik() {
   const [statistika, setStatistika] = useState<Statistika | null>(null);
   const [ucitavanjeStatistike, setUcitavanjeStatistike] = useState(false);
   const [sviKvartovi, setSviKvartovi] = useState<string[]>([]);
-
-  // Profil modal
   const [showModal, setShowModal] = useState(false);
   const [spremanje, setSpremanje] = useState(false);
   const [poruka, setPoruka] = useState("");
   const [editData, setEditData] = useState({ ime: "", prezime: "", email: "", brojMobitela: "", novaLozinka: "", potvrdaLozinke: "" });
-
-  // Objekt modal
   const [showObjektModal, setShowObjektModal] = useState(false);
   const [objektMod, setObjektMod] = useState<"dodaj" | "uredi">("dodaj");
   const [objektSpremanje, setObjektSpremanje] = useState(false);
@@ -97,20 +45,19 @@ export default function ProfilVlasnik() {
 
   useEffect(() => {
     if (token) {
-      fetch("http://localhost:5000/api/sportovi", { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`${API}/korisnik/sportovi`, { headers: { Authorization: `Bearer ${token}` } })
         .then((res) => res.json()).then((data) => setSviSportovi(data || [])).catch(() => {});
     }
   }, [token]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/objekti/kvartovi")
-      .then((r) => r.json()).then(setSviKvartovi).catch(() => {});
+    fetch(`${API}/objekti/kvartovi`).then((r) => r.json()).then(setSviKvartovi).catch(() => {});
   }, []);
 
   useEffect(() => {
     if (aktivnaTab === "mojiObjekti" && token) {
       setUcitavanjeObjekti(true);
-      fetch("http://localhost:5000/api/moji-objekti", { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`${API}/vlasnik/moji-objekti`, { headers: { Authorization: `Bearer ${token}` } })
         .then((res) => res.json()).then((data) => { setMojiObjekti(data || []); setUcitavanjeObjekti(false); }).catch(() => setUcitavanjeObjekti(false));
     }
   }, [aktivnaTab, token]);
@@ -118,7 +65,7 @@ export default function ProfilVlasnik() {
   useEffect(() => {
     if (aktivnaTab === "rezervacije" && token) {
       setUcitavanjeRez(true);
-      fetch("http://localhost:5000/api/moje-rezervacije", { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`${API}/korisnik/moje-rezervacije`, { headers: { Authorization: `Bearer ${token}` } })
         .then((res) => res.json()).then((data) => { setRezervacije(data || []); setUcitavanjeRez(false); }).catch(() => setUcitavanjeRez(false));
     }
   }, [aktivnaTab, token]);
@@ -126,14 +73,14 @@ export default function ProfilVlasnik() {
   useEffect(() => {
     if (aktivnaTab === "statistika" && token && !statistika) {
       setUcitavanjeStatistike(true);
-      fetch("http://localhost:5000/api/objekti/vlasnik/statistika", { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`${API}/vlasnik/statistika`, { headers: { Authorization: `Bearer ${token}` } })
         .then((res) => res.json()).then((data) => { setStatistika(data); setUcitavanjeStatistike(false); }).catch(() => setUcitavanjeStatistike(false));
     }
   }, [aktivnaTab, token, statistika]);
 
   const otvoriModal = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/profile", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API}/korisnik/profil`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setEditData({ ime: data.ime || korisnik?.ime || "", prezime: data.prezime || korisnik?.prezime || "", email: data.email || korisnik?.email || "", brojMobitela: data.brojMobitela || "", novaLozinka: "", potvrdaLozinke: "" });
     } catch {
@@ -148,7 +95,7 @@ export default function ProfilVlasnik() {
     if (editData.novaLozinka && editData.novaLozinka !== editData.potvrdaLozinke) { setPoruka("Lozinke se ne podudaraju."); return; }
     setSpremanje(true);
     try {
-      const res = await fetch("http://localhost:5000/api/profile/update", {
+      const res = await fetch(`${API}/korisnik/profil/update`, {
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ ime: editData.ime, prezime: editData.prezime, email: editData.email, brojMobitela: editData.brojMobitela || null, novaLozinka: editData.novaLozinka || null }),
       });
@@ -160,7 +107,7 @@ export default function ProfilVlasnik() {
 
   const osvjeziObjekte = () => {
     setUcitavanjeObjekti(true);
-    fetch("http://localhost:5000/api/moji-objekti", { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API}/vlasnik/moji-objekti`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json()).then((data) => { setMojiObjekti(data || []); setUcitavanjeObjekti(false); }).catch(() => setUcitavanjeObjekti(false));
   };
 
@@ -179,56 +126,37 @@ export default function ProfilVlasnik() {
   };
 
   const zatvoriObjektModal = () => { setShowObjektModal(false); setObjektPoruka(""); };
-
-  const handleSportToggle = (id: number) => {
-    setOdabraniSportovi(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
-  };
+  const handleSportToggle = (id: number) => { setOdabraniSportovi(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]); };
 
   const spremiObjekt = async () => {
-  if (!objektData.naziv || !objektData.adresa || !objektData.kvart) { setObjektPoruka("Naziv, adresa i kvart su obavezni."); return; }
-  setObjektSpremanje(true);
-  try {
-    let lat = null, lng = null;
+    if (!objektData.naziv || !objektData.adresa || !objektData.kvart) { setObjektPoruka("Naziv, adresa i kvart su obavezni."); return; }
+    setObjektSpremanje(true);
     try {
-      const upit = encodeURIComponent(`${objektData.adresa}, Rijeka`);
-      const geoRes = await fetch(`https://photon.komoot.io/api/?q=${upit}&limit=1&lang=default`);
-      const geoData = await geoRes.json();
-      const feature = geoData.features?.[0];
-      if (feature) {
-        lng = feature.geometry.coordinates[0];
-        lat = feature.geometry.coordinates[1];
-      }
-    } catch (e) {
-      console.warn("Geocoding nije uspio:", e);
-    }
+      let lat = null, lng = null;
+      try {
+        const upit = encodeURIComponent(`${objektData.adresa}, Rijeka`);
+        const geoRes = await fetch(`https://photon.komoot.io/api/?q=${upit}&limit=1&lang=default`);
+        const geoData = await geoRes.json();
+        const feature = geoData.features?.[0];
+        if (feature) { lng = feature.geometry.coordinates[0]; lat = feature.geometry.coordinates[1]; }
+      } catch (e) { console.warn("Geocoding nije uspio:", e); }
 
-    const body = { 
-      ...objektData, 
-      kapacitet: objektData.kapacitet ? Number(objektData.kapacitet) : null, 
-      opis: objektData.opis || null, 
-      slikaUrl: objektData.slikaUrl || null, 
-      sportovi: odabraniSportovi,
-      lat,
-      lng,
-    };
-    const url = objektMod === "uredi" ? `http://localhost:5000/api/objekti/${editObjektId}` : "http://localhost:5000/api/objekti";
-    const method = objektMod === "uredi" ? "PUT" : "POST";
-    const res = await fetch(url, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
-    if (res.ok) { osvjeziObjekte(); zatvoriObjektModal(); }
-    else { setObjektPoruka("Greška pri spremanju."); }
-  } catch { setObjektPoruka("Greška sa serverom."); }
-  finally { setObjektSpremanje(false); }
-};
+      const body = { ...objektData, kapacitet: objektData.kapacitet ? Number(objektData.kapacitet) : null, opis: objektData.opis || null, slikaUrl: objektData.slikaUrl || null, sportovi: odabraniSportovi, lat, lng };
+      const url = objektMod === "uredi" ? `${API}/vlasnik/objekti/${editObjektId}` : `${API}/vlasnik/objekti`;
+      const method = objektMod === "uredi" ? "PUT" : "POST";
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
+      if (res.ok) { osvjeziObjekte(); zatvoriObjektModal(); }
+      else { setObjektPoruka("Greška pri spremanju."); }
+    } catch { setObjektPoruka("Greška sa serverom."); }
+    finally { setObjektSpremanje(false); }
+  };
 
   const zatraziObrisiObjekt = async (id: number, naziv: string) => {
     if (!confirm(`Poslati zahtjev za brisanje objekta "${naziv}"? Administrator mora potvrditi brisanje.`)) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/objekti/obrisi/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`${API}/vlasnik/objekti/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) { osvjeziObjekte(); }
-      else { const data = await res.json(); alert(data.error || "Greška pri slanju zahtjeva."); }
+      else { const data = await res.json(); alert(data.greska || "Greška pri slanju zahtjeva."); }
     } catch { alert("Greška sa serverom."); }
   };
 
@@ -289,18 +217,12 @@ export default function ProfilVlasnik() {
                   <div key={obj.ID_objekta} style={{ padding: 20, borderRadius: 16, border: "1px solid #E5E7EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Link to={`/objekt/${obj.ID_objekta}`} style={{ flex: 1, textDecoration: "none" }}>
                       <div style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>{obj.Naziv_objekta}</div>
-                      <span style={{ display: "inline-block", marginTop: 4, padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700,
-                        background: obj.Status_objekta === "Pending" ? "#FEF3C7" : obj.Status_objekta === "PendingDelete" ? "#FEE2E2" : "#D1FAE5",
-                        color: obj.Status_objekta === "Pending" ? "#D97706" : obj.Status_objekta === "PendingDelete" ? "#DC2626" : "#059669" }}>
+                      <span style={{ display: "inline-block", marginTop: 4, padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: obj.Status_objekta === "Pending" ? "#FEF3C7" : obj.Status_objekta === "PendingDelete" ? "#FEE2E2" : "#D1FAE5", color: obj.Status_objekta === "Pending" ? "#D97706" : obj.Status_objekta === "PendingDelete" ? "#DC2626" : "#059669" }}>
                         {obj.Status_objekta === "Pending" ? "⏳ Na čekanju" : obj.Status_objekta === "PendingDelete" ? "🗑️ Čeka brisanje" : "✅ Aktivan"}
                       </span>
                       <div style={{ fontSize: 14, color: "#6B7280", marginTop: 2 }}>{obj.Adresa}, {obj.Kvart}</div>
                       {obj.sportovi && <div style={{ fontSize: 13, color: "#3B82F6", marginTop: 4 }}>{obj.sportovi}</div>}
-                      {obj.Slika_url && (
-                        <div style={{ marginTop: 8 }}>
-                          <img src={obj.Slika_url} alt="Slika objekta" style={{ width: 80, height: 56, objectFit: "cover", borderRadius: 8, border: "1px solid #E5E7EB" }} />
-                        </div>
-                      )}
+                      {obj.Slika_url && <div style={{ marginTop: 8 }}><img src={obj.Slika_url} alt="Slika objekta" style={{ width: 80, height: 56, objectFit: "cover", borderRadius: 8, border: "1px solid #E5E7EB" }} /></div>}
                     </Link>
                     <div style={{ display: "flex", gap: 8 }}>
                       <button onClick={() => otvoriUrediObjekt(obj)} style={{ padding: "8px 16px", borderRadius: 8, background: "#EEF2FF", color: "#1D4ED8", fontWeight: 600, fontSize: 13, border: "none", cursor: "pointer" }}>Uredi</button>

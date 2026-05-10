@@ -6,6 +6,10 @@ interface DashboardPodaci {
   ukupnoKorisnika: number; ukupnoVlasnika: number; ukupnoObjekta: number;
   ukupnoPending: number; ukupnoKlubova: number; ukupnoRecenzija: number; ukupnoRezervacija: number;
 }
+interface DashboardExtra {
+  topObjekti: { naziv: string; kvart: string; brojRezervacija: number; ocjena: number | null; }[];
+  stats: { danas: number; ovajTjedan: number; ovajMjesec: number; prihodMjesec: number; };
+}
 interface AdminKorisnik { id: number; ime: string; prezime: string; email: string; brojMobitela: string | null; uloga: string; }
 interface AdminObjekt { id: number; naziv: string; adresa: string; kvart: string; kapacitet: number | null; opis: string | null; slikaUrl: string | null; vlasnik: string; vlasnikId: number | null; sportovi: string; status_objekta: string; idKluba: number | null; nazivKluba: string | null; }
 interface AdminKlub { id: number; naziv: string; oib: string; kontakt: string | null; objektiIds: number[]; objektiNazivi: string[]; }
@@ -23,11 +27,24 @@ const btnSecondary = { padding: "8px 16px", borderRadius: 8, background: "#EEF2F
 const btnDanger = { padding: "8px 14px", borderRadius: 8, background: "#FEE2E2", color: "#DC2626", border: "none", cursor: "pointer", fontWeight: 600, fontSize: 13 };
 const btnSuccess = { padding: "8px 14px", borderRadius: 8, background: "#D1FAE5", color: "#059669", border: "none", cursor: "pointer", fontWeight: 600, fontSize: 13 };
 
+  const Modal = ({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) => (
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+      <div style={{ background: "#fff", borderRadius: 20, padding: 32, width: "90%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 24 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{title}</h2>
+          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #E5E7EB", background: "#fff", cursor: "pointer" }}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+  
 export default function ProfilAdmin() {
   const { korisnik, token, ucitavanje } = useAuth();
   const navigate = useNavigate();
   const [aktivnaTab, setAktivnaTab] = useState<Tab>("dashboard");
   const [dashboard, setDashboard] = useState<DashboardPodaci | null>(null);
+  const [dashboardExtra, setDashboardExtra] = useState<DashboardExtra | null>(null);
   const [korisnici, setKorisnici] = useState<AdminKorisnik[]>([]);
   const [objekti, setObjekti] = useState<AdminObjekt[]>([]);
   const [klubovi, setKlubovi] = useState<AdminKlub[]>([]);
@@ -70,7 +87,7 @@ export default function ProfilAdmin() {
 
   useEffect(() => {
     if (!token) return;
-    fetch("http://localhost:5000/api/sportovi", { headers }).then(r => r.json()).then(setSviSportovi).catch(() => {});
+    fetch("http://localhost:5000/api/korisnik/sportovi", { headers }).then(r => r.json()).then(setSviSportovi).catch(() => {});
     fetch("http://localhost:5000/api/objekti/kvartovi").then(r => r.json()).then(setSviKvartovi).catch(() => {});
   }, [token]);
 
@@ -89,9 +106,15 @@ export default function ProfilAdmin() {
   useEffect(() => {
     if (!token) return;
     if (aktivnaTab === "dashboard") {
-      setUcitava(true);
-      fetch(`${API}/dashboard`, { headers }).then(r => r.json()).then(setDashboard).finally(() => setUcitava(false));
-    }
+  setUcitava(true);
+  Promise.all([
+    fetch(`${API}/dashboard`, { headers }).then(r => r.json()),
+    fetch(`${API}/dashboard/extra`, { headers }).then(r => r.json()),
+  ]).then(([dash, extra]) => {
+    setDashboard(dash);
+    setDashboardExtra(extra);
+  }).finally(() => setUcitava(false));
+}
     if (aktivnaTab === "korisnici") {
       setUcitava(true);
       fetch(`${API}/korisnici`, { headers }).then(r => r.json()).then(data => { setKorisnici(data); setSviVlasnici(data.filter((k: AdminKorisnik) => k.uloga === "Vlasnik")); }).finally(() => setUcitava(false));
@@ -249,22 +272,10 @@ export default function ProfilAdmin() {
     boxShadow: aktivnaTab === t ? "0 2px 8px rgba(29,78,216,0.3)" : "0 1px 4px rgba(0,0,0,0.08)"
   });
 
-  const Modal = ({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) => (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-      <div style={{ background: "#fff", borderRadius: 20, padding: 32, width: "90%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 24 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{title}</h2>
-          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #E5E7EB", background: "#fff", cursor: "pointer" }}>✕</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-
   if (ucitavanje || !korisnik) return null;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F0F4FF", paddingTop: 90, paddingBottom: 60 }}>
+    <div style={{ minHeight: "100vh", background: "#F0F4FF", paddingTop: 20, paddingBottom: 60 }}>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }}>
 
         <div style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", borderRadius: 20, padding: "28px 32px", marginBottom: 24, color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -286,22 +297,106 @@ export default function ProfilAdmin() {
         {ucitava && <div style={{ textAlign: "center", padding: 40, color: "#6B7280" }}>Učitavanje...</div>}
 
         {aktivnaTab === "dashboard" && !ucitava && dashboard && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
-            {[
-              { label: "Korisnici", v: dashboard.ukupnoKorisnika, boja: "#3B82F6", e: "👤" },
-              { label: "Vlasnici", v: dashboard.ukupnoVlasnika, boja: "#8B5CF6", e: "🏢" },
-              { label: "Aktivni objekti", v: dashboard.ukupnoObjekta, boja: "#10B981", e: "🏟️" },
-              { label: "Na čekanju", v: dashboard.ukupnoPending, boja: "#F59E0B", e: "⏳" },
-              { label: "Klubovi", v: dashboard.ukupnoKlubova, boja: "#6366F1", e: "⚽" },
-              { label: "Recenzije", v: dashboard.ukupnoRecenzija, boja: "#EF4444", e: "⭐" },
-              { label: "Rezervacije", v: dashboard.ukupnoRezervacija, boja: "#06B6D4", e: "📅" },
-            ].map(k => (
-              <div key={k.label} style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", borderLeft: `4px solid ${k.boja}`, flex: 1, minWidth: 130 }}>
-                <div style={{ fontSize: 26 }}>{k.e}</div>
-                <div style={{ fontSize: 30, fontWeight: 800, color: k.boja, margin: "8px 0 4px" }}>{k.v}</div>
-                <div style={{ fontSize: 13, color: "#6B7280" }}>{k.label}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+            {/* STAT KARTICE */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+              {[
+                { label: "Korisnici", v: dashboard.ukupnoKorisnika, boja: "#3B82F6", bg: "#EFF6FF", e: "👤" },
+                { label: "Aktivni objekti", v: dashboard.ukupnoObjekta, boja: "#10B981", bg: "#ECFDF5", e: "🏟️" },
+                { label: "Rezervacije", v: dashboard.ukupnoRezervacija, boja: "#6366F1", bg: "#EEF2FF", e: "📅" },
+                { label: "Recenzije", v: dashboard.ukupnoRecenzija, boja: "#F59E0B", bg: "#FFFBEB", e: "⭐" },
+              ].map(k => (
+                <div key={k.label} style={{ background: "#fff", borderRadius: 16, padding: "20px 24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{k.e}</div>
+                  <div>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: k.boja, lineHeight: 1 }}>{k.v}</div>
+                    <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>{k.label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DRUGI RED */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+              {[
+                { label: "Vlasnici", v: dashboard.ukupnoVlasnika, boja: "#8B5CF6", bg: "#F5F3FF", e: "🏢" },
+                { label: "Klubovi", v: dashboard.ukupnoKlubova, boja: "#06B6D4", bg: "#ECFEFF", e: "⚽" },
+                { label: "Na čekanju odobrenja", v: dashboard.ukupnoPending, boja: "#EF4444", bg: "#FEF2F2", e: "⏳" },
+              ].map(k => (
+                <div key={k.label} style={{ background: "#fff", borderRadius: 16, padding: "18px 22px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{k.e}</div>
+                  <div>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: k.boja, lineHeight: 1 }}>{k.v}</div>
+                    <div style={{ fontSize: 12, color: "#6B7280", marginTop: 3 }}>{k.label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DONJI RED */}
+            {dashboardExtra && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+
+                {/* TOP OBJEKTI */}
+                <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+                  <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700, color: "#111827" }}>🏆 Top objekti po rezervacijama</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {dashboardExtra.topObjekti.map((obj, i) => (
+                      <div key={obj.naziv} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 10, background: i === 0 ? "#FFFBEB" : "#FAFAFA", border: `1px solid ${i === 0 ? "#FDE68A" : "#F3F4F6"}` }}>
+                        <div style={{ width: 28, height: 28, borderRadius: "50%", background: i === 0 ? "#F59E0B" : i === 1 ? "#9CA3AF" : i === 2 ? "#B45309" : "#E5E7EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+                          {i + 1}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{obj.naziv}</div>
+                          <div style={{ fontSize: 11, color: "#9CA3AF" }}>{obj.kvart}</div>
+                        </div>
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "#6366F1" }}>{obj.brojRezervacija} rez.</div>
+                          {obj.ocjena && <div style={{ fontSize: 11, color: "#F59E0B" }}>⭐ {obj.ocjena}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* STATISTIKE */}
+<div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+  <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700, color: "#111827" }}>📈 Statistike rezervacija</h3>
+  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div style={{ padding: "14px 16px", borderRadius: 12, background: "#F0F9FF", border: "1px solid #BAE6FD" }}>
+        <div style={{ fontSize: 11, color: "#0369A1", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Termini danas</div>
+        <div style={{ fontSize: 28, fontWeight: 800, color: "#0284C7", marginTop: 4 }}>{dashboardExtra.stats.danas}</div>
+        <div style={{ fontSize: 11, color: "#7DD3FC" }}>zauzeto</div>
+      </div>
+      <div style={{ padding: "14px 16px", borderRadius: 12, background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
+        <div style={{ fontSize: 11, color: "#15803D", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Termini ovaj tjedan</div>
+        <div style={{ fontSize: 28, fontWeight: 800, color: "#16A34A", marginTop: 4 }}>{dashboardExtra.stats.ovajTjedan}</div>
+        <div style={{ fontSize: 11, color: "#86EFAC" }}>zauzeto</div>
+      </div>
+    </div>
+
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div style={{ padding: "14px 16px", borderRadius: 12, background: "#FAFAFA", border: "1px solid #E5E7EB" }}>
+        <div style={{ fontSize: 11, color: "#6B7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Termini ovaj mjesec</div>
+        <div style={{ fontSize: 28, fontWeight: 800, color: "#374151", marginTop: 4 }}>{dashboardExtra.stats.ovajMjesec}</div>
+        <div style={{ fontSize: 11, color: "#9CA3AF" }}>zauzeto</div>
+      </div>
+      <div style={{ padding: "14px 16px", borderRadius: 12, background: "#FFFBEB", border: "1px solid #FDE68A" }}>
+        <div style={{ fontSize: 11, color: "#92400E", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Prihod ovaj mjesec</div>
+        <div style={{ fontSize: 28, fontWeight: 800, color: "#D97706", marginTop: 4 }}>{dashboardExtra.stats.prihodMjesec}€</div>
+        <div style={{ fontSize: 11, color: "#FCD34D" }}>ukupno</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
               </div>
-            ))}
+            )}
+
           </div>
         )}
 

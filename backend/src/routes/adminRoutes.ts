@@ -17,6 +17,47 @@ const samoAdmin = async (req: AuthRequest, res: Response, next: any) => {
   next();
 };
 
+router.get("/dashboard/extra", autentificiraj, samoAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const [topObjekti] = await pool.query(
+      `SELECT o.Naziv_objekta, o.Kvart,
+              COUNT(DISTINCT t.ID_termina) AS brojRezervacija,
+              ROUND(AVG(DISTINCT r.Ocjena), 1) AS ocjena
+       FROM OBJEKTI o
+       LEFT JOIN TERMINI t ON o.ID_objekta = t.ID_objekta AND t.Status = 'Zauzet'
+       LEFT JOIN RECENZIJE r ON o.ID_objekta = r.ID_objekta
+       WHERE o.Status_objekta = 'Aktivan'
+       GROUP BY o.ID_objekta
+       ORDER BY brojRezervacija DESC, ocjena DESC
+       LIMIT 5`
+    ) as [any[], any];
+
+    const [[danasStats]] = await pool.query(
+      `SELECT 
+        COUNT(CASE WHEN DATE(t.Datum) = CURDATE() AND t.Status = 'Zauzet' THEN 1 END) AS danas,
+        COUNT(CASE WHEN YEARWEEK(t.Datum, 1) = YEARWEEK(CURDATE(), 1) AND t.Status = 'Zauzet' THEN 1 END) AS ovajTjedan,
+        COUNT(CASE WHEN YEAR(t.Datum) = YEAR(CURDATE()) AND MONTH(t.Datum) = MONTH(CURDATE()) AND t.Status = 'Zauzet' THEN 1 END) AS ovajMjesec,
+        COALESCE(SUM(CASE WHEN YEAR(t.Datum) = YEAR(CURDATE()) AND MONTH(t.Datum) = MONTH(CURDATE()) AND t.Status = 'Zauzet' THEN t.Cijena END), 0) AS prihodMjesec
+       FROM TERMINI t`
+    ) as [any[], any];
+
+    res.json({
+      topObjekti: topObjekti.map((r: any) => ({
+        naziv: r.Naziv_objekta,
+        kvart: r.Kvart,
+        brojRezervacija: Number(r.brojRezervacija),
+        ocjena: r.ocjena ?? null,
+      })),
+      stats: {
+        danas: Number(danasStats.danas),
+        ovajTjedan: Number(danasStats.ovajTjedan),
+        ovajMjesec: Number(danasStats.ovajMjesec),
+        prihodMjesec: Number(danasStats.prihodMjesec),
+      }
+    });
+  } catch (e) { res.status(500).json({ error: "Greška na serveru." }); }
+});
+
 router.get("/dashboard", autentificiraj, samoAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const [[{ ukupnoKorisnika }]] = await pool.query("SELECT COUNT(*) AS ukupnoKorisnika FROM KORISNIK WHERE Uloga = 'User'") as [any[], any];

@@ -25,9 +25,10 @@ interface Objekt {
   termini: Termin[];
   lat: number | null;
   lng: number | null;
+  slikaUrl: string | null;
 }
 
-const SVE_SPORTOVI = ["Nogomet","Mali nogomet","Košarka","Tenis","Padel","Odbojka","Vaterpolo","Plivanje"];
+const SVE_SPORTOVI = ["Nogomet", "Mali nogomet", "Košarka", "Tenis", "Padel", "Odbojka", "Vaterpolo", "Boćanje", "Stolni tenis", "Plivanje"];
 const PERIODI = [
   { label: "Jutro (06:00 - 12:00)", value: "jutro" },
   { label: "Poslijepodne (12:00 - 18:00)", value: "poslijepodne" },
@@ -36,9 +37,9 @@ const PERIODI = [
 
 function SportIcon({ sport }: { sport: string }) {
   const icons: Record<string, string> = {
-    Tenis: "🎾", Padel: "🏓", Nogomet: "⚽", "Mali nogomet": "⚽",
-    Košarka: "🏀", Odbojka: "🏐", Plivanje: "🏊", Vaterpolo: "🤽", Boćanje: "🎳",
-  };
+  Tenis: "🎾", Padel: "🏓", Nogomet: "⚽", "Mali nogomet": "⚽",
+  Košarka: "🏀", Odbojka: "🏐", Plivanje: "🏊", Vaterpolo: "🤽", Boćanje: "🎳", "Stolni tenis": "🏓",
+};
   return <span style={{ fontSize: 13 }}>{icons[sport] ?? "🏃"}</span>;
 }
 
@@ -53,8 +54,12 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
       onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 12px rgba(37,99,235,0.06)"; (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; }}
     >
       <div style={{ display: "flex", gap: 16, padding: 16 }}>
-        <div style={{ width: 110, height: 90, borderRadius: 12, background: "linear-gradient(135deg, #DBEAFE 0%, #EDE9FE 100%)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>
-          {objekt.sportovi[0] ? <SportIcon sport={objekt.sportovi[0]} /> : "🏟️"}
+        <div style={{ width: 110, height: 90, borderRadius: 12, flexShrink: 0, overflow: "hidden", background: "linear-gradient(135deg, #DBEAFE 0%, #EDE9FE 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>
+          {objekt.slikaUrl ? (
+            <img src={objekt.slikaUrl} alt={objekt.naziv} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+  ) : (
+    objekt.sportovi[0] ? <SportIcon sport={objekt.sportovi[0]} /> : <span>🏟️</span>
+  )}
         </div>
         <div style={{ flex: 1 }}>
           <Link to={`/objekt/${objekt.id}`} style={{ textDecoration: "none" }}>
@@ -278,9 +283,7 @@ dodajMarkere();
   return (
     <div
       style={{
-        position: "sticky",
-        top: 80,
-        height: "calc(100vh - 96px)",
+        height: "100%",
         borderRadius: 20,
         overflow: "hidden",
         border: "1.5px solid #334155",
@@ -392,68 +395,80 @@ export default function Home() {
   const toggleSport = (sport: string) =>
     setOdabraniSportovi((prev) => prev.includes(sport) ? prev.filter((s) => s !== sport) : [...prev, sport]);
 
-  return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 24px", display: "grid", gridTemplateColumns: "220px 1fr 380px", gap: 20, alignItems: "start" }}>
-      <aside style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #E8EEFF", padding: 20, position: "sticky", top: 80, boxShadow: "0 2px 12px rgba(37,99,235,0.06)" }}>
-        <div style={{ marginBottom: 20 }}>
-          <h2 style={{ margin: "0 0 2px", fontSize: 16, fontWeight: 700, color: "#111827" }}>Filteri</h2>
-          <p style={{ margin: 0, fontSize: 12, color: "#9CA3AF" }}>Prilagodite pretragu</p>
+return (
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 24px", display: "grid", gridTemplateColumns: "260px 1fr 380px", gap: 20, alignItems: "start" }}>
+      <aside style={{ 
+        background: "#fff", 
+        borderRadius: 16, 
+        border: "1.5px solid #E8EEFF", 
+        padding: "16px 14px", 
+        position: "sticky", 
+        top: 80, 
+        maxHeight: "calc(100vh - 100px)",
+        overflowY: "auto",
+        boxShadow: "0 2px 12px rgba(37,99,235,0.06)",
+        scrollbarWidth: "thin",
+        scrollbarColor: "#BFDBFE transparent",
+      }}>
+        <div style={{ marginBottom: 14 }}>
+          <h2 style={{ margin: "0 0 2px", fontSize: 15, fontWeight: 700, color: "#111827" }}>Filteri</h2>
+          <p style={{ margin: 0, fontSize: 11, color: "#9CA3AF" }}>Prilagodite pretragu</p>
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Sportovi</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Sportovi</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
             {SVE_SPORTOVI.map((sport) => {
               const aktivan = odabraniSportovi.includes(sport);
               return (
                 <button key={sport} onClick={() => toggleSport(sport)}
-                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 8, border: "none", background: aktivan ? "#1D4ED8" : "transparent", color: aktivan ? "#fff" : "#374151", fontWeight: aktivan ? 600 : 400, fontSize: 14, cursor: "pointer", textAlign: "left", transition: "background 0.15s", fontFamily: "inherit" }}>
-                  <SportIcon sport={sport} /> {sport}
-                </button>
+  style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 7px", borderRadius: 7, border: `1.5px solid ${aktivan ? "#1D4ED8" : "#E5E7EB"}`, background: aktivan ? "#EFF6FF" : "transparent", color: aktivan ? "#1D4ED8" : "#374151", fontWeight: aktivan ? 700 : 400, fontSize: 11, cursor: "pointer", textAlign: "left", transition: "all 0.15s", fontFamily: "inherit", whiteSpace: "nowrap", overflow: "hidden" }}>
+  <SportIcon sport={sport} /> {sport}
+</button>
               );
             })}
           </div>
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Termini</div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Termini</div>
           <input type="date" value={odabraniDatum} onChange={(e) => setOdabraniDatum(e.target.value)}
-            style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 13, color: "#374151", fontFamily: "inherit", marginBottom: 8, outline: "none", boxSizing: "border-box" }} />
+            style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151", fontFamily: "inherit", marginBottom: 6, outline: "none", boxSizing: "border-box" }} />
           <select value={odabraniPeriod} onChange={(e) => setOdabraniPeriod(e.target.value)}
-            style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 13, color: "#374151", fontFamily: "inherit", background: "#fff", outline: "none", cursor: "pointer" }}>
+            style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151", fontFamily: "inherit", background: "#fff", outline: "none", cursor: "pointer" }}>
             <option value="">Odaberi period</option>
             {PERIODI.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Lokacija</div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Lokacija</div>
           <select value={odabraniKvart} onChange={(e) => setOdabraniKvart(e.target.value)}
-            style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 13, color: "#374151", fontFamily: "inherit", background: "#fff", outline: "none", cursor: "pointer" }}>
+            style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151", fontFamily: "inherit", background: "#fff", outline: "none", cursor: "pointer" }}>
             {sviKvartovi.map((k) => <option key={k} value={k}>{k === "Svi kvartovi" ? "Rijeka - Svi kvartovi" : k}</option>)}
           </select>
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Cijena (€/h)</div>
-          <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, cursor: "pointer" }}>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Cijena (€/h)</div>
+          <label style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8, cursor: "pointer" }}>
             <input type="checkbox" checked={samoBesplatni}
               onChange={(e) => { setSamoBesplatni(e.target.checked); if (e.target.checked) { setCijenaMin(""); setCijenaMax(""); } }}
-              style={{ width: 15, height: 15, accentColor: "#1D4ED8", cursor: "pointer" }} />
-            <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>Prikaži samo besplatne</span>
+              style={{ width: 14, height: 14, accentColor: "#1D4ED8", cursor: "pointer" }} />
+            <span style={{ fontSize: 12, color: "#374151", fontWeight: 500 }}>Samo besplatni</span>
           </label>
           {!samoBesplatni && (
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 6 }}>
               <input type="number" min={0} placeholder="Od (€)" value={cijenaMin} onChange={(e) => setCijenaMin(e.target.value)}
-                style={{ width: "50%", padding: "9px 10px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 13, color: "#374151", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+                style={{ width: "50%", padding: "7px 8px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
               <input type="number" min={0} placeholder="Do (€)" value={cijenaMax} onChange={(e) => setCijenaMax(e.target.value)}
-                style={{ width: "50%", padding: "9px 10px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 13, color: "#374151", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+                style={{ width: "50%", padding: "7px 8px", borderRadius: 8, border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
             </div>
           )}
         </div>
 
         <button onClick={dohvatiObjekte}
-          style={{ width: "100%", padding: "11px", borderRadius: 999, background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", boxShadow: "0 2px 10px rgba(29,78,216,0.3)", fontFamily: "inherit" }}
+          style={{ width: "100%", padding: "9px", borderRadius: 999, background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer", boxShadow: "0 2px 10px rgba(29,78,216,0.3)", fontFamily: "inherit" }}
           onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.9")}
           onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}>
           Primijeni filtere
@@ -462,7 +477,7 @@ export default function Home() {
         {(odabraniSportovi.length > 0 || odabraniKvart !== "Svi kvartovi" || odabraniDatum || odabraniPeriod || cijenaMin || cijenaMax || samoBesplatni) && (
           <button
             onClick={() => { setOdabraniSportovi([]); setOdabraniKvart("Svi kvartovi"); setOdabraniDatum(""); setOdabraniPeriod(""); setCijenaMin(""); setCijenaMax(""); setSamoBesplatni(false); }}
-            style={{ width: "100%", padding: "9px", borderRadius: 999, background: "transparent", color: "#6B7280", fontWeight: 500, fontSize: 13, border: "1px solid #E5E7EB", cursor: "pointer", marginTop: 8, fontFamily: "inherit" }}>
+            style={{ width: "100%", padding: "7px", borderRadius: 999, background: "transparent", color: "#6B7280", fontWeight: 500, fontSize: 12, border: "1px solid #E5E7EB", cursor: "pointer", marginTop: 6, fontFamily: "inherit" }}>
             Poništi filtere
           </button>
         )}
@@ -499,7 +514,7 @@ export default function Home() {
         )}
       </main>
 
-      <aside>
+      <aside style={{ position: "sticky", top: 80, height: "calc(100vh - 96px)" }}>
         <MapaPlaceholder objekti={filtriraniObjekti} />
       </aside>
     </div>
