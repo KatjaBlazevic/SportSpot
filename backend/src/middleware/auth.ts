@@ -6,7 +6,13 @@ interface KorisnikToken extends JwtPayload {
 }
 
 export interface AuthRequest extends Request {
-  user?: { id: number };
+  user?: {
+    id: number;
+    email?: string;
+    uloga?: string;
+    ime?: string;
+    prezime?: string;
+  };
 }
 
 export const autentificiraj = (

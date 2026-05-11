@@ -25,6 +25,8 @@ export default function TerminKartica({
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isOtkaziPopupOpen, setIsOtkaziPopupOpen] = useState(false);
   const [isUrediPopupOpen, setIsUrediPopupOpen] = useState(false);
+  const [isGostPopupOpen, setIsGostPopupOpen] = useState(false);
+  const [emailGosta, setEmailGosta] = useState("");
 
   const trenutno = new Date();
   const datumTermina = new Date(datum);
@@ -59,6 +61,37 @@ export default function TerminKartica({
       if (response.ok) {
         setIsPopupOpen(false);
         if (onRezervacija) onRezervacija();
+      } else {
+        const data = await response.json();
+        alert(data.error || "Greška pri rezervaciji.");
+      }
+    } catch (err) {
+      alert("Server nije dostupan.");
+    }
+  };
+
+  const handleRezervacijaGosta = async () => {
+    if (!emailGosta || !emailGosta.includes("@")) {
+      alert("Molimo unesite ispravan email.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/termini/rezerviraj-gost/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ emailGosta }),
+        },
+      );
+
+      if (response.ok) {
+        setIsGostPopupOpen(false);
+        if (onRezervacija) onRezervacija();
+        alert("Termin rezerviran! Provjerite svoj email.");
       } else {
         const data = await response.json();
         alert(data.error || "Greška pri rezervaciji.");
@@ -160,23 +193,33 @@ export default function TerminKartica({
     <>
       <div
         onClick={() => {
-          // ako nema reg korisnika vodi na prijavu
-          if (!korisnik) {
-            navigate("/prijava");
+          //Ako je vlasnik objekta - otvori uredi popup
+          if (jeVlasnikObjekta) {
+            setIsUrediPopupOpen(true);
             return;
           }
 
-          //Ako je vlasnik ovog objekta
-          if (jeVlasnikObjekta) {
-            setIsUrediPopupOpen(true);
-          }
-          //Ako je kor reg i termin je isteko, slobodan ili njegova rezervacija
-          else if (jeProslost) {
+          //Ako je termin u prošlosti - ne dozvoli nikakvu akciju
+          if (jeProslost) {
             return;
-          } else if (jeSlobodan) {
-            setIsPopupOpen(true);
-          } else if (jeMojTermin) {
+          }
+
+          //Ako je korisnik ulogiran i to je njegov termin - otvori otkazivanje
+          if (korisnik && jeMojTermin) {
             setIsOtkaziPopupOpen(true);
+            return;
+          }
+
+          //Ako je termin slobodan
+          if (jeSlobodan) {
+            if (korisnik) {
+              // Logiran je  - standardna potvrda
+              setIsPopupOpen(true);
+            } else {
+              // Nije logiran - unos emaila
+              setIsGostPopupOpen(true);
+            }
+            return;
           }
         }}
         className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all group relative overflow-hidden
@@ -414,6 +457,49 @@ export default function TerminKartica({
                   className="flex-1 py-3 bg-slate-900 text-white font-black uppercase text-xs rounded-xl hover:bg-black shadow-lg"
                 >
                   Spremi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* POPUP za gosta */}
+      {isGostPopupOpen && jeSlobodan && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                📧
+              </div>
+              <h3 className="text-xl font-black text-slate-900 mb-2 uppercase italic">
+                Brza Rezervacija
+              </h3>
+              <p className="text-slate-500 text-sm mb-6">
+                Niste prijavljeni? Nema problema. Unesite email i termin je vaš!
+              </p>
+
+              <div className="mb-6">
+                <input
+                  type="email"
+                  placeholder="Vaš email adresa..."
+                  value={emailGosta}
+                  onChange={(e) => setEmailGosta(e.target.value)}
+                  className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-center"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsGostPopupOpen(false)}
+                  className="flex-1 px-4 py-3 rounded-xl text-slate-400 font-bold hover:bg-slate-50 transition-colors"
+                >
+                  Odustani
+                </button>
+                <button
+                  onClick={handleRezervacijaGosta}
+                  className="flex-1 px-4 py-4 rounded-xl bg-blue-600 text-white font-black uppercase text-xs hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
+                >
+                  Potvrdi
                 </button>
               </div>
             </div>

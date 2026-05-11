@@ -1,7 +1,11 @@
 import express, { type Request, type Response } from "express";
 import pool from "../db.ts";
 import { autentificiraj, type AuthRequest } from "../middleware/auth.ts";
+import bcrypt from "bcrypt";
+import { posaljiEmailObavijest } from "../middleware/mail.ts";
+import dotenv from "dotenv";
 
+dotenv.config();
 const router = express.Router();
 
 // Putanja će biti: GET http://localhost:5000/api/termini/
@@ -115,53 +119,79 @@ router.put(
     const idTermina = req.params.id;
     const idKorisnika = req.user?.id;
 
-    // Započinjemo sa transakcijom
     const connection = await pool.getConnection();
 
     try {
       await connection.beginTransaction();
 
-      const [termini] = (await connection.query(
-        "SELECT ID_korisnika, Status FROM TERMINI WHERE ID_termina = ?",
+      const [terminPodaci] = (await connection.query(
+        `SELECT t.ID_korisnika, t.Datum, t.Vrijeme_pocetka, o.Naziv_objekta, k.Email 
+         FROM TERMINI t 
+         JOIN OBJEKTI o ON t.ID_objekta = o.ID_objekta 
+         JOIN KORISNIK k ON t.ID_korisnika = k.ID_korisnika
+         WHERE t.ID_termina = ?`,
         [idTermina],
       )) as [any[], any];
 
-      if (termini.length === 0) {
+      if (terminPodaci.length === 0) {
         await connection.rollback();
         return res.status(404).json({ error: "Termin nije pronađen." });
       }
 
-      if (Number(termini[0].ID_korisnika) !== Number(idKorisnika)) {
+      if (Number(terminPodaci[0].ID_korisnika) !== Number(idKorisnika)) {
         await connection.rollback();
         return res
           .status(403)
           .json({ error: "Nemate dozvolu za otkazivanje tuđe rezervacije." });
       }
 
+      //priprema formata za mail
+      const datumObjekt = new Date(terminPodaci[0].Datum);
+      const formatiranDatum = datumObjekt.toLocaleDateString("hr-HR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      const terminInfo = `${formatiranDatum} u ${terminPodaci[0].Vrijeme_pocetka.toString().slice(0, 5)}h`;
+      const nazivObjekta = terminPodaci[0].Naziv_objekta;
+      const emailOtkazivaca = terminPodaci[0].Email;
+
+      //provjera liste čekanja
       const [listaCekanja] = (await connection.query(
-        "SELECT ID_korisnika FROM LISTA_CEKANJA WHERE ID_termina = ? ORDER BY Vrijeme_prijave ASC LIMIT 1",
+        `SELECT l.ID_korisnika, k.Email 
+         FROM LISTA_CEKANJA l 
+         JOIN KORISNIK k ON l.ID_korisnika = k.ID_korisnika 
+         WHERE l.ID_termina = ? 
+         ORDER BY l.Vrijeme_prijave ASC LIMIT 1`,
         [idTermina],
       )) as [any[], any];
 
       if (listaCekanja.length > 0) {
-        // postoji netko na listi, dodaj mu termin
-        const sljedeciKorisnik = listaCekanja[0].ID_korisnika;
+        const sljedeciKorisnikID = listaCekanja[0].ID_korisnika;
+        const sljedeciKorisnikEmail = listaCekanja[0].Email;
 
+        //dodijeli termin sljedećem
         await connection.query(
-          "UPDATE TERMINI SET ID_korisnika = ?, Status = 'Zauzet' WHERE ID_termina = ?",
-          [sljedeciKorisnik, idTermina],
+          "UPDATE TERMINI SET ID_korisnika = ?, Status = 'Rezervirano' WHERE ID_termina = ?",
+          [sljedeciKorisnikID, idTermina],
         );
 
-        // Obriši korisnika kojeg smo dodali sa liste čekanja u listi čekanja
         await connection.query(
           "DELETE FROM LISTA_CEKANJA WHERE ID_termina = ? AND ID_korisnika = ?",
-          [idTermina, sljedeciKorisnik],
+          [idTermina, sljedeciKorisnikID],
         );
 
         await connection.commit();
+
+        posaljiEmailObavijest(
+          sljedeciKorisnikEmail,
+          nazivObjekta,
+          terminInfo,
+          "LISTA_CEKANJA",
+        );
+
         return res.status(200).json({
-          message:
-            "Rezervacija otkazana, termin automatski dodijeljen sljedećem na listi!",
+          message: "Otkazano. Termin dodijeljen osobi s liste čekanja!",
         });
       } else {
         await connection.query(
@@ -170,6 +200,7 @@ router.put(
         );
 
         await connection.commit();
+
         return res
           .status(200)
           .json({ message: "Rezervacija uspješno otkazana!" });
@@ -318,4 +349,209 @@ router.post(
     }
   },
 );
+
+//Neregistrirani korisnik dodavanje
+router.put("/rezerviraj-gost/:id", async (req: AuthRequest, res: Response) => {
+  const idTermina = req.params.id;
+  const { emailGosta } = req.body;
+  let idKorisnika = req.user?.id;
+
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+    const [podaciTermina] = (await connection.query(
+      `SELECT t.*, o.Naziv_objekta 
+       FROM TERMINI t 
+       JOIN OBJEKTI o ON t.ID_objekta = o.ID_objekta 
+       WHERE t.ID_termina = ?`,
+      [idTermina],
+    )) as [any[], any];
+
+    if (podaciTermina.length === 0 || podaciTermina[0].Status !== "Slobodan") {
+      await connection.rollback();
+      return res.status(400).json({ error: "Termin više nije dostupan." });
+    }
+
+    if (!idKorisnika) {
+      if (!emailGosta) {
+        await connection.rollback();
+        return res.status(400).json({ error: "Email je obavezan." });
+      }
+
+      const [postojeci] = (await connection.query(
+        "SELECT ID_korisnika FROM KORISNIK WHERE Email = ?",
+        [emailGosta],
+      )) as [any[], any];
+
+      if (postojeci.length > 0) {
+        idKorisnika = postojeci[0].ID_korisnika;
+      } else {
+        const tajniDodatak = process.env.TAJNI_KLJUC_MAIL;
+        const lozinkaZaBazu = emailGosta + tajniDodatak;
+        const hashLozinke = await bcrypt.hash(lozinkaZaBazu, 10);
+
+        const [noviUser] = (await connection.query(
+          "INSERT INTO KORISNIK (Ime, Prezime, Email, Lozinka, Uloga) VALUES (?, ?, ?, ?, 'User')",
+          ["Gost", "Korisnik", emailGosta, hashLozinke],
+        )) as [any, any];
+
+        idKorisnika = noviUser.insertId;
+      }
+    }
+    const [korisnikPodaci] = (await connection.query(
+      "SELECT Email, Lozinka FROM KORISNIK WHERE ID_korisnika = ?",
+      [idKorisnika],
+    )) as [any[], any];
+
+    const hashLozinkeZaLink = korisnikPodaci[0].Lozinka;
+    const emailPrimatelja = korisnikPodaci[0].Email;
+
+    //Ažuriranje termina
+    await connection.query(
+      "UPDATE TERMINI SET ID_korisnika = ?, Status = 'Rezervirano' WHERE ID_termina = ?",
+      [idKorisnika, idTermina],
+    );
+
+    await connection.commit();
+
+    // Formatiranje datuma i vremena
+    const datumObjekt = new Date(podaciTermina[0].Datum);
+    const formatiranDatum = datumObjekt.toLocaleDateString("hr-HR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    const formatiranoVrijeme =
+      podaciTermina[0].Vrijeme_pocetka.toString().slice(0, 5);
+    const terminInfo = `${formatiranDatum} u ${formatiranoVrijeme}h`;
+
+    posaljiEmailObavijest(
+      emailPrimatelja,
+      podaciTermina[0].Naziv_objekta,
+      terminInfo,
+      "REZERVACIJA_GOST",
+      podaciTermina[0].ID_termina,
+      hashLozinkeZaLink,
+    ).catch((err) => console.error("Greška pri slanju maila:", err));
+
+    res.status(200).json({ message: "Uspješno rezervirano!" });
+  } catch (error) {
+    await connection.rollback();
+    console.error("Greška pri rezervaciji:", error);
+    res.status(500).json({ error: "Interna greška servera." });
+  } finally {
+    connection.release();
+  }
+});
+
+//Otkaži nereg korisnik preko maila
+router.get("/otkazivanje-gosta", async (req: Request, res: Response) => {
+  const { id, auth } = req.query;
+
+  if (!id || !auth) {
+    return res.status(400).send("<h1>Neispravan link za otkazivanje.</h1>");
+  }
+
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [podaci] = (await connection.query(
+      `SELECT t.ID_termina, t.Datum, t.Vrijeme_pocetka, k.Lozinka, k.Email, o.Naziv_objekta
+       FROM TERMINI t
+       JOIN KORISNIK k ON t.ID_korisnika = k.ID_korisnika
+       JOIN OBJEKTI o ON t.ID_objekta = o.ID_objekta
+       WHERE t.ID_termina = ?`,
+      [id],
+    )) as [any[], any];
+
+    if (podaci.length === 0) {
+      await connection.rollback();
+      return res
+        .status(404)
+        .send("<h1>Termin nije pronađen ili je već otkazan.</h1>");
+    }
+
+    //SIGURNOSNA PROVJERA
+    const hashIzBaze = podaci[0].Lozinka;
+    const hashIzLinka = auth as string;
+
+    if (hashIzLinka !== hashIzBaze) {
+      await connection.rollback();
+      return res
+        .status(403)
+        .send("<h1>Autorizacija neuspješna. Link je nevažeći.</h1>");
+    }
+
+    const datumObjekt = new Date(podaci[0].Datum);
+    const formatiranDatum = datumObjekt.toLocaleDateString("hr-HR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    const terminInfo = `${formatiranDatum} u ${podaci[0].Vrijeme_pocetka.toString().slice(0, 5)}h`;
+    const nazivObjekta = podaci[0].Naziv_objekta;
+    const emailOtkazivaca = podaci[0].Email;
+
+    const [listaCekanja] = (await connection.query(
+      `SELECT ID_korisnika FROM LISTA_CEKANJA WHERE ID_termina = ? ORDER BY Vrijeme_prijave ASC LIMIT 1`,
+      [id],
+    )) as [any[], any];
+
+    let porukaZaBrowser = "Vaša rezervacija je uspješno otkazana.";
+
+    if (listaCekanja.length > 0) {
+      const noviKorisnikID = listaCekanja[0].ID_korisnika;
+
+      await connection.query(
+        "UPDATE TERMINI SET ID_korisnika = ?, Status = 'Rezervirano' WHERE ID_termina = ?",
+        [noviKorisnikID, id],
+      );
+
+      await connection.query(
+        "DELETE FROM LISTA_CEKANJA WHERE ID_termina = ? AND ID_korisnika = ?",
+        [id, noviKorisnikID],
+      );
+
+      porukaZaBrowser +=
+        " Termin je dodijeljen sljedećoj osobi s liste čekanja.";
+    } else {
+      await connection.query(
+        "UPDATE TERMINI SET ID_korisnika = NULL, Status = 'Slobodan' WHERE ID_termina = ?",
+        [id],
+      );
+    }
+
+    await connection.commit();
+
+    try {
+      await posaljiEmailObavijest(
+        emailOtkazivaca,
+        nazivObjekta,
+        terminInfo,
+        "OTKAZIVANJE_GOST",
+      );
+    } catch (mailError) {
+      console.error("Greška pri slanju maila otkazivanja:", mailError);
+    }
+
+    res.send(`
+      <div style="font-family: sans-serif; text-align: center; padding: 50px; color: #1e293b;">
+        <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
+        <h1 style="color: #2563eb; margin-bottom: 10px;">SportSpot</h1>
+        <p style="font-size: 18px; margin-bottom: 30px;">${porukaZaBrowser}</p>
+        <a href="http://localhost:5173/" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-weight: bold;">Povratak na SportSpot</a>
+      </div>
+    `);
+  } catch (error) {
+    await connection.rollback();
+    console.error("Greška kod otkazivanja:", error);
+    res.status(500).send("<h1>Došlo je do greške na serveru.</h1>");
+  } finally {
+    connection.release();
+  }
+});
 export default router;
