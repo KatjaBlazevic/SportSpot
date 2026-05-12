@@ -91,6 +91,31 @@ export default function ObjektDetalji() {
     }
   };
 
+  const napustiListuCekanja = async (idTermina: number) => {
+    try {
+      const token = localStorage.getItem("sportspot_token");
+      const res = await fetch(
+        `http://localhost:5000/api/termini/lista-cekanja/odustani/${idTermina}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res.ok) {
+        dohvatiPodatke();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || "Greška pri odustajanju.");
+      }
+    } catch (err) {
+      console.error("Greška:", err);
+      alert("Server nije dostupan.");
+    }
+  };
+
   const handleTerminSubmit = async (terminData: any) => {
     try {
       const token = localStorage.getItem("sportspot_token");
@@ -187,17 +212,17 @@ export default function ObjektDetalji() {
         <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-8 mb-12">
           <div className="lg:col-span-1 lg:col-start-2 lg:row-start-1 space-y-8">
             <InfoSekcija
-  slikaUrl={data.slikaUrl || ""}
-  adresa={data.adresa}
-  kvart={data.kvart}
-  kapacitet={data.kapacitet}
-  klub={data.nazivKluba}
-  opis={data.opis}
-  lat={data.lat}
-  lng={data.lng}
-  naziv={data.naziv}
-  sportovi={data.sportovi}
-/>
+              slikaUrl={data.slikaUrl || ""}
+              adresa={data.adresa}
+              kvart={data.kvart}
+              kapacitet={data.kapacitet}
+              klub={data.nazivKluba}
+              opis={data.opis}
+              lat={data.lat}
+              lng={data.lng}
+              naziv={data.naziv}
+              sportovi={data.sportovi}
+            />
           </div>
           <div className="lg:col-span-1 lg:row-span-2 lg:col-start-1">
             <div className="bg-white p-8 rounded-[32px] border border-blue-50 shadow-xl shadow-blue-900/5">
@@ -265,10 +290,28 @@ export default function ObjektDetalji() {
                               <div className="mt-2 w-full">
                                 {jeNaListi ? (
                                   /* AKO JE KORISNIK VEĆ NA LISTI ČEKANJA */
-                                  <div className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-50 border border-amber-200 rounded-xl shadow-inner">
-                                    <span className="text-amber-800 text-[10px] font-black uppercase tracking-tight">
-                                      {redniBroj}. na listi čekanja
-                                    </span>
+                                  <div className="flex flex-row items-center gap-2 w-full">
+                                    <div className="flex-1 flex items-center justify-center gap-2 py-2 bg-amber-50 border border-amber-200 rounded-xl shadow-inner">
+                                      <span className="text-amber-800 text-[10px] font-black uppercase tracking-tight">
+                                        {redniBroj}. na listi čekanja
+                                      </span>
+                                    </div>
+
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (
+                                          window.confirm(
+                                            "Želiš li se maknuti s liste čekanja?",
+                                          )
+                                        ) {
+                                          await napustiListuCekanja(t.id);
+                                        }
+                                      }}
+                                      className="px-4 py-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-[10px] font-black uppercase rounded-xl transition-all whitespace-nowrap"
+                                    >
+                                      Otkaži
+                                    </button>
                                   </div>
                                 ) : (
                                   <button

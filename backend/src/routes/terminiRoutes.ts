@@ -350,6 +350,36 @@ router.post(
   },
 );
 
+//micanje sa liste cekanja
+router.delete(
+  "/lista-cekanja/odustani/:idTermina",
+  autentificiraj,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { idTermina } = req.params;
+      const idKorisnika = req.user?.id;
+
+      const [result]: any = await pool.query(
+        "DELETE FROM LISTA_CEKANJA WHERE ID_korisnika = ? AND ID_termina = ?",
+        [idKorisnika, idTermina],
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          error: "Niste pronađeni na listi čekanja za ovaj termin.",
+        });
+      }
+
+      res.status(200).json({
+        message: "Uspješno ste se uklonili s liste čekanja.",
+      });
+    } catch (error) {
+      console.error("Greška pri brisanju s liste čekanja:", error);
+      res.status(500).json({ error: "Greška na serveru." });
+    }
+  },
+);
+
 //Neregistrirani korisnik dodavanje
 router.put("/rezerviraj-gost/:id", async (req: AuthRequest, res: Response) => {
   const idTermina = req.params.id;
