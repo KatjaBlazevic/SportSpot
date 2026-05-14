@@ -261,11 +261,14 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
 // ─── MapaLeaflet ──────────────────────────────────────────────────────────────
 function MapaPlaceholder({ objekti }: { objekti: Objekt[] }) {
   const mapaRef = useRef<HTMLDivElement>(null);
-  const leafletMapRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const leafletMapRef = useRef<any>(null);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
     if (!mapaRef.current) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const L = (window as any).L;
     if (!L) return;
 
@@ -303,40 +306,12 @@ function MapaPlaceholder({ objekti }: { objekti: Objekt[] }) {
       Vaterpolo: "🤽",
     };
 
-    const geocodeCache: Record<string, [number, number]> = {};
-    const cekaj = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    const geocodeAdresa = async (
-      adresa: string,
-    ): Promise<[number, number] | null> => {
-      if (geocodeCache[adresa]) return geocodeCache[adresa];
-
-      try {
-        const upit = encodeURIComponent(`${adresa}, Rijeka, Hrvatska`);
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${upit}&format=json&limit=1`,
-          { headers: { "Accept-Language": "hr" } },
-        );
-        const data = await res.json();
-        if (data.length > 0) {
-          const koord: [number, number] = [
-            parseFloat(data[0].lat),
-            parseFloat(data[0].lon),
-          ];
-          geocodeCache[adresa] = koord;
-          return koord;
-        }
-      } catch (e) {
-        console.error("Geocoding greška za:", adresa, e);
-      }
-      return null;
-    };
-
     // Zamijeni cijeli dodajMarkere() async blok s ovim:
     const dodajMarkere = () => {
       const bounds: [number, number][] = [];
 
       for (const obj of objekti) {
-        if (!obj.lat || !obj.lng) continue; // preskoči objekte bez koordinata
+        if (!obj.lat || !obj.lng) continue;
 
         const koord: [number, number] = [obj.lat, obj.lng];
         const ikona = sportIkone[obj.sportovi[0]] ?? "🏟️";

@@ -278,7 +278,7 @@ router.get("/:id", async (req: Request, res: Response) => {
         ime: r.Ime,
         prezime: r.Prezime,
         ocjena: r.Ocjena,
-        commentar: r.Komentar,
+        komentar: r.Komentar,
         datumObjave: r.Datum_objave,
       })),
     });

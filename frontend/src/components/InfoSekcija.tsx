@@ -20,6 +20,7 @@ function MiniMapa({ lat, lng, naziv, sport }: { lat: number; lng: number; naziv:
   const ikona = sportIkone[sport] ?? "🏟️";
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const L = (window as any).L;
     if (!L || !mapaRef.current) return;
 

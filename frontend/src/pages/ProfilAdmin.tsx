@@ -105,40 +105,76 @@ export default function ProfilAdmin() {
 
   useEffect(() => {
     if (!token) return;
+
     if (aktivnaTab === "dashboard") {
-  setUcitava(true);
-  Promise.all([
-    fetch(`${API}/dashboard`, { headers }).then(r => r.json()),
-    fetch(`${API}/dashboard/extra`, { headers }).then(r => r.json()),
-  ]).then(([dash, extra]) => {
-    setDashboard(dash);
-    setDashboardExtra(extra);
-  }).finally(() => setUcitava(false));
-}
+      (async () => {
+        setUcitava(true);
+        try {
+          const [dash, extra] = await Promise.all([
+            fetch(`${API}/dashboard`, { headers }).then(r => r.json()),
+            fetch(`${API}/dashboard/extra`, { headers }).then(r => r.json()),
+          ]);
+          setDashboard(dash);
+          setDashboardExtra(extra);
+        } finally {
+          setUcitava(false);
+        }
+      })();
+    }
     if (aktivnaTab === "korisnici") {
-      setUcitava(true);
-      fetch(`${API}/korisnici`, { headers }).then(r => r.json()).then(data => { setKorisnici(data); setSviVlasnici(data.filter((k: AdminKorisnik) => k.uloga === "Vlasnik")); }).finally(() => setUcitava(false));
+      (async () => {
+        setUcitava(true);
+        try {
+          const data = await fetch(`${API}/korisnici`, { headers }).then(r => r.json());
+          setKorisnici(data);
+          setSviVlasnici(data.filter((k: AdminKorisnik) => k.uloga === "Vlasnik"));
+        } finally {
+          setUcitava(false);
+        }
+      })();
     }
     if (aktivnaTab === "objekti") {
-      setUcitava(true);
-      Promise.all([
-        fetch(`${API}/objekti`, { headers }).then(r => r.json()),
-        fetch(`${API}/korisnici`, { headers }).then(r => r.json()),
-        fetch(`${API}/klubovi`, { headers }).then(r => r.json()),
-      ]).then(([obj, kor, klu]) => {
-        setObjekti(obj);
-        setSviVlasnici(kor.filter((k: AdminKorisnik) => k.uloga === "Vlasnik" || k.uloga === "Admin"));
-        setKlubovi(klu);
-      }).finally(() => setUcitava(false));
+      (async () => {
+        setUcitava(true);
+        try {
+          const [obj, kor, klu] = await Promise.all([
+            fetch(`${API}/objekti`, { headers }).then(r => r.json()),
+            fetch(`${API}/korisnici`, { headers }).then(r => r.json()),
+            fetch(`${API}/klubovi`, { headers }).then(r => r.json()),
+          ]);
+          setObjekti(obj);
+          setSviVlasnici(kor.filter((k: AdminKorisnik) => k.uloga === "Vlasnik" || k.uloga === "Admin"));
+          setKlubovi(klu);
+        } finally {
+          setUcitava(false);
+        }
+      })();
     }
     if (aktivnaTab === "klubovi") {
-      setUcitava(true);
-      Promise.all([fetch(`${API}/klubovi`, { headers }).then(r => r.json()), fetch(`${API}/objekti`, { headers }).then(r => r.json())])
-        .then(([klu, obj]) => { setKlubovi(klu); setObjekti(obj); }).finally(() => setUcitava(false));
+      (async () => {
+        setUcitava(true);
+        try {
+          const [klu, obj] = await Promise.all([
+            fetch(`${API}/klubovi`, { headers }).then(r => r.json()),
+            fetch(`${API}/objekti`, { headers }).then(r => r.json()),
+          ]);
+          setKlubovi(klu);
+          setObjekti(obj);
+        } finally {
+          setUcitava(false);
+        }
+      })();
     }
     if (aktivnaTab === "recenzije") {
-      setUcitava(true);
-      fetch(`${API}/recenzije`, { headers }).then(r => r.json()).then(setRecenzije).finally(() => setUcitava(false));
+      (async () => {
+        setUcitava(true);
+        try {
+          const data = await fetch(`${API}/recenzije`, { headers }).then(r => r.json());
+          setRecenzije(data);
+        } finally {
+          setUcitava(false);
+        }
+      })();
     }
   }, [aktivnaTab, token]);
 
@@ -464,7 +500,10 @@ export default function ProfilAdmin() {
               }} style={btnPrimary}>+ Dodaj objekt</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {objekti.map(o => (
+  {[...objekti].sort((a, b) => {
+    const prioritet = (s: string) => s === "Pending" ? 0 : s === "PendingDelete" ? 1 : 2;
+    return prioritet(a.status_objekta) - prioritet(b.status_objekta);
+  }).map(o => (
                 <div key={o.id} style={{ padding: 16, borderRadius: 12, border: `1px solid ${o.status_objekta === "Pending" ? "#FDE68A" : o.status_objekta === "PendingDelete" ? "#FECACA" : "#E5E7EB"}`, background: o.status_objekta === "Pending" ? "#FFFBEB" : o.status_objekta === "PendingDelete" ? "#FEF2F2" : "#fff" }}>
                   <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
                     {o.slikaUrl && <img src={o.slikaUrl} alt="" style={{ width: 72, height: 56, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />}

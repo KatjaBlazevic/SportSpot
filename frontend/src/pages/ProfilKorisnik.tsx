@@ -43,11 +43,19 @@ export default function ProfilKorisnik() {
 
   useEffect(() => {
     if (aktivnaTab === "rezervacije" && token) {
-      setUcitavanjeRez(true);
-      fetch("http://localhost:5000/api/korisnik/moje-rezervacije", { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => { if (!res.ok) throw new Error("API error"); return res.json(); })
-        .then((data) => { setRezervacije(data || []); setUcitavanjeRez(false); })
-        .catch((err) => { console.error("Greška:", err); setUcitavanjeRez(false); });
+      (async () => {
+        setUcitavanjeRez(true);
+        try {
+          const res = await fetch("http://localhost:5000/api/korisnik/moje-rezervacije", { headers: { Authorization: `Bearer ${token}` } });
+          if (!res.ok) throw new Error("API error");
+          const data = await res.json();
+          setRezervacije(data || []);
+        } catch {
+          // handle error
+        } finally {
+          setUcitavanjeRez(false);
+        }
+      })();
     }
   }, [aktivnaTab, token]);
 

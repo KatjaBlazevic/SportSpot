@@ -3,6 +3,7 @@ import { useState } from "react";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (data: any) => void;
   objektNaziv: string;
 }

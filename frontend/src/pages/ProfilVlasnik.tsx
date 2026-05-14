@@ -56,25 +56,52 @@ export default function ProfilVlasnik() {
 
   useEffect(() => {
     if (aktivnaTab === "mojiObjekti" && token) {
-      setUcitavanjeObjekti(true);
-      fetch(`${API}/vlasnik/moji-objekti`, { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => res.json()).then((data) => { setMojiObjekti(data || []); setUcitavanjeObjekti(false); }).catch(() => setUcitavanjeObjekti(false));
+      (async () => {
+        setUcitavanjeObjekti(true);
+        try {
+          const res = await fetch(`${API}/vlasnik/moji-objekti`, { headers: { Authorization: `Bearer ${token}` } });
+          const data = await res.json();
+          setMojiObjekti(data || []);
+        } catch {
+          // handle error
+        } finally {
+          setUcitavanjeObjekti(false);
+        }
+      })();
     }
   }, [aktivnaTab, token]);
 
   useEffect(() => {
     if (aktivnaTab === "rezervacije" && token) {
-      setUcitavanjeRez(true);
-      fetch(`${API}/korisnik/moje-rezervacije`, { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => res.json()).then((data) => { setRezervacije(data || []); setUcitavanjeRez(false); }).catch(() => setUcitavanjeRez(false));
+      (async () => {
+        setUcitavanjeRez(true);
+        try {
+          const res = await fetch(`${API}/korisnik/moje-rezervacije`, { headers: { Authorization: `Bearer ${token}` } });
+          const data = await res.json();
+          setRezervacije(data || []);
+        } catch {
+          // handle error
+        } finally {
+          setUcitavanjeRez(false);
+        }
+      })();
     }
   }, [aktivnaTab, token]);
 
   useEffect(() => {
     if (aktivnaTab === "statistika" && token && !statistika) {
-      setUcitavanjeStatistike(true);
-      fetch(`${API}/vlasnik/statistika`, { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => res.json()).then((data) => { setStatistika(data); setUcitavanjeStatistike(false); }).catch(() => setUcitavanjeStatistike(false));
+      (async () => {
+        setUcitavanjeStatistike(true);
+        try {
+          const res = await fetch(`${API}/vlasnik/statistika`, { headers: { Authorization: `Bearer ${token}` } });
+          const data = await res.json();
+          setStatistika(data);
+        } catch {
+          // handle error
+        } finally {
+          setUcitavanjeStatistike(false);
+        }
+      })();
     }
   }, [aktivnaTab, token, statistika]);
 

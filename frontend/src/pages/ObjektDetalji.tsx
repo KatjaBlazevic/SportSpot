@@ -115,7 +115,7 @@ export default function ObjektDetalji() {
       alert("Server nije dostupan.");
     }
   };
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleTerminSubmit = async (terminData: any) => {
     try {
       const token = localStorage.getItem("sportspot_token");
@@ -153,14 +153,14 @@ export default function ObjektDetalji() {
   };
   const filtriraniTermini = useMemo(() => {
     if (!data?.termini || !raspon) return [];
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
     return data.termini.filter((t: any) => {
       const datumTermina = new Date(t.datum).toLocaleDateString("sv-SE");
       const startStr = raspon.start.toLocaleDateString("sv-SE");
       const endStr = raspon.end.toLocaleDateString("sv-SE");
       return datumTermina >= startStr && datumTermina <= endStr;
     });
-  }, [data?.termini, raspon]);
+    }, [data, raspon]);
   if (!data)
     return (
       <div className="h-screen flex items-center justify-center font-black text-blue-600 animate-pulse uppercase tracking-tighter">
