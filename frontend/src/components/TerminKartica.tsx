@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { Termin } from "../types";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 interface TerminKarticaProps extends Termin {
   onRezervacija?: () => void;
