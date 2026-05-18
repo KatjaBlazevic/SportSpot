@@ -19,7 +19,6 @@ export default function TerminKartica({
   jeMojTermin,
   jeVlasnikObjekta,
   idKorisnika,
-  lista_ids,
 }: TerminKarticaProps) {
   //popupovi
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -34,7 +33,6 @@ export default function TerminKartica({
   datumTermina.setHours(sati, minute, 0, 0);
 
   //korisnik i navigacija
-  const navigate = useNavigate();
   const { korisnik } = useAuth();
 
   //Definiranje za izmjenu termina
