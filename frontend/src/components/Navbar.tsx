@@ -145,8 +145,12 @@ export default function Navbar() {
 
         {/* Right side */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-          {/* Notification bell */}
-          <button
+
+          {/* Pomoć */}
+          <a
+            href="/sportspot-pomoc.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
             style={{
               width: 40,
               height: 40,
@@ -158,27 +162,26 @@ export default function Navbar() {
               justifyContent: "center",
               cursor: "pointer",
               color: "#6B7280",
+              textDecoration: "none",
+              fontWeight: 700,
+              fontSize: 18,
               transition: "border-color 0.2s, color 0.2s",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "#3B82F6";
-              (e.currentTarget as HTMLButtonElement).style.color = "#3B82F6";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#3B82F6";
+              (e.currentTarget as HTMLAnchorElement).style.color = "#3B82F6";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "#E5E7EB";
-              (e.currentTarget as HTMLButtonElement).style.color = "#6B7280";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#E5E7EB";
+              (e.currentTarget as HTMLAnchorElement).style.color = "#6B7280";
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-          </button>
+            ?
+          </a>
 
           {/* Auth buttons */}
           {korisnik ? (
             <>
-              {/* Avatar + ime - link to profile */}
               <Link
                 to="/profil"
                 style={{
@@ -213,7 +216,6 @@ export default function Navbar() {
                   {korisnik.ime}
                 </span>
               </Link>
-              {/* Odjava */}
               <button
                 onClick={handleOdjava}
                 style={{

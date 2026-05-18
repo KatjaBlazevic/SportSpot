@@ -22,7 +22,7 @@ export default function ProfilVlasnik() {
   });
   const [rezervacije, setRezervacije] = useState<Rezervacija[]>([]);
   const [mojiObjekti, setMojiObjekti] = useState<MojObjekt[]>([]);
-  const [aktivnaTab, setAktivnaTab] = useState<"mojiObjekti" | "rezervacije" | "omiljeni" | "statistika">("mojiObjekti");
+  const [aktivnaTab, setAktivnaTab] = useState<"mojiObjekti" | "rezervacije" | "omiljeni" | "statistika">("statistika");
   const [ucitavanjeRez, setUcitavanjeRez] = useState(false);
   const [ucitavanjeObjekti, setUcitavanjeObjekti] = useState(false);
   const [sviSportovi, setSviSportovi] = useState<Sport[]>([]);
@@ -217,7 +217,7 @@ export default function ProfilVlasnik() {
         </div>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-          {(["mojiObjekti", "rezervacije", "omiljeni", "statistika"] as const).map((tab) => {
+          {(["statistika", "mojiObjekti", "rezervacije", "omiljeni"] as const).map((tab) => {
             const labels: Record<string, string> = { mojiObjekti: "🏟️ Moji objekti", rezervacije: "📅 Moje rezervacije", omiljeni: "❤️ Omiljeni", statistika: "📊 Statistika" };
             return (
               <button key={tab} onClick={() => setAktivnaTab(tab)} style={{ padding: "14px 24px", borderRadius: 14, background: aktivnaTab === tab ? "#1D4ED8" : "#fff", color: aktivnaTab === tab ? "#fff" : "#374151", fontWeight: 600, fontSize: 15, border: "none", cursor: "pointer" }}>
