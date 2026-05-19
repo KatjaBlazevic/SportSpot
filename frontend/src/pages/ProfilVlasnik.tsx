@@ -10,7 +10,7 @@ interface StatistikaMjesec { mjesec: string; brojRezervacija: number; prihod: nu
 interface StatistikaObjekt { id: number; naziv: string; zauzeti: number; slobodni: number; ukupnoTermina: number; ukupniPrihod: number; }
 interface Statistika { poMjesecima: StatistikaMjesec[]; poObjektima: StatistikaObjekt[]; }
 
-const API = "http://localhost:5000/api";
+const API = "https://sportspot-sxcq.onrender.com/api";
 
 export default function ProfilVlasnik() {
   const { korisnik, token, ucitavanje, osvjezi } = useAuth();

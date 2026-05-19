@@ -46,7 +46,7 @@ export default function ProfilKorisnik() {
       (async () => {
         setUcitavanjeRez(true);
         try {
-          const res = await fetch("http://localhost:5000/api/korisnik/moje-rezervacije", { headers: { Authorization: `Bearer ${token}` } });
+          const res = await fetch("https://sportspot-sxcq.onrender.com/api/korisnik/moje-rezervacije", { headers: { Authorization: `Bearer ${token}` } });
           if (!res.ok) throw new Error("API error");
           const data = await res.json();
           setRezervacije(data || []);
@@ -61,7 +61,7 @@ export default function ProfilKorisnik() {
 
   const otvoriModal = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/korisnik/profil", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch("https://sportspot-sxcq.onrender.com/api/korisnik/profil", { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setEditData({ ime: data.ime || korisnik?.ime || "", prezime: data.prezime || korisnik?.prezime || "", email: data.email || korisnik?.email || "", brojMobitela: data.brojMobitela || "", novaLozinka: "", potvrdaLozinke: "" });
     } catch {
@@ -76,7 +76,7 @@ export default function ProfilKorisnik() {
     if (editData.novaLozinka && editData.novaLozinka !== editData.potvrdaLozinke) { setPoruka("Lozinke se ne podudaraju."); return; }
     setSpremanje(true); setPoruka("");
     try {
-      const res = await fetch("http://localhost:5000/api/korisnik/profil/update", {
+      const res = await fetch("https://sportspot-sxcq.onrender.com/api/korisnik/profil/update", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ ime: editData.ime, prezime: editData.prezime, email: editData.email, brojMobitela: editData.brojMobitela || null, novaLozinka: editData.novaLozinka || null }),

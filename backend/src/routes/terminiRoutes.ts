@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 dotenv.config();
 const router = express.Router();
 
-// Putanja će biti: GET http://localhost:5000/api/termini/
+// Putanja će biti: GET https://sportspot-sxcq.onrender.com/api/termini/
 router.get("/", (req: Request, res: Response) => {
   res.json({ message: "Router termini je povezan i radi!" });
 });

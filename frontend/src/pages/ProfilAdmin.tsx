@@ -19,7 +19,7 @@ interface Sport { ID_sporta: number; Naziv_sporta: string; }
 
 type Tab = "dashboard" | "korisnici" | "objekti" | "klubovi" | "recenzije";
 
-const API = "http://localhost:5000/api/admin";
+const API = "https://sportspot-sxcq.onrender.com/api/admin";
 
 const inputStyle = { width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid #E5E7EB", fontSize: 14, boxSizing: "border-box" as const };
 const btnPrimary = { padding: "10px 20px", borderRadius: 10, background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", color: "#fff", border: "none", cursor: "pointer", fontWeight: 700, fontSize: 14 };
@@ -87,8 +87,8 @@ export default function ProfilAdmin() {
 
   useEffect(() => {
     if (!token) return;
-    fetch("http://localhost:5000/api/korisnik/sportovi", { headers }).then(r => r.json()).then(setSviSportovi).catch(() => {});
-    fetch("http://localhost:5000/api/objekti/kvartovi").then(r => r.json()).then(setSviKvartovi).catch(() => {});
+    fetch("https://sportspot-sxcq.onrender.com/api/korisnik/sportovi", { headers }).then(r => r.json()).then(setSviSportovi).catch(() => {});
+    fetch("https://sportspot-sxcq.onrender.com/api/objekti/kvartovi").then(r => r.json()).then(setSviKvartovi).catch(() => {});
   }, [token]);
 
   const ucitajObjekte = () => {

@@ -16,7 +16,7 @@ function Objekti() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/objekti")
+    fetch("https://sportspot-sxcq.onrender.com/api/objekti")
       .then((res) => res.json())
       .then((data) => {
         setObjekti(data);

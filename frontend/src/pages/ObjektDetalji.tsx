@@ -26,7 +26,7 @@ export default function ObjektDetalji() {
   });
 
   const dohvatiPodatke = () => {
-    fetch(`http://localhost:5000/api/objekti/${id}`)
+    fetch(`https://sportspot-sxcq.onrender.com/api/objekti/${id}`)
       .then((res) => res.json())
       .then((json: DetaljiObjekta) => {
         setData(json);
@@ -61,7 +61,7 @@ export default function ObjektDetalji() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/objekti/recenzije/nova",
+        "https://sportspot-sxcq.onrender.com/api/objekti/recenzije/nova",
         {
           method: "POST",
           headers: {
@@ -95,7 +95,7 @@ export default function ObjektDetalji() {
     try {
       const token = localStorage.getItem("sportspot_token");
       const res = await fetch(
-        `http://localhost:5000/api/termini/lista-cekanja/odustani/${idTermina}`,
+        `https://sportspot-sxcq.onrender.com/api/termini/lista-cekanja/odustani/${idTermina}`,
         {
           method: "DELETE",
           headers: {
@@ -119,7 +119,7 @@ export default function ObjektDetalji() {
   const handleTerminSubmit = async (terminData: any) => {
     try {
       const token = localStorage.getItem("sportspot_token");
-      const response = await fetch("http://localhost:5000/api/termini/dodaj", {
+      const response = await fetch("https://sportspot-sxcq.onrender.com/api/termini/dodaj", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -323,7 +323,7 @@ export default function ObjektDetalji() {
                                             "sportspot_token",
                                           );
                                         const res = await fetch(
-                                          "http://localhost:5000/api/termini/lista-cekanja/prijava",
+                                          "https://sportspot-sxcq.onrender.com/api/termini/lista-cekanja/prijava",
                                           {
                                             method: "POST",
                                             headers: {

@@ -52,7 +52,7 @@ export const posaljiEmailObavijest = async (
   }
 
   const hashToken = lozinkaHash ? encodeURIComponent(lozinkaHash) : "";
-  const otkazivanjeLink = `http://localhost:5000/api/termini/otkazivanje-gosta?id=${idTermina}&auth=${hashToken}`;
+  const otkazivanjeLink = `https://sportspot-sxcq.onrender.com/api/termini/otkazivanje-gosta?id=${idTermina}&auth=${hashToken}`;
 
   const mailOptions = {
     from: '"SportSpot" <noreply@sportspot.hr>',

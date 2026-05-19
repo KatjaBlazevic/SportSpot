@@ -17,7 +17,7 @@ export default function Prijava() {
     setUcitavanje(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/prijava", {
+      const res = await fetch("https://sportspot-sxcq.onrender.com/api/auth/prijava", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, lozinka }),
