@@ -7,7 +7,6 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "allowImportingTsExtensions": true,
     "noEmit": false,
     "module": "nodenext",
     "target": "esnext",
