@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import authRoutes from '../routes/authRoutes.ts';
-import terminiRoutes from '../routes/terminiRoutes.ts';
-import objektiRoutes from '../routes/objektiRoutes.ts';
+import authRoutes from '../routes/authRoutes.js';
+import terminiRoutes from '../routes/terminiRoutes.js';
+import objektiRoutes from '../routes/objektiRoutes.js';
 
 const app = express();
 app.use(express.json());

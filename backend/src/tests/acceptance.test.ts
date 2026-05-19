@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import authRoutes from '../routes/authRoutes.ts';
-import terminiRoutes from '../routes/terminiRoutes.ts';
+import authRoutes from '../routes/authRoutes.js';
+import terminiRoutes from '../routes/terminiRoutes.js';
 
 const app = express();
 app.use(express.json());
@@ -84,7 +84,7 @@ describe('Korisnička priča: Rezervacija termina', () => {
  */
 describe('Korisnička priča: Pregled i filtriranje objekata', () => {
   it('Given objekti u sustavu, When korisnik dohvati listu, Then dobiva niz objekata', async () => {
-    const objektiRoutes = (await import('../routes/objektiRoutes.ts')).default;
+    const objektiRoutes = (await import('../routes/objektiRoutes.js')).default;
     app.use('/api/objekti', objektiRoutes);
 
     const res = await request(app).get('/api/objekti');
