@@ -88,8 +88,9 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
         (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
       }}
     >
-      <div style={{ display: "flex", gap: 16, padding: 16 }}>
+      <div className="objekt-kartica-inner" style={{ display: "flex", gap: 16, padding: 16 }}>
         <div
+          className="objekt-kartica-slika"
           style={{
             width: 110,
             height: 90,
@@ -184,7 +185,7 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
             ))}
           </div>
         </div>
-        <div style={{ textAlign: "right", flexShrink: 0 }}>
+        <div className="objekt-kartica-cijena" style={{ textAlign: "right", flexShrink: 0 }}>
           <div
             style={{
               fontSize: 11,
@@ -209,9 +210,7 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
             ) : (
               <>
                 {objekt.cijenaOd}€
-                <span
-                  style={{ fontSize: 13, fontWeight: 500, color: "#6B7280" }}
-                >
+                <span style={{ fontSize: 13, fontWeight: 500, color: "#6B7280" }}>
                   /h
                 </span>
               </>
@@ -258,13 +257,12 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
   );
 }
 
-// ─── MapaLeaflet ──────────────────────────────────────────────────────────────
 function MapaPlaceholder({ objekti }: { objekti: Objekt[] }) {
   const mapaRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const leafletMapRef = useRef<any>(null);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const markersRef = useRef<any[]>([]);
+  const leafletMapRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
     if (!mapaRef.current) return;
@@ -306,7 +304,6 @@ const markersRef = useRef<any[]>([]);
       Vaterpolo: "🤽",
     };
 
-    // Zamijeni cijeli dodajMarkere() async blok s ovim:
     const dodajMarkere = () => {
       const bounds: [number, number][] = [];
 
@@ -320,16 +317,16 @@ const markersRef = useRef<any[]>([]);
         const customIcon = L.divIcon({
           className: "",
           html: `
-        <div style="
-          background: #1D4ED8; border: 2.5px solid #60A5FA;
-          border-radius: 50% 50% 50% 0; width: 36px; height: 36px;
-          transform: rotate(-45deg);
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 2px 12px rgba(29,78,216,0.5); cursor: pointer;
-        ">
-          <span style="transform: rotate(45deg); font-size: 16px;">${ikona}</span>
-        </div>
-      `,
+            <div style="
+              background: #1D4ED8; border: 2.5px solid #60A5FA;
+              border-radius: 50% 50% 50% 0; width: 36px; height: 36px;
+              transform: rotate(-45deg);
+              display: flex; align-items: center; justify-content: center;
+              box-shadow: 0 2px 12px rgba(29,78,216,0.5); cursor: pointer;
+            ">
+              <span style="transform: rotate(45deg); font-size: 16px;">${ikona}</span>
+            </div>
+          `,
           iconSize: [36, 36],
           iconAnchor: [18, 36],
           popupAnchor: [0, -36],
@@ -337,16 +334,16 @@ const markersRef = useRef<any[]>([]);
 
         const marker = L.marker(koord, { icon: customIcon }).addTo(map);
         marker.bindPopup(`
-      <div style="font-family: 'DM Sans', sans-serif; min-width: 180px; padding: 4px 2px;">
-        <div style="font-weight: 700; font-size: 14px; color: #111827; margin-bottom: 4px;">${obj.naziv}</div>
-        <div style="font-size: 12px; color: #6B7280; margin-bottom: 6px;">📍 ${obj.adresa}, ${obj.kvart}</div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <span style="background: #EFF6FF; color: #1D4ED8; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;">${obj.sportovi[0] ?? "Sport"}</span>
-          <span style="font-weight: 700; color: #1D4ED8; font-size: 13px;">${cijena}</span>
-        </div>
-        ${obj.ocjena ? `<div style="font-size: 12px; color: #6B7280; margin-top: 4px;">⭐ ${obj.ocjena} (${obj.brojRecenzija} recenzija)</div>` : ""}
-      </div>
-    `);
+          <div style="font-family: 'DM Sans', sans-serif; min-width: 180px; padding: 4px 2px;">
+            <div style="font-weight: 700; font-size: 14px; color: #111827; margin-bottom: 4px;">${obj.naziv}</div>
+            <div style="font-size: 12px; color: #6B7280; margin-bottom: 6px;">📍 ${obj.adresa}, ${obj.kvart}</div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="background: #EFF6FF; color: #1D4ED8; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;">${obj.sportovi[0] ?? "Sport"}</span>
+              <span style="font-weight: 700; color: #1D4ED8; font-size: 13px;">${cijena}</span>
+            </div>
+            ${obj.ocjena ? `<div style="font-size: 12px; color: #6B7280; margin-top: 4px;">⭐ ${obj.ocjena} (${obj.brojRecenzija} recenzija)</div>` : ""}
+          </div>
+        `);
 
         markersRef.current.push(marker);
         bounds.push(koord);
@@ -408,6 +405,10 @@ export default function Home() {
   const [cijenaMax, setCijenaMax] = useState("");
   const [samoBesplatni, setSamoBesplatni] = useState(false);
   const [sviKvartovi, setSviKvartovi] = useState<string[]>(["Svi kvartovi"]);
+  const [filterOtvoren, setFilterOtvoren] = useState(false);
+  const [trenutnaStr, setTrenutnaStr] = useState(1);
+  const PO_STRANICI = 6;
+  const [mapaOtvorena, setMapaOtvorena] = useState(false);
 
   useEffect(() => {
     fetch(`${API_URL}/objekti/kvartovi`)
@@ -420,6 +421,7 @@ export default function Home() {
     setUcitavanje(true);
     setGreska(null);
     try {
+      setTrenutnaStr(1);
       const params = new URLSearchParams();
       odabraniSportovi.forEach((sport) => params.append("sport", sport));
       if (odabraniKvart !== "Svi kvartovi") params.set("kvart", odabraniKvart);
@@ -449,6 +451,7 @@ export default function Home() {
     cijenaMin,
     cijenaMax,
     samoBesplatni,
+    setTrenutnaStr,
   ]);
 
   useEffect(() => {
@@ -502,415 +505,453 @@ export default function Home() {
       prev.includes(sport) ? prev.filter((s) => s !== sport) : [...prev, sport],
     );
 
+  const aktivniFilteri =
+    odabraniSportovi.length > 0 ||
+    odabraniKvart !== "Svi kvartovi" ||
+    !!odabraniDatum ||
+    !!cijenaMin ||
+    !!cijenaMax ||
+    samoBesplatni;
+
+  const ukupnoStranica = Math.ceil(filtriraniObjekti.length / PO_STRANICI);
+  const vidljiviObjekti = filtriraniObjekti.slice(
+    (trenutnaStr - 1) * PO_STRANICI,
+    trenutnaStr * PO_STRANICI,
+  );
+
   return (
-    <div
-      style={{
-        maxWidth: 1400,
-        margin: "0 auto",
-        padding: "20px 24px",
-        display: "grid",
-        gridTemplateColumns: "260px 1fr 380px",
-        gap: 20,
-        alignItems: "start",
-      }}
-    >
-      <aside
-        style={{
-          background: "#fff",
-          borderRadius: 16,
-          border: "1.5px solid #E8EEFF",
-          padding: "16px 14px",
-          position: "sticky",
-          top: 80,
-          maxHeight: "calc(100vh - 100px)",
-          overflowY: "auto",
-          boxShadow: "0 2px 12px rgba(37,99,235,0.06)",
-          scrollbarWidth: "thin",
-          scrollbarColor: "#BFDBFE transparent",
-        }}
-      >
-        <div style={{ marginBottom: 14 }}>
-          <h2
-            style={{
-              margin: "0 0 2px",
-              fontSize: 15,
-              fontWeight: 700,
-              color: "#111827",
-            }}
-          >
-            Filteri
-          </h2>
-          <p style={{ margin: 0, fontSize: 11, color: "#9CA3AF" }}>
-            Prilagodite pretragu
-          </p>
-        </div>
+    <>
+      {/* OVERLAY za filter na mobitelu */}
+      {filterOtvoren && (
+        <div
+          onClick={() => setFilterOtvoren(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.4)",
+            zIndex: 1,
+          }}
+        />
+      )}
 
-        <div style={{ marginBottom: 14 }}>
+      {/* MAPA MODAL na mobitelu */}
+      {mapaOtvorena && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 300,
+            background: "#0f172a",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <div
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: "#9CA3AF",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: 8,
-            }}
-          >
-            Sportovi
-          </div>
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}
-          >
-            {SVE_SPORTOVI.map((sport) => {
-              const aktivan = odabraniSportovi.includes(sport);
-              return (
-                <button
-                  key={sport}
-                  onClick={() => toggleSport(sport)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    padding: "5px 7px",
-                    borderRadius: 7,
-                    border: `1.5px solid ${aktivan ? "#1D4ED8" : "#E5E7EB"}`,
-                    background: aktivan ? "#EFF6FF" : "transparent",
-                    color: aktivan ? "#1D4ED8" : "#374151",
-                    fontWeight: aktivan ? 700 : 400,
-                    fontSize: 11,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    transition: "all 0.15s",
-                    fontFamily: "inherit",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                  }}
-                >
-                  <SportIcon sport={sport} /> {sport}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: "#9CA3AF",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: 8,
-            }}
-          >
-            Termini
-          </div>
-          <input
-            type="date"
-            value={odabraniDatum}
-            onChange={(e) => setOdabraniDatum(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "7px 10px",
-              borderRadius: 8,
-              border: "1.5px solid #E5E7EB",
-              fontSize: 12,
-              color: "#374151",
-              fontFamily: "inherit",
-              marginBottom: 6,
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
-          <select
-            value={odabraniPeriod}
-            onChange={(e) => setOdabraniPeriod(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "7px 10px",
-              borderRadius: 8,
-              border: "1.5px solid #E5E7EB",
-              fontSize: 12,
-              color: "#374151",
-              fontFamily: "inherit",
-              background: "#fff",
-              outline: "none",
-              cursor: "pointer",
-            }}
-          >
-            <option value="">Odaberi period</option>
-            {PERIODI.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: "#9CA3AF",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: 8,
-            }}
-          >
-            Lokacija
-          </div>
-          <select
-            value={odabraniKvart}
-            onChange={(e) => setOdabraniKvart(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "7px 10px",
-              borderRadius: 8,
-              border: "1.5px solid #E5E7EB",
-              fontSize: 12,
-              color: "#374151",
-              fontFamily: "inherit",
-              background: "#fff",
-              outline: "none",
-              cursor: "pointer",
-            }}
-          >
-            {sviKvartovi.map((k) => (
-              <option key={k} value={k}>
-                {k === "Svi kvartovi" ? "Rijeka - Svi kvartovi" : k}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: "#9CA3AF",
-              textTransform: "uppercase",
-              letterSpacing: "0.8px",
-              marginBottom: 8,
-            }}
-          >
-            Cijena (€/h)
-          </div>
-          <label
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 7,
-              marginBottom: 8,
-              cursor: "pointer",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={samoBesplatni}
-              onChange={(e) => {
-                setSamoBesplatni(e.target.checked);
-                if (e.target.checked) {
-                  setCijenaMin("");
-                  setCijenaMax("");
-                }
-              }}
-              style={{
-                width: 14,
-                height: 14,
-                accentColor: "#1D4ED8",
-                cursor: "pointer",
-              }}
-            />
-            <span style={{ fontSize: 12, color: "#374151", fontWeight: 500 }}>
-              Samo besplatni
-            </span>
-          </label>
-          {!samoBesplatni && (
-            <div style={{ display: "flex", gap: 6 }}>
-              <input
-                type="number"
-                min={0}
-                placeholder="Od (€)"
-                value={cijenaMin}
-                onChange={(e) => setCijenaMin(e.target.value)}
-                style={{
-                  width: "50%",
-                  padding: "7px 8px",
-                  borderRadius: 8,
-                  border: "1.5px solid #E5E7EB",
-                  fontSize: 12,
-                  color: "#374151",
-                  fontFamily: "inherit",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
-              />
-              <input
-                type="number"
-                min={0}
-                placeholder="Do (€)"
-                value={cijenaMax}
-                onChange={(e) => setCijenaMax(e.target.value)}
-                style={{
-                  width: "50%",
-                  padding: "7px 8px",
-                  borderRadius: 8,
-                  border: "1.5px solid #E5E7EB",
-                  fontSize: 12,
-                  color: "#374151",
-                  fontFamily: "inherit",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
-          )}
-        </div>
-
-        <button
-          onClick={dohvatiObjekte}
-          style={{
-            width: "100%",
-            padding: "9px",
-            borderRadius: 999,
-            background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 13,
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 2px 10px rgba(29,78,216,0.3)",
-            fontFamily: "inherit",
-          }}
-          onMouseEnter={(e) =>
-            ((e.currentTarget as HTMLButtonElement).style.opacity = "0.9")
-          }
-          onMouseLeave={(e) =>
-            ((e.currentTarget as HTMLButtonElement).style.opacity = "1")
-          }
-        >
-          Primijeni filtere
-        </button>
-
-        {(odabraniSportovi.length > 0 ||
-          odabraniKvart !== "Svi kvartovi" ||
-          odabraniDatum ||
-          odabraniPeriod ||
-          cijenaMin ||
-          cijenaMax ||
-          samoBesplatni) && (
-          <button
-            onClick={() => {
-              setOdabraniSportovi([]);
-              setOdabraniKvart("Svi kvartovi");
-              setOdabraniDatum("");
-              setOdabraniPeriod("");
-              setCijenaMin("");
-              setCijenaMax("");
-              setSamoBesplatni(false);
-            }}
-            style={{
-              width: "100%",
-              padding: "7px",
-              borderRadius: 999,
-              background: "transparent",
-              color: "#6B7280",
-              fontWeight: 500,
-              fontSize: 12,
-              border: "1px solid #E5E7EB",
-              cursor: "pointer",
-              marginTop: 6,
-              fontFamily: "inherit",
-            }}
-          >
-            Poništi filtere
-          </button>
-        )}
-      </aside>
-
-      <main>
-        <div style={{ marginBottom: 16 }}>
-          <h1
-            style={{
-              margin: "0 0 2px",
-              fontSize: 24,
-              fontWeight: 800,
-              color: "#111827",
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            {ucitavanje
-              ? "Učitavanje..."
-              : `Pronađeno: ${filtriraniObjekti.length} terena`}
-          </h1>
-          <p style={{ margin: 0, fontSize: 13, color: "#9CA3AF" }}>
-            Rezultati za: Rijeka, Hrvatska{searchQuery && ` · "${searchQuery}"`}
-          </p>
-        </div>
-
-        {greska && (
-          <div
-            style={{
-              background: "#FEF2F2",
-              border: "1px solid #FECACA",
-              borderRadius: 12,
-              padding: "14px 16px",
-              marginBottom: 16,
-              color: "#DC2626",
-              fontSize: 14,
-            }}
-          >
-            ⚠️ {greska}
-          </div>
-        )}
-
-        {ucitavanje ? (
-          [1, 2, 3].map((i) => (
-            <div
-              key={i}
-              style={{
-                background: "#fff",
-                borderRadius: 16,
-                border: "1.5px solid #E8EEFF",
-                height: 130,
-                marginBottom: 16,
-                opacity: 0.5,
-              }}
-            />
-          ))
-        ) : filtriraniObjekti.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "60px 20px",
+              justifyContent: "space-between",
+              padding: "12px 16px",
               background: "#fff",
-              borderRadius: 16,
-              border: "1.5px solid #E8EEFF",
+              borderBottom: "1px solid #E8EEFF",
             }}
           >
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-            <h3 style={{ color: "#374151", margin: "0 0 6px" }}>
-              Nema rezultata
-            </h3>
-            <p style={{ color: "#9CA3AF", margin: 0 }}>
-              Pokušajte s drugačijim filterima
+            <span style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>
+              📍 Mapa objekata
+            </span>
+            <button
+              onClick={() => setMapaOtvorena(false)}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 22,
+                cursor: "pointer",
+                color: "#374151",
+                lineHeight: 1,
+              }}
+            >
+              <span>{"✕"}</span>
+            </button>
+          </div>
+          <div style={{ flex: 1, position: "relative" }}>
+            <MapaPlaceholder objekti={filtriraniObjekti} />
+          </div>
+        </div>
+      )}
+
+      <div className="home-grid">
+        {/* MOBILNI akcijski gumbi */}
+        <div className="mob-akcijski-gumbi">
+          <button
+            onClick={() => setFilterOtvoren(!filterOtvoren)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 18px",
+              borderRadius: 999,
+              background: filterOtvoren ? "#1D4ED8" : "#fff",
+              color: filterOtvoren ? "#fff" : "#1D4ED8",
+              border: "1.5px solid #1D4ED8",
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: "0 2px 8px rgba(29,78,216,0.15)",
+            }}
+          >
+            <span>{"🔍 Filtri"}</span>
+            {aktivniFilteri && (
+              <span
+                style={{
+                  background: "#EF4444",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  width: 18,
+                  height: 18,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span>{"!"}</span>
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setMapaOtvorena(true)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 18px",
+              borderRadius: 999,
+              background: "#fff",
+              color: "#374151",
+              border: "1.5px solid #E5E7EB",
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            }}
+          >
+            <span>{"🗺️ Karta"}</span>
+          </button>
+        </div>
+
+        {/* FILTER ASIDE */}
+        <aside
+          className={
+            filterOtvoren
+              ? "home-filter-aside home-filter-otvoren"
+              : "home-filter-aside"
+          }
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            border: "1.5px solid #E8EEFF",
+            padding: "16px 14px",
+            boxShadow: "0 2px 12px rgba(37,99,235,0.06)",
+            scrollbarWidth: "thin" as const,
+            scrollbarColor: "#BFDBFE transparent",
+            zIndex: 2,
+            position: "sticky",
+            top: 80,
+            maxHeight: "calc(100vh - 100px)",
+            overflowY: "auto",
+          }}
+        >
+          <div style={{ marginBottom: 14 }}>
+            <h2 style={{ margin: "0 0 2px", fontSize: 15, fontWeight: 700, color: "#111827" }}>
+              Filteri
+            </h2>
+            <p style={{ margin: 0, fontSize: 11, color: "#9CA3AF" }}>
+              Prilagodite pretragu
             </p>
           </div>
-        ) : (
-          filtriraniObjekti.map((obj) => (
-            <ObjektKartica key={obj.id} objekt={obj} />
-          ))
-        )}
-      </main>
 
-      <aside
-        style={{ position: "sticky", top: 80, height: "calc(100vh - 96px)" }}
-      >
-        <MapaPlaceholder objekti={filtriraniObjekti} />
-      </aside>
-    </div>
+          <div style={{ marginBottom: 14 }}>
+            <div
+              style={{
+                fontSize: 10, fontWeight: 700, color: "#9CA3AF",
+                textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8,
+              }}
+            >
+              Sportovi
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+              {SVE_SPORTOVI.map((sport) => {
+                const aktivan = odabraniSportovi.includes(sport);
+                return (
+                  <button
+                    key={sport}
+                    onClick={() => toggleSport(sport)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 5,
+                      padding: "5px 7px", borderRadius: 7,
+                      border: `1.5px solid ${aktivan ? "#1D4ED8" : "#E5E7EB"}`,
+                      background: aktivan ? "#EFF6FF" : "transparent",
+                      color: aktivan ? "#1D4ED8" : "#374151",
+                      fontWeight: aktivan ? 700 : 400,
+                      fontSize: 11, cursor: "pointer", textAlign: "left",
+                      transition: "all 0.15s", fontFamily: "inherit",
+                      whiteSpace: "nowrap", overflow: "hidden",
+                    }}
+                  >
+                    <SportIcon sport={sport} /> {sport}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <div
+              style={{
+                fontSize: 10, fontWeight: 700, color: "#9CA3AF",
+                textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8,
+              }}
+            >
+              Termini
+            </div>
+            <input
+              type="date"
+              value={odabraniDatum}
+              onChange={(e) => setOdabraniDatum(e.target.value)}
+              style={{
+                width: "100%", padding: "7px 10px", borderRadius: 8,
+                border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
+                fontFamily: "inherit", marginBottom: 6, outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            <select
+              value={odabraniPeriod}
+              onChange={(e) => setOdabraniPeriod(e.target.value)}
+              style={{
+                width: "100%", padding: "7px 10px", borderRadius: 8,
+                border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
+                fontFamily: "inherit", background: "#fff", outline: "none", cursor: "pointer",
+              }}
+            >
+              <option value="">Odaberi period</option>
+              {PERIODI.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <div
+              style={{
+                fontSize: 10, fontWeight: 700, color: "#9CA3AF",
+                textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8,
+              }}
+            >
+              Lokacija
+            </div>
+            <select
+              value={odabraniKvart}
+              onChange={(e) => setOdabraniKvart(e.target.value)}
+              style={{
+                width: "100%", padding: "7px 10px", borderRadius: 8,
+                border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
+                fontFamily: "inherit", background: "#fff", outline: "none", cursor: "pointer",
+              }}
+            >
+              {sviKvartovi.map((k) => (
+                <option key={k} value={k}>
+                  {k === "Svi kvartovi" ? "Rijeka - Svi kvartovi" : k}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <div
+              style={{
+                fontSize: 10, fontWeight: 700, color: "#9CA3AF",
+                textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8,
+              }}
+            >
+              Cijena (€/h)
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={samoBesplatni}
+                onChange={(e) => {
+                  setSamoBesplatni(e.target.checked);
+                  if (e.target.checked) { setCijenaMin(""); setCijenaMax(""); }
+                }}
+                style={{ width: 14, height: 14, accentColor: "#1D4ED8", cursor: "pointer" }}
+              />
+              <span style={{ fontSize: 12, color: "#374151", fontWeight: 500 }}>
+                Samo besplatni
+              </span>
+            </label>
+            {!samoBesplatni && (
+              <div style={{ display: "flex", gap: 6 }}>
+                <input
+                  type="number" min={0} placeholder="Od (€)" value={cijenaMin}
+                  onChange={(e) => setCijenaMin(e.target.value)}
+                  style={{
+                    width: "50%", padding: "7px 8px", borderRadius: 8,
+                    border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
+                    fontFamily: "inherit", outline: "none", boxSizing: "border-box",
+                  }}
+                />
+                <input
+                  type="number" min={0} placeholder="Do (€)" value={cijenaMax}
+                  onChange={(e) => setCijenaMax(e.target.value)}
+                  style={{
+                    width: "50%", padding: "7px 8px", borderRadius: 8,
+                    border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
+                    fontFamily: "inherit", outline: "none", boxSizing: "border-box",
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => { dohvatiObjekte(); setFilterOtvoren(false); }}
+            style={{
+              width: "100%", padding: "9px", borderRadius: 999,
+              background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
+              color: "#fff", fontWeight: 700, fontSize: 13, border: "none",
+              cursor: "pointer", boxShadow: "0 2px 10px rgba(29,78,216,0.3)",
+              fontFamily: "inherit",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.9")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+          >
+            Primijeni filtere
+          </button>
+
+          {aktivniFilteri && (
+            <button
+              onClick={() => {
+                setOdabraniSportovi([]);
+                setOdabraniKvart("Svi kvartovi");
+                setOdabraniDatum("");
+                setOdabraniPeriod("");
+                setCijenaMin("");
+                setCijenaMax("");
+                setSamoBesplatni(false);
+              }}
+              style={{
+                width: "100%", padding: "7px", borderRadius: 999,
+                background: "transparent", color: "#6B7280", fontWeight: 500,
+                fontSize: 12, border: "1px solid #E5E7EB", cursor: "pointer",
+                marginTop: 6, fontFamily: "inherit",
+              }}
+            >
+              Poništi filtere
+            </button>
+          )}
+        </aside>
+
+        {/* MAIN - lista objekata */}
+        <main>
+          <div style={{ marginBottom: 16 }}>
+            <h1
+              style={{
+                margin: "0 0 2px", fontSize: 24, fontWeight: 800,
+                color: "#111827", fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              {ucitavanje
+                ? "Učitavanje..."
+                : `Pronađeno: ${filtriraniObjekti.length} terena`}
+            </h1>
+            <p style={{ margin: 0, fontSize: 13, color: "#9CA3AF" }}>
+              Rezultati za: Rijeka, Hrvatska
+              {searchQuery && ` · "${searchQuery}"`}
+            </p>
+          </div>
+
+          {greska && (
+            <div
+              style={{
+                background: "#FEF2F2", border: "1px solid #FECACA",
+                borderRadius: 12, padding: "14px 16px", marginBottom: 16,
+                color: "#DC2626", fontSize: 14,
+              }}
+            >
+              {"⚠️ "}{greska}
+            </div>
+          )}
+
+          {ucitavanje ? (
+            [1, 2, 3].map((i) => (
+              <div
+                key={i}
+                style={{
+                  background: "#fff", borderRadius: 16,
+                  border: "1.5px solid #E8EEFF", height: 130,
+                  marginBottom: 16, opacity: 0.5,
+                }}
+              />
+            ))
+          ) : filtriraniObjekti.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center", padding: "60px 20px",
+                background: "#fff", borderRadius: 16, border: "1.5px solid #E8EEFF",
+              }}
+            >
+              <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
+              <h3 style={{ color: "#374151", margin: "0 0 6px" }}>Nema rezultata</h3>
+              <p style={{ color: "#9CA3AF", margin: 0 }}>Pokušajte s drugačijim filterima</p>
+            </div>
+          ) : (
+            <>
+              {vidljiviObjekti.map((obj) => (
+                <ObjektKartica key={obj.id} objekt={obj} />
+              ))}
+              {ukupnoStranica > 1 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                  <button
+                    onClick={() => { setTrenutnaStr((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    disabled={trenutnaStr === 1}
+                    style={{ width: 36, height: 36, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", color: trenutnaStr === 1 ? "#D1D5DB" : "#374151", fontWeight: 700, fontSize: 16, cursor: trenutnaStr === 1 ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}
+                  >
+                    <span>{"‹"}</span>
+                  </button>
+                  {Array.from({ length: ukupnoStranica }, (_, i) => i + 1).map((br) => (
+                    <button
+                      key={br}
+                      onClick={() => { setTrenutnaStr(br); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      style={{ width: 36, height: 36, borderRadius: "50%", border: `1.5px solid ${trenutnaStr === br ? "#1D4ED8" : "#E5E7EB"}`, background: trenutnaStr === br ? "#1D4ED8" : "#fff", color: trenutnaStr === br ? "#fff" : "#374151", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}
+                    >
+                      <span>{br}</span>
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => { setTrenutnaStr((p) => Math.min(ukupnoStranica, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    disabled={trenutnaStr === ukupnoStranica}
+                    style={{ width: 36, height: 36, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", color: trenutnaStr === ukupnoStranica ? "#D1D5DB" : "#374151", fontWeight: 700, fontSize: 16, cursor: trenutnaStr === ukupnoStranica ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}
+                  >
+                    <span>{"›"}</span>
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </main>
+
+        {/* MAPA - desni aside, skriven na mobitelu */}
+        <aside
+          className="home-mapa-aside"
+          style={{ position: "sticky", top: 80, height: "calc(100vh - 96px)" }}
+        >
+          <MapaPlaceholder objekti={filtriraniObjekti} />
+        </aside>
+      </div>
+    </>
   );
 }

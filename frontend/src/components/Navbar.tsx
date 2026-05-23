@@ -4,6 +4,8 @@ import { useAuth } from "../context/useAuth";
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobMenuOtvoren, setMobMenuOtvoren] = useState(false);
+  const [mobSearchOtvoren, setMobSearchOtvoren] = useState(false);
   const navigate = useNavigate();
   const { korisnik, odjava } = useAuth();
 
@@ -11,12 +13,15 @@ export default function Navbar() {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      setMobSearchOtvoren(false);
+      setMobMenuOtvoren(false);
     }
   };
 
   const handleOdjava = () => {
     odjava();
     navigate("/");
+    setMobMenuOtvoren(false);
   };
 
   return (
@@ -30,6 +35,7 @@ export default function Navbar() {
         boxShadow: "0 2px 12px rgba(37,99,235,0.07)",
       }}
     >
+      {/* Glavna navbar traka */}
       <div
         style={{
           maxWidth: 1400,
@@ -38,7 +44,7 @@ export default function Navbar() {
           height: 64,
           display: "flex",
           alignItems: "center",
-          gap: 24,
+          gap: 16,
         }}
       >
         {/* Logo */}
@@ -83,17 +89,14 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Search Bar */}
+        {/* Search Bar - desktop */}
         <form
           onSubmit={handleSearch}
+          className="navbar-search-wrapper"
           style={{ flex: 1, maxWidth: 480, margin: "0 auto" }}
         >
           <div
-            style={{
-              position: "relative",
-              display: "flex",
-              alignItems: "center",
-            }}
+            style={{ position: "relative", display: "flex", alignItems: "center" }}
           >
             <svg
               style={{
@@ -143,14 +146,20 @@ export default function Navbar() {
           </div>
         </form>
 
-        {/* Right side */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-
-          {/* Pomoć */}
-          <a
-            href="/sportspot-pomoc.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Desna strana */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexShrink: 0,
+            marginLeft: "auto",
+          }}
+        >
+          {/* Mobilna ikona pretrage */}
+          <button
+            className="navbar-mob-search"
+            onClick={() => setMobSearchOtvoren(!mobSearchOtvoren)}
             style={{
               width: 40,
               height: 40,
@@ -162,138 +171,241 @@ export default function Navbar() {
               justifyContent: "center",
               cursor: "pointer",
               color: "#6B7280",
-              textDecoration: "none",
-              fontWeight: 700,
-              fontSize: 18,
-              transition: "border-color 0.2s, color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#3B82F6";
-              (e.currentTarget as HTMLAnchorElement).style.color = "#3B82F6";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#E5E7EB";
-              (e.currentTarget as HTMLAnchorElement).style.color = "#6B7280";
+              flexShrink: 0,
             }}
           >
-            ?
-          </a>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+          </button>
 
-          {/* Auth buttons */}
-          {korisnik ? (
-            <>
-              <Link
-                to="/profil"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "6px 12px",
-                  borderRadius: 999,
-                  border: "1.5px solid #E5E7EB",
-                  background: "#F9FAFB",
-                  textDecoration: "none",
-                }}
+          {/* Hamburger gumb */}
+          <button
+            className="navbar-hamburger"
+            onClick={() => setMobMenuOtvoren(!mobMenuOtvoren)}
+            aria-label="Izbornik"
+          >
+            {mobMenuOtvoren ? (
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
               >
-                <div
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            )}
+          </button>
+
+          {/* Pomoć + Auth gumbi (wrappani za hamburger menu) */}
+          <div
+            className={
+              mobMenuOtvoren
+                ? "navbar-auth-gumbi mob-menu-otvoren"
+                : "navbar-auth-gumbi"
+            }
+          >
+            {/* Pomoć */}
+            <a
+              href="/sportspot-pomoc.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                border: "1.5px solid #E5E7EB",
+                background: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: "#6B7280",
+                textDecoration: "none",
+                fontWeight: 700,
+                fontSize: 18,
+                flexShrink: 0,
+              }}
+            >
+              <span>{"?"}</span>
+            </a>
+
+            {korisnik ? (
+              <>
+                <Link
+                  to="/profil"
+                  onClick={() => setMobMenuOtvoren(false)}
                   style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                    fontWeight: 700,
-                    fontSize: 12,
-                    flexShrink: 0,
+                    gap: 8,
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    border: "1.5px solid #E5E7EB",
+                    background: "#F9FAFB",
+                    textDecoration: "none",
                   }}
                 >
-                  {korisnik.ime.charAt(0).toUpperCase()}
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>
-                  {korisnik.ime}
-                </span>
-              </Link>
-              <button
-                onClick={handleOdjava}
-                style={{
-                  padding: "8px 18px",
-                  borderRadius: 999,
-                  border: "1.5px solid #E5E7EB",
-                  background: "transparent",
-                  color: "#6B7280",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  transition: "border-color 0.2s, color 0.2s",
-                  fontFamily: "inherit",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "#EF4444";
-                  (e.currentTarget as HTMLButtonElement).style.color = "#EF4444";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "#E5E7EB";
-                  (e.currentTarget as HTMLButtonElement).style.color = "#6B7280";
-                }}
-              >
-                Odjavi se
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/prijava"
-                style={{
-                  padding: "8px 18px",
-                  borderRadius: 999,
-                  border: "1.5px solid #1D4ED8",
-                  color: "#1D4ED8",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  textDecoration: "none",
-                  transition: "background 0.2s, color 0.2s",
-                  fontFamily: "inherit",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.background = "#EFF6FF";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                }}
-              >
-                Prijavi se
-              </Link>
-              <Link
-                to="/registracija"
-                style={{
-                  padding: "8px 18px",
-                  borderRadius: 999,
-                  background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
-                  color: "#fff",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  textDecoration: "none",
-                  transition: "opacity 0.2s, transform 0.1s",
-                  boxShadow: "0 2px 8px rgba(29,78,216,0.25)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.opacity = "0.9";
-                  (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.opacity = "1";
-                  (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
-                }}
-              >
-                Registriraj se
-              </Link>
-            </>
-          )}
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background:
+                        "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span>{korisnik.ime.charAt(0).toUpperCase()}</span>
+                  </div>
+                  <span
+                    style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}
+                  >
+                    {korisnik.ime}
+                  </span>
+                </Link>
+
+                <button
+                  onClick={handleOdjava}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: 999,
+                    border: "1.5px solid #E5E7EB",
+                    background: "transparent",
+                    color: "#6B7280",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  <span>Odjavi se</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/prijava"
+                  onClick={() => setMobMenuOtvoren(false)}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: 999,
+                    border: "1.5px solid #1D4ED8",
+                    color: "#1D4ED8",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    textDecoration: "none",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  <span>Prijavi se</span>
+                </Link>
+
+                <Link
+                  to="/registracija"
+                  onClick={() => setMobMenuOtvoren(false)}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: 999,
+                    background:
+                      "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
+                    color: "#fff",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    textDecoration: "none",
+                    boxShadow: "0 2px 8px rgba(29,78,216,0.25)",
+                  }}
+                >
+                  <span>Registriraj se</span>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Mobilna search traka - ispod navbara */}
+      {mobSearchOtvoren && (
+        <div
+          style={{
+            padding: "8px 16px 12px",
+            borderTop: "1px solid #F3F4F6",
+            background: "#fff",
+          }}
+        >
+          <form onSubmit={handleSearch}>
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <svg
+                style={{ position: "absolute", left: 14, color: "#9CA3AF" }}
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Pretraži terene..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+                style={{
+                  width: "100%",
+                  padding: "10px 16px 10px 42px",
+                  borderRadius: 999,
+                  border: "1.5px solid #3B82F6",
+                  background: "#fff",
+                  fontSize: 14,
+                  fontFamily: "inherit",
+                  color: "#111827",
+                  outline: "none",
+                  boxShadow: "0 0 0 3px rgba(59,130,246,0.12)",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          </form>
+        </div>
+      )}
     </nav>
   );
 }

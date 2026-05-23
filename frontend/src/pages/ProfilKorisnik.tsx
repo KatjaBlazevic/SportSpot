@@ -95,21 +95,21 @@ export default function ProfilKorisnik() {
   if (ucitavanje || !korisnik) return null;
 
   return (
-    <div style={{ minHeight: "calc(100vh - 64px)", background: "#F5F7FA", padding: "32px 16px" }}>
+    <div style={{ minHeight: "calc(100vh - 64px)", background: "#F5F7FA", padding: "16px 12px" }}>
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
 
         <div style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", borderRadius: 24, padding: 32, marginBottom: 24, color: "#fff", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
           <div style={{ position: "absolute", bottom: -30, right: 100, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 24, position: "relative", zIndex: 1 }}>
-            <div style={{ width: 100, height: 100, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 800, color: "#1D4ED8", flexShrink: 0, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative", zIndex: 1, flexWrap: "wrap" }}>
+            <div style={{ width: 72, height: 72, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 800, color: "#1D4ED8", flexShrink: 0, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
               {korisnik.ime.charAt(0)}{korisnik.prezime.charAt(0)}
             </div>
             <div style={{ flex: 1 }}>
-              <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>{korisnik.ime} {korisnik.prezime}</h1>
-              <p style={{ fontSize: 16, margin: "8px 0 0", opacity: 0.9 }}>{korisnik.email}</p>
+              <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{korisnik.ime} {korisnik.prezime}</h1>
+              <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.9 }}>{korisnik.email}</p>
             </div>
-            <button onClick={otvoriModal} style={{ padding: "12px 24px", borderRadius: 12, background: "#fff", color: "#1D4ED8", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 15px rgba(0,0,0,0.15)" }}>
+            <button onClick={otvoriModal} style={{ padding: "10px 16px", borderRadius: 12, background: "#fff", color: "#1D4ED8", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 15px rgba(0,0,0,0.15)", flexShrink: 0 }}>
               Uredi profil
             </button>
           </div>
@@ -151,7 +151,7 @@ export default function ProfilKorisnik() {
                         </Link>
                         <span style={{ padding: "6px 12px", borderRadius: 8, background: statusStil.bg, color: statusStil.color, fontSize: 12, fontWeight: 700 }}>{rez.Status}</span>
                       </div>
-                      <div style={{ marginTop: 12, display: "flex", gap: 16, fontSize: 14, color: "#374151" }}>
+                      <div style={{ marginTop: 12, display: "flex", gap: 10, fontSize: 13, color: "#374151", flexWrap: "wrap" }}>
                         <span>📆 {formatirajDatum(rez.Datum)}</span>
                         <span>⏰ {rez.vrijeme_pocetka} - {rez.vrijeme_kraja}</span>
                         <span style={{ fontWeight: 700, color: "#1D4ED8" }}>{rez.Cijena} €</span>

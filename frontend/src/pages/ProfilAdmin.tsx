@@ -311,10 +311,10 @@ export default function ProfilAdmin() {
   if (ucitavanje || !korisnik) return null;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F0F4FF", paddingTop: 20, paddingBottom: 60 }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }}>
+    <div style={{ minHeight: "100vh", background: "#F0F4FF", paddingTop: 16, paddingBottom: 60 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 12px" }}>
 
-        <div style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", borderRadius: 20, padding: "28px 32px", marginBottom: 24, color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", borderRadius: 20, padding: "20px 24px", marginBottom: 24, color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <div>
             <div style={{ fontSize: 22, fontWeight: 800 }}>🛡️ Admin panel</div>
             <div style={{ fontSize: 14, opacity: 0.85, marginTop: 4 }}>{korisnik.ime} {korisnik.prezime} · Administrator</div>
@@ -336,7 +336,7 @@ export default function ProfilAdmin() {
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
             {/* STAT KARTICE */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+            <div className="admin-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
               {[
                 { label: "Korisnici", v: dashboard.ukupnoKorisnika, boja: "#3B82F6", bg: "#EFF6FF", e: "👤" },
                 { label: "Aktivni objekti", v: dashboard.ukupnoObjekta, boja: "#10B981", bg: "#ECFDF5", e: "🏟️" },
@@ -354,7 +354,7 @@ export default function ProfilAdmin() {
             </div>
 
             {/* DRUGI RED */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            <div className="admin-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
               {[
                 { label: "Vlasnici", v: dashboard.ukupnoVlasnika, boja: "#8B5CF6", bg: "#F5F3FF", e: "🏢" },
                 { label: "Klubovi", v: dashboard.ukupnoKlubova, boja: "#06B6D4", bg: "#ECFEFF", e: "⚽" },
@@ -372,7 +372,7 @@ export default function ProfilAdmin() {
 
             {/* DONJI RED */}
             {dashboardExtra && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="admin-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
 
                 {/* TOP OBJEKTI */}
                 <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
@@ -401,7 +401,7 @@ export default function ProfilAdmin() {
   <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700, color: "#111827" }}>📈 Statistike rezervacija</h3>
   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+    <div className="admin-grid-stats" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
       <div style={{ padding: "14px 16px", borderRadius: 12, background: "#F0F9FF", border: "1px solid #BAE6FD" }}>
         <div style={{ fontSize: 11, color: "#0369A1", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Termini danas</div>
         <div style={{ fontSize: 28, fontWeight: 800, color: "#0284C7", marginTop: 4 }}>{dashboardExtra.stats.danas}</div>
@@ -414,7 +414,7 @@ export default function ProfilAdmin() {
       </div>
     </div>
 
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+    <div className="admin-grid-stats" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
       <div style={{ padding: "14px 16px", borderRadius: 12, background: "#FAFAFA", border: "1px solid #E5E7EB" }}>
         <div style={{ fontSize: 11, color: "#6B7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Termini ovaj mjesec</div>
         <div style={{ fontSize: 28, fontWeight: 800, color: "#374151", marginTop: 4 }}>{dashboardExtra.stats.ovajMjesec}</div>
@@ -438,7 +438,7 @@ export default function ProfilAdmin() {
 
         {aktivnaTab === "korisnici" && !ucitava && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Korisnici ({korisnici.length})</h2>
               <button onClick={() => setShowKorisnikModal(true)} style={btnPrimary}>+ Dodaj korisnika</button>
             </div>
@@ -479,7 +479,7 @@ export default function ProfilAdmin() {
 
         {aktivnaTab === "objekti" && !ucitava && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
                 Objekti ({objekti.length})
                 {objekti.filter(o => o.status_objekta === "Pending").length > 0 && (
@@ -521,7 +521,7 @@ export default function ProfilAdmin() {
                       <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>{o.adresa}, {o.kvart}</div>
                       <div style={{ fontSize: 13, color: "#9CA3AF" }}>Vlasnik: {o.vlasnik} · Klub: {o.nazivKluba || "—"} · {o.sportovi || "bez sportova"}</div>
                     </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: 0 }}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {o.status_objekta === "Pending" && <button onClick={() => odobriObjekt(o.id)} style={btnSuccess}>✓ Odobri</button>}
                       {o.status_objekta === "PendingDelete" && (
                         <>
@@ -547,7 +547,7 @@ export default function ProfilAdmin() {
 
         {aktivnaTab === "klubovi" && !ucitava && (
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Klubovi ({klubovi.length})</h2>
               <button onClick={() => { setKlubMod("dodaj"); setEditKlubId(null); setKlubData({ naziv: "", oib: "", kontakt: "" }); setShowKlubModal(true); }} style={btnPrimary}>+ Dodaj klub</button>
             </div>

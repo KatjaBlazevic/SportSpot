@@ -40,26 +40,8 @@ export default function Prijava() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "calc(100vh - 64px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#F0F4FF",
-        padding: "24px 16px",
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 20,
-          boxShadow: "0 4px 32px rgba(29,78,216,0.10)",
-          padding: "48px 40px",
-          width: "100%",
-          maxWidth: 440,
-        }}
-      >
+    <div className="auth-wrapper">
+     <div className="auth-box">
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div

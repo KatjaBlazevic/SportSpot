@@ -201,18 +201,18 @@ export default function ProfilVlasnik() {
   const maxRezervacija = statistika ? Math.max(...statistika.poMjesecima.map((m) => m.brojRezervacija), 1) : 1;
 
   return (
-    <div style={{ minHeight: "calc(100vh - 64px)", background: "#F5F7FA", padding: "32px 16px" }}>
+    <div style={{ minHeight: "calc(100vh - 64px)", background: "#F5F7FA", padding: "16px 12px" }}>
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
 
         <div style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)", borderRadius: 24, padding: 32, marginBottom: 24, color: "#fff", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 24, position: "relative", zIndex: 1 }}>
-            <div style={{ width: 100, height: 100, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 800, color: "#1D4ED8" }}>{korisnik.ime.charAt(0)}{korisnik.prezime.charAt(0)}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative", zIndex: 1, flexWrap: "wrap" }}>
+            <div style={{ width: 72, height: 72, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 800, color: "#1D4ED8", flexShrink: 0 }}>{korisnik.ime.charAt(0)}{korisnik.prezime.charAt(0)}</div>
             <div style={{ flex: 1 }}>
-              <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>{korisnik.ime} {korisnik.prezime}</h1>
-              <p style={{ fontSize: 16, margin: "8px 0 0", opacity: 0.9 }}>{korisnik.email}</p>
+              <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{korisnik.ime} {korisnik.prezime}</h1>
+              <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.9 }}>{korisnik.email}</p>
             </div>
-            <button onClick={otvoriModal} style={{ padding: "12px 24px", borderRadius: 12, background: "#fff", color: "#1D4ED8", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>Uredi profil</button>
+            <button onClick={otvoriModal} style={{ padding: "10px 16px", borderRadius: 12, background: "#fff", color: "#1D4ED8", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer", flexShrink: 0 }}>Uredi profil</button>
           </div>
         </div>
 
@@ -220,7 +220,7 @@ export default function ProfilVlasnik() {
           {(["statistika", "mojiObjekti", "rezervacije", "omiljeni"] as const).map((tab) => {
             const labels: Record<string, string> = { mojiObjekti: "🏟️ Moji objekti", rezervacije: "📅 Moje rezervacije", omiljeni: "❤️ Omiljeni", statistika: "📊 Statistika" };
             return (
-              <button key={tab} onClick={() => setAktivnaTab(tab)} style={{ padding: "14px 24px", borderRadius: 14, background: aktivnaTab === tab ? "#1D4ED8" : "#fff", color: aktivnaTab === tab ? "#fff" : "#374151", fontWeight: 600, fontSize: 15, border: "none", cursor: "pointer" }}>
+              <button key={tab} onClick={() => setAktivnaTab(tab)} style={{ padding: "10px 16px", borderRadius: 14, background: aktivnaTab === tab ? "#1D4ED8" : "#fff", color: aktivnaTab === tab ? "#fff" : "#374151", fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
                 {labels[tab]}
                 {tab === "omiljeni" && omiljeni.length > 0 && (
                   <span style={{ marginLeft: 4, padding: "2px 8px", borderRadius: 10, background: aktivnaTab === tab ? "rgba(255,255,255,0.2)" : "#FEE2E2", fontSize: 12, color: aktivnaTab === tab ? "#fff" : "#EF4444" }}>{omiljeni.length}</span>
@@ -241,7 +241,7 @@ export default function ProfilVlasnik() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {mojiObjekti.map((obj) => (
-                  <div key={obj.ID_objekta} style={{ padding: 20, borderRadius: 16, border: "1px solid #E5E7EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div key={obj.ID_objekta} style={{ padding: 20, borderRadius: 16, border: "1px solid #E5E7EB", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
                     <Link to={`/objekt/${obj.ID_objekta}`} style={{ flex: 1, textDecoration: "none" }}>
                       <div style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>{obj.Naziv_objekta}</div>
                       <span style={{ display: "inline-block", marginTop: 4, padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: obj.Status_objekta === "Pending" ? "#FEF3C7" : obj.Status_objekta === "PendingDelete" ? "#FEE2E2" : "#D1FAE5", color: obj.Status_objekta === "Pending" ? "#D97706" : obj.Status_objekta === "PendingDelete" ? "#DC2626" : "#059669" }}>
@@ -284,7 +284,7 @@ export default function ProfilVlasnik() {
                         </Link>
                         <span style={{ padding: "6px 12px", borderRadius: 8, background: st.bg, color: st.color, fontSize: 12, fontWeight: 700 }}>{rez.Status}</span>
                       </div>
-                      <div style={{ marginTop: 12, display: "flex", gap: 16, fontSize: 14 }}>
+                      <div style={{ marginTop: 12, display: "flex", gap: 10, fontSize: 13, flexWrap: "wrap" }}>
                         <span>📆 {formatirajDatum(rez.Datum)}</span>
                         <span>⏰ {rez.vrijeme_pocetka} - {rez.vrijeme_kraja}</span>
                         <span style={{ fontWeight: 700, color: "#1D4ED8" }}>{rez.Cijena} €</span>

@@ -115,7 +115,8 @@ export default function ObjektDetalji() {
       alert("Server nije dostupan.");
     }
   };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleTerminSubmit = async (terminData: any) => {
     try {
       const token = localStorage.getItem("sportspot_token");
@@ -151,16 +152,18 @@ export default function ObjektDetalji() {
   const handleWeekChange = (start: Date, end: Date) => {
     setRaspon({ start, end });
   };
+
   const filtriraniTermini = useMemo(() => {
     if (!data?.termini || !raspon) return [];
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return data.termini.filter((t: any) => {
       const datumTermina = new Date(t.datum).toLocaleDateString("sv-SE");
       const startStr = raspon.start.toLocaleDateString("sv-SE");
       const endStr = raspon.end.toLocaleDateString("sv-SE");
       return datumTermina >= startStr && datumTermina <= endStr;
     });
-    }, [data, raspon]);
+  }, [data, raspon]);
+
   if (!data)
     return (
       <div className="h-screen flex items-center justify-center font-black text-blue-600 animate-pulse uppercase tracking-tighter">
@@ -174,9 +177,11 @@ export default function ObjektDetalji() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <div className="text-center mb-12 relative">
-          <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
+
+        {/* Naslov + omiljeni */}
+        <div className="text-center mb-8 sm:mb-12 relative">
+          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tighter uppercase">
             {data.naziv}
           </h1>
           {korisnik && (
@@ -197,7 +202,7 @@ export default function ObjektDetalji() {
               🤍
             </Link>
           )}
-          <div className="mt-4 flex justify-center gap-2">
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
             {data.sportovi.map((s) => (
               <span
                 key={s}
@@ -209,7 +214,10 @@ export default function ObjektDetalji() {
           </div>
         </div>
 
+        {/* Glavni grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-8 mb-12">
+
+          {/* InfoSekcija - desno na desktopu, prvo na mobitelu */}
           <div className="lg:col-span-1 lg:col-start-2 lg:row-start-1 space-y-8">
             <InfoSekcija
               slikaUrl={data.slikaUrl || ""}
@@ -224,12 +232,18 @@ export default function ObjektDetalji() {
               sportovi={data.sportovi}
             />
           </div>
+
+          {/* Termini - lijevo na desktopu */}
           <div className="lg:col-span-1 lg:row-span-2 lg:col-start-1">
-            <div className="bg-white p-8 rounded-[32px] border border-blue-50 shadow-xl shadow-blue-900/5">
+            <div className="bg-white p-4 sm:p-8 rounded-[32px] border border-blue-50 shadow-xl shadow-blue-900/5">
               <div
-                className={`flex  p-4 items-center transition-colors m-[0_auto] mb-6 ${jeVlasnik ? "justify-between bg-white w-[90%] " : "w-full justify-center"}`}
+                className={`flex p-4 items-center transition-colors m-[0_auto] mb-6 ${
+                  jeVlasnik
+                    ? "justify-between bg-white w-full sm:w-[90%]"
+                    : "w-full justify-center"
+                }`}
               >
-                <h3 className="text-base font-black text-center text-blue-400 uppercase tracking-[0.2em] text-center">
+                <h3 className="text-base font-black text-center text-blue-400 uppercase tracking-[0.2em]">
                   Termini
                 </h3>
                 {jeVlasnik && (
@@ -237,7 +251,7 @@ export default function ObjektDetalji() {
                     onClick={() => setIsTerminObrazacOpen(true)}
                     className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase text-xs transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-600/20"
                   >
-                    <span>Dodaj </span>
+                    <span>Dodaj</span>
                     <span className="text-lg">+</span>
                   </button>
                 )}
@@ -245,13 +259,11 @@ export default function ObjektDetalji() {
               <TjedniFilter onWeekChange={handleWeekChange} />
               <div className="space-y-3">
                 {filtriraniTermini.length > 0 ? (
-                  //Dodano sortiranje zbog promjena na backendu
                   [...filtriraniTermini]
                     .sort((a, b) => {
                       const datumA = new Date(a.datum).getTime();
                       const datumB = new Date(b.datum).getTime();
                       if (datumA !== datumB) return datumA - datumB;
-
                       return a.vrijemePocetka.localeCompare(b.vrijemePocetka);
                     })
                     .map((t) => {
@@ -289,14 +301,12 @@ export default function ObjektDetalji() {
                             !jeVlasnik && (
                               <div className="mt-2 w-full">
                                 {jeNaListi ? (
-                                  /* AKO JE KORISNIK VEĆ NA LISTI ČEKANJA */
                                   <div className="flex flex-row items-center gap-2 w-full">
                                     <div className="flex-1 flex items-center justify-center gap-2 py-2 bg-amber-50 border border-amber-200 rounded-xl shadow-inner">
                                       <span className="text-amber-800 text-[10px] font-black uppercase tracking-tight">
                                         {redniBroj}. na listi čekanja
                                       </span>
                                     </div>
-
                                     <button
                                       onClick={async (e) => {
                                         e.stopPropagation();
@@ -319,16 +329,13 @@ export default function ObjektDetalji() {
                                       e.stopPropagation();
                                       try {
                                         const token =
-                                          localStorage.getItem(
-                                            "sportspot_token",
-                                          );
+                                          localStorage.getItem("sportspot_token");
                                         const res = await fetch(
                                           "https://sportspot-sxcq.onrender.com/api/termini/lista-cekanja/prijava",
                                           {
                                             method: "POST",
                                             headers: {
-                                              "Content-Type":
-                                                "application/json",
+                                              "Content-Type": "application/json",
                                               Authorization: `Bearer ${token}`,
                                             },
                                             body: JSON.stringify({
@@ -342,8 +349,7 @@ export default function ObjektDetalji() {
                                         } else {
                                           const errorData = await res.json();
                                           alert(
-                                            errorData.error ||
-                                              "Greška pri prijavi.",
+                                            errorData.error || "Greška pri prijavi.",
                                           );
                                         }
                                       } catch (err) {
@@ -371,9 +377,11 @@ export default function ObjektDetalji() {
               </div>
             </div>
           </div>
-          <section className="bg-white lg:col-start-2 p-10 rounded-[40px] border border-blue-50 shadow-xl shadow-blue-900/5">
+
+          {/* Recenzije */}
+          <section className="bg-white lg:col-start-2 p-4 sm:p-10 rounded-[40px] border border-blue-50 shadow-xl shadow-blue-900/5">
             {data.brojRecenzija > 0 ? (
-              <div className="flex justify-between items-start mb-8 pb-8 border-b border-slate-50">
+              <div className="flex flex-wrap justify-between items-start gap-3 mb-8 pb-8 border-b border-slate-50">
                 <div>
                   <p className="text-xs font-black text-blue-400 uppercase tracking-widest">
                     Dojmovi igrača
@@ -382,7 +390,6 @@ export default function ObjektDetalji() {
                     ⭐ {data.ocjena}
                   </h2>
                 </div>
-
                 {korisnik && (
                   <button
                     onClick={() => setIsObrazacOpen(true)}
@@ -394,7 +401,7 @@ export default function ObjektDetalji() {
                 )}
               </div>
             ) : (
-              <div className="flex justify-between items-center mb-10 pb-8 border-b border-slate-50">
+              <div className="flex flex-wrap justify-between items-center gap-3 mb-10 pb-8 border-b border-slate-50">
                 <div className="text-center lg:text-left">
                   <p className="text-xs font-black text-slate-300 uppercase tracking-widest">
                     Dojmovi igrača
@@ -403,7 +410,6 @@ export default function ObjektDetalji() {
                     Još nema ocjena
                   </h2>
                 </div>
-
                 {korisnik && (
                   <button
                     onClick={() => setIsObrazacOpen(true)}
@@ -417,7 +423,7 @@ export default function ObjektDetalji() {
             )}
 
             {data.recenzije && data.recenzije.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 <p className="text-slate-400 font-bold uppercase text-[10px] -mb-3 tracking-widest italic">
                   Baza od {data.brojRecenzija} recenzija
                 </p>
@@ -436,6 +442,7 @@ export default function ObjektDetalji() {
           </section>
         </div>
       </main>
+
       <NovaRecenzijaObrazac
         isOpen={isObrazacOpen}
         onClose={() => setIsObrazacOpen(false)}
