@@ -7,6 +7,9 @@ export default defineConfig({
   server: {
     allowedHosts: true,
   },
+    build: {
+    copyPublicDir: true,
+  },
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] })
