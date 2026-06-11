@@ -1,0 +1,49 @@
+export interface Termin {
+  id: number;
+  idKorisnika: number | null;
+  datum: string;
+  vrijemePocetka: string;
+  vrijemeKraja: string;
+  cijena: number;
+  status: string;
+  lista_ids: number[];
+}
+
+export interface Recenzija {
+  ime: string;
+  prezime: string;
+  ocjena: number;
+  komentar: string;
+  datumObjave: string;
+}
+
+export interface DetaljiObjekta {
+  id: number;
+  idKorisnika: number;
+  naziv: string;
+  adresa: string;
+  opis: string;
+  kvart: string;
+  kapacitet: number;
+  nazivKluba: string;
+  kontaktTelefon: string;
+  ocjena: number | null;
+  brojRecenzija: number;
+  sportovi: string[];
+  termini: Termin[];
+  recenzije: Recenzija[];
+  slikaUrl: string;
+  lat: number | null;
+  lng: number | null;
+}
+
+export interface InfoSekcijaProps {
+  adresa: string;
+  kvart: string;
+  kapacitet: number;
+  klub: string;
+  opis: string;
+  lat?: number | null;
+  lng?: number | null;
+  naziv?: string;
+}

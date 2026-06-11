@@ -1,1 +1,243 @@
 @import "tailwindcss";
+
+.dark-popup .leaflet-popup-content-wrapper {
+  background: #0f172a;
+  color: #f1f5f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid #334155;
+}
+
+.dark-popup .leaflet-popup-tip {
+  background: #0f172a;
+}
+
+.dark-popup .leaflet-popup-close-button {
+  color: #94a3b8;
+}
+
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 10 !important;
+}
+
+/* ===== RESPONZIVNOST - MOBILE ===== */
+
+.home-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: 260px 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Desktop: filter sticky ponašanje */
+@media (min-width: 1025px) {
+  .home-filter-aside {
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+}
+
+/* Mobilni akcijski gumbi - sakriveni na desktopu */
+.mob-akcijski-gumbi {
+  display: none;
+}
+
+/* Overlay */
+.mob-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+}
+
+@media (max-width: 1024px) {
+  .home-grid {
+    grid-template-columns: 1fr;
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .mob-akcijski-gumbi {
+    display: flex;
+    gap: 10px;
+    order: 1;
+  }
+
+  .home-filter-aside {
+    order: 2 !important;
+    display: none !important;
+  }
+
+  .home-filter-otvoren {
+    display: block !important;
+  }
+
+  main {
+    order: 3;
+  }
+
+  .home-mapa-aside {
+    display: none;
+  }
+
+  .mob-overlay {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-grid {
+    padding: 8px 10px;
+    gap: 10px;
+  }
+}
+
+/* OBJEKT KARTICA na mobitelu */
+@media (max-width: 480px) {
+  .objekt-kartica-inner {
+    flex-direction: column !important;
+  }
+  .objekt-kartica-slika {
+    width: 100% !important;
+    height: 160px !important;
+    border-radius: 10px !important;
+  }
+  .objekt-kartica-cijena {
+    text-align: left !important;
+  }
+}
+
+/* PRIJAVA / REGISTRACIJA */
+.auth-wrapper {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f4ff;
+  padding: 24px 16px;
+}
+
+.auth-box {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 32px rgba(29, 78, 216, 0.1);
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .auth-box {
+    padding: 28px 18px;
+    border-radius: 14px;
+  }
+}
+
+/* PROFIL */
+.profil-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+@media (max-width: 640px) {
+  .profil-wrapper {
+    padding: 16px 12px;
+  }
+}
+
+/* NAVBAR */
+.navbar-search-wrapper {
+  flex: 1;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.navbar-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: #1d4ed8;
+  flex-shrink: 0;
+}
+
+.navbar-auth-gumbi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-mob-search {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .navbar-search-wrapper {
+    display: none;
+  }
+
+  .navbar-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .navbar-mob-search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .navbar-auth-gumbi {
+    display: none;
+  }
+
+  .navbar-auth-gumbi.mob-menu-otvoren {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-bottom: 1.5px solid #e8eeff;
+    padding: 16px;
+    gap: 10px;
+    z-index: 150;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  .navbar-auth-gumbi.mob-menu-otvoren a,
+  .navbar-auth-gumbi.mob-menu-otvoren button {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .admin-grid-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .admin-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .admin-grid-stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}

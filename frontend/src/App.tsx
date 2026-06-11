@@ -1,38 +1,36 @@
-import { Routes, Route, Link } from "react-router-dom";
-import Objekti from "./pages/Objekti";
+import { Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import ScrollToTop from "./components/ScrollToTop";
+import ObjektDetalji from "./pages/ObjektDetalji";
+import Prijava from "./pages/Prijava";
+import Registracija from "./pages/Registracija";
+import Profil from "./pages/Profil";
+import { AuthProvider } from "./context/AuthContext";
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-blue-600 p-4 text-white flex gap-4 shadow-lg">
-        <Link to="/" className="hover:text-blue-200 font-bold">
-          Početna
-        </Link>
-        <Link to="/objekti" className="hover:text-blue-200 font-bold">
-          Sportski Objekti
-        </Link>
-      </nav>
-
-      <main className="p-8">
+    <AuthProvider>
+      <div className="min-h-screen" style={{ background: "#F0F4FF" }}>
+        <ScrollToTop />
+        <Navbar />
         <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/objekt/:id" element={<ObjektDetalji />} />
+          <Route path="/prijava" element={<Prijava />} />
+          <Route path="/registracija" element={<Registracija />} />
+          <Route path="/profil" element={<Profil />} />
           <Route
-            path="/"
+            path="*"
             element={
-              <div className="text-center">
-                <h1 className="text-4xl font-bold">Dobrodošli u SportSpot</h1>
-                <p className="mt-4 text-gray-600">
-                  Pronađi svoj termin brzo i lako.
-                </p>
-              </div>
+              <h1 className="text-center mt-20 text-2xl">
+                404 - Stranica nije pronađena
+              </h1>
             }
           />
-
-          <Route path="/objekti" element={<Objekti />} />
-
-          <Route path="*" element={<h1>404 - Stranica nije pronađena</h1>} />
         </Routes>
-      </main>
-    </div>
+      </div>
+    </AuthProvider>
   );
 }
 
