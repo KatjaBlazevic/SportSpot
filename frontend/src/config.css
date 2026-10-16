@@ -1,3 +1,16 @@
 @theme {
   --color-mojaCrvena: #d9fffd;
 }
+
+@utility moj-glavni-font {
+  font-size: 1.25rem; /* Veličina fonta (npr. text-xl) */
+  font-weight: 700; /* Debljina fonta (npr. font-bold) */
+  line-height: 1.75rem; /* Možeš dodati i visinu retka ako želiš */
+}
+
+@utility kartica {
+  background-color: var(--color-mojaCrvena);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
