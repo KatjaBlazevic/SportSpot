@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 dotenv.config();
 const router = express.Router();
 
-// Putanja će biti: GET https://sportspot-sxcq.onrender.com/api/termini/
+// Putanja će biti: GET http://localhost:5000/api/termini/
 router.get("/", (req: Request, res: Response) => {
   res.json({ message: "Router termini je povezan i radi!" });
 });
@@ -573,7 +573,7 @@ router.get("/otkazivanje-gosta", async (req: Request, res: Response) => {
         <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
         <h1 style="color: #2563eb; margin-bottom: 10px;">SportSpot</h1>
         <p style="font-size: 18px; margin-bottom: 30px;">${porukaZaBrowser}</p>
-        <a href="https://sportspot-ry8m.onrender.com" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-weight: bold;">Povratak na SportSpot</a>
+        <a href="http://localhost:5000/" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 10px; font-weight: bold;">Povratak na SportSpot</a>
       </div>
     `);
   } catch (error) {

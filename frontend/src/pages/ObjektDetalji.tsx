@@ -26,7 +26,7 @@ export default function ObjektDetalji() {
   });
 
   const dohvatiPodatke = () => {
-    fetch(`https://sportspot-sxcq.onrender.com/api/objekti/${id}`)
+    fetch(`http://localhost:5000/api/objekti/${id}`)
       .then((res) => res.json())
       .then((json: DetaljiObjekta) => {
         setData(json);
@@ -61,7 +61,7 @@ export default function ObjektDetalji() {
       }
 
       const response = await fetch(
-        "https://sportspot-sxcq.onrender.com/api/objekti/recenzije/nova",
+        "http://localhost:5000/api/objekti/recenzije/nova",
         {
           method: "POST",
           headers: {
@@ -95,7 +95,7 @@ export default function ObjektDetalji() {
     try {
       const token = localStorage.getItem("sportspot_token");
       const res = await fetch(
-        `https://sportspot-sxcq.onrender.com/api/termini/lista-cekanja/odustani/${idTermina}`,
+        `http://localhost:5000/api/termini/lista-cekanja/odustani/${idTermina}`,
         {
           method: "DELETE",
           headers: {
@@ -120,7 +120,7 @@ export default function ObjektDetalji() {
   const handleTerminSubmit = async (terminData: any) => {
     try {
       const token = localStorage.getItem("sportspot_token");
-      const response = await fetch("https://sportspot-sxcq.onrender.com/api/termini/dodaj", {
+      const response = await fetch("http://localhost:5000/api/termini/dodaj", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -178,7 +178,6 @@ export default function ObjektDetalji() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
-
         {/* Naslov + omiljeni */}
         <div className="text-center mb-8 sm:mb-12 relative">
           <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tighter uppercase">
@@ -216,7 +215,6 @@ export default function ObjektDetalji() {
 
         {/* Glavni grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-8 mb-12">
-
           {/* InfoSekcija - desno na desktopu, prvo na mobitelu */}
           <div className="lg:col-span-1 lg:col-start-2 lg:row-start-1 space-y-8">
             <InfoSekcija
@@ -329,13 +327,16 @@ export default function ObjektDetalji() {
                                       e.stopPropagation();
                                       try {
                                         const token =
-                                          localStorage.getItem("sportspot_token");
+                                          localStorage.getItem(
+                                            "sportspot_token",
+                                          );
                                         const res = await fetch(
-                                          "https://sportspot-sxcq.onrender.com/api/termini/lista-cekanja/prijava",
+                                          "http://localhost:5000/api/termini/lista-cekanja/prijava",
                                           {
                                             method: "POST",
                                             headers: {
-                                              "Content-Type": "application/json",
+                                              "Content-Type":
+                                                "application/json",
                                               Authorization: `Bearer ${token}`,
                                             },
                                             body: JSON.stringify({
@@ -349,7 +350,8 @@ export default function ObjektDetalji() {
                                         } else {
                                           const errorData = await res.json();
                                           alert(
-                                            errorData.error || "Greška pri prijavi.",
+                                            errorData.error ||
+                                              "Greška pri prijavi.",
                                           );
                                         }
                                       } catch (err) {

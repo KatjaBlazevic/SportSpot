@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./config.css";
 
 .dark-popup .leaflet-popup-content-wrapper {
   background: #0f172a;

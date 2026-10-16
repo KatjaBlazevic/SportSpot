@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-const API_URL = `https://sportspot-sxcq.onrender.com/api`;
+const API_URL = `http://localhost:5000/api`;
 
 interface Termin {
   id: number;
@@ -88,7 +88,10 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
         (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
       }}
     >
-      <div className="objekt-kartica-inner" style={{ display: "flex", gap: 16, padding: 16 }}>
+      <div
+        className="objekt-kartica-inner"
+        style={{ display: "flex", gap: 16, padding: 16 }}
+      >
         <div
           className="objekt-kartica-slika"
           style={{
@@ -185,7 +188,10 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
             ))}
           </div>
         </div>
-        <div className="objekt-kartica-cijena" style={{ textAlign: "right", flexShrink: 0 }}>
+        <div
+          className="objekt-kartica-cijena"
+          style={{ textAlign: "right", flexShrink: 0 }}
+        >
           <div
             style={{
               fontSize: 11,
@@ -210,7 +216,9 @@ function ObjektKartica({ objekt }: { objekt: Objekt }) {
             ) : (
               <>
                 {objekt.cijenaOd}€
-                <span style={{ fontSize: 13, fontWeight: 500, color: "#6B7280" }}>
+                <span
+                  style={{ fontSize: 13, fontWeight: 500, color: "#6B7280" }}
+                >
                   /h
                 </span>
               </>
@@ -665,7 +673,14 @@ export default function Home() {
           }}
         >
           <div style={{ marginBottom: 14 }}>
-            <h2 style={{ margin: "0 0 2px", fontSize: 15, fontWeight: 700, color: "#111827" }}>
+            <h2
+              style={{
+                margin: "0 0 2px",
+                fontSize: 15,
+                fontWeight: 700,
+                color: "#111827",
+              }}
+            >
               Filteri
             </h2>
             <p style={{ margin: 0, fontSize: 11, color: "#9CA3AF" }}>
@@ -676,13 +691,23 @@ export default function Home() {
           <div style={{ marginBottom: 14 }}>
             <div
               style={{
-                fontSize: 10, fontWeight: 700, color: "#9CA3AF",
-                textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8,
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#9CA3AF",
+                textTransform: "uppercase",
+                letterSpacing: "0.8px",
+                marginBottom: 8,
               }}
             >
               Sportovi
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 4,
+              }}
+            >
               {SVE_SPORTOVI.map((sport) => {
                 const aktivan = odabraniSportovi.includes(sport);
                 return (
@@ -690,15 +715,22 @@ export default function Home() {
                     key={sport}
                     onClick={() => toggleSport(sport)}
                     style={{
-                      display: "flex", alignItems: "center", gap: 5,
-                      padding: "5px 7px", borderRadius: 7,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      padding: "5px 7px",
+                      borderRadius: 7,
                       border: `1.5px solid ${aktivan ? "#1D4ED8" : "#E5E7EB"}`,
                       background: aktivan ? "#EFF6FF" : "transparent",
                       color: aktivan ? "#1D4ED8" : "#374151",
                       fontWeight: aktivan ? 700 : 400,
-                      fontSize: 11, cursor: "pointer", textAlign: "left",
-                      transition: "all 0.15s", fontFamily: "inherit",
-                      whiteSpace: "nowrap", overflow: "hidden",
+                      fontSize: 11,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "all 0.15s",
+                      fontFamily: "inherit",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
                     }}
                   >
                     <SportIcon sport={sport} /> {sport}
@@ -711,8 +743,12 @@ export default function Home() {
           <div style={{ marginBottom: 14 }}>
             <div
               style={{
-                fontSize: 10, fontWeight: 700, color: "#9CA3AF",
-                textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8,
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#9CA3AF",
+                textTransform: "uppercase",
+                letterSpacing: "0.8px",
+                marginBottom: 8,
               }}
             >
               Termini
@@ -722,9 +758,15 @@ export default function Home() {
               value={odabraniDatum}
               onChange={(e) => setOdabraniDatum(e.target.value)}
               style={{
-                width: "100%", padding: "7px 10px", borderRadius: 8,
-                border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
-                fontFamily: "inherit", marginBottom: 6, outline: "none",
+                width: "100%",
+                padding: "7px 10px",
+                borderRadius: 8,
+                border: "1.5px solid #E5E7EB",
+                fontSize: 12,
+                color: "#374151",
+                fontFamily: "inherit",
+                marginBottom: 6,
+                outline: "none",
                 boxSizing: "border-box",
               }}
             />
@@ -732,14 +774,23 @@ export default function Home() {
               value={odabraniPeriod}
               onChange={(e) => setOdabraniPeriod(e.target.value)}
               style={{
-                width: "100%", padding: "7px 10px", borderRadius: 8,
-                border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
-                fontFamily: "inherit", background: "#fff", outline: "none", cursor: "pointer",
+                width: "100%",
+                padding: "7px 10px",
+                borderRadius: 8,
+                border: "1.5px solid #E5E7EB",
+                fontSize: 12,
+                color: "#374151",
+                fontFamily: "inherit",
+                background: "#fff",
+                outline: "none",
+                cursor: "pointer",
               }}
             >
               <option value="">Odaberi period</option>
               {PERIODI.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
               ))}
             </select>
           </div>
@@ -747,8 +798,12 @@ export default function Home() {
           <div style={{ marginBottom: 14 }}>
             <div
               style={{
-                fontSize: 10, fontWeight: 700, color: "#9CA3AF",
-                textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8,
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#9CA3AF",
+                textTransform: "uppercase",
+                letterSpacing: "0.8px",
+                marginBottom: 8,
               }}
             >
               Lokacija
@@ -757,9 +812,16 @@ export default function Home() {
               value={odabraniKvart}
               onChange={(e) => setOdabraniKvart(e.target.value)}
               style={{
-                width: "100%", padding: "7px 10px", borderRadius: 8,
-                border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
-                fontFamily: "inherit", background: "#fff", outline: "none", cursor: "pointer",
+                width: "100%",
+                padding: "7px 10px",
+                borderRadius: 8,
+                border: "1.5px solid #E5E7EB",
+                fontSize: 12,
+                color: "#374151",
+                fontFamily: "inherit",
+                background: "#fff",
+                outline: "none",
+                cursor: "pointer",
               }}
             >
               {sviKvartovi.map((k) => (
@@ -773,21 +835,41 @@ export default function Home() {
           <div style={{ marginBottom: 16 }}>
             <div
               style={{
-                fontSize: 10, fontWeight: 700, color: "#9CA3AF",
-                textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8,
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#9CA3AF",
+                textTransform: "uppercase",
+                letterSpacing: "0.8px",
+                marginBottom: 8,
               }}
             >
               Cijena (€/h)
             </div>
-            <label style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8, cursor: "pointer" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                marginBottom: 8,
+                cursor: "pointer",
+              }}
+            >
               <input
                 type="checkbox"
                 checked={samoBesplatni}
                 onChange={(e) => {
                   setSamoBesplatni(e.target.checked);
-                  if (e.target.checked) { setCijenaMin(""); setCijenaMax(""); }
+                  if (e.target.checked) {
+                    setCijenaMin("");
+                    setCijenaMax("");
+                  }
                 }}
-                style={{ width: 14, height: 14, accentColor: "#1D4ED8", cursor: "pointer" }}
+                style={{
+                  width: 14,
+                  height: 14,
+                  accentColor: "#1D4ED8",
+                  cursor: "pointer",
+                }}
               />
               <span style={{ fontSize: 12, color: "#374151", fontWeight: 500 }}>
                 Samo besplatni
@@ -796,21 +878,39 @@ export default function Home() {
             {!samoBesplatni && (
               <div style={{ display: "flex", gap: 6 }}>
                 <input
-                  type="number" min={0} placeholder="Od (€)" value={cijenaMin}
+                  type="number"
+                  min={0}
+                  placeholder="Od (€)"
+                  value={cijenaMin}
                   onChange={(e) => setCijenaMin(e.target.value)}
                   style={{
-                    width: "50%", padding: "7px 8px", borderRadius: 8,
-                    border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
-                    fontFamily: "inherit", outline: "none", boxSizing: "border-box",
+                    width: "50%",
+                    padding: "7px 8px",
+                    borderRadius: 8,
+                    border: "1.5px solid #E5E7EB",
+                    fontSize: 12,
+                    color: "#374151",
+                    fontFamily: "inherit",
+                    outline: "none",
+                    boxSizing: "border-box",
                   }}
                 />
                 <input
-                  type="number" min={0} placeholder="Do (€)" value={cijenaMax}
+                  type="number"
+                  min={0}
+                  placeholder="Do (€)"
+                  value={cijenaMax}
                   onChange={(e) => setCijenaMax(e.target.value)}
                   style={{
-                    width: "50%", padding: "7px 8px", borderRadius: 8,
-                    border: "1.5px solid #E5E7EB", fontSize: 12, color: "#374151",
-                    fontFamily: "inherit", outline: "none", boxSizing: "border-box",
+                    width: "50%",
+                    padding: "7px 8px",
+                    borderRadius: 8,
+                    border: "1.5px solid #E5E7EB",
+                    fontSize: 12,
+                    color: "#374151",
+                    fontFamily: "inherit",
+                    outline: "none",
+                    boxSizing: "border-box",
                   }}
                 />
               </div>
@@ -818,16 +918,29 @@ export default function Home() {
           </div>
 
           <button
-            onClick={() => { dohvatiObjekte(); setFilterOtvoren(false); }}
+            onClick={() => {
+              dohvatiObjekte();
+              setFilterOtvoren(false);
+            }}
             style={{
-              width: "100%", padding: "9px", borderRadius: 999,
+              width: "100%",
+              padding: "9px",
+              borderRadius: 999,
               background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
-              color: "#fff", fontWeight: 700, fontSize: 13, border: "none",
-              cursor: "pointer", boxShadow: "0 2px 10px rgba(29,78,216,0.3)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: 13,
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 2px 10px rgba(29,78,216,0.3)",
               fontFamily: "inherit",
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.9")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+            onMouseEnter={(e) =>
+              ((e.currentTarget as HTMLButtonElement).style.opacity = "0.9")
+            }
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLButtonElement).style.opacity = "1")
+            }
           >
             Primijeni filtere
           </button>
@@ -844,10 +957,17 @@ export default function Home() {
                 setSamoBesplatni(false);
               }}
               style={{
-                width: "100%", padding: "7px", borderRadius: 999,
-                background: "transparent", color: "#6B7280", fontWeight: 500,
-                fontSize: 12, border: "1px solid #E5E7EB", cursor: "pointer",
-                marginTop: 6, fontFamily: "inherit",
+                width: "100%",
+                padding: "7px",
+                borderRadius: 999,
+                background: "transparent",
+                color: "#6B7280",
+                fontWeight: 500,
+                fontSize: 12,
+                border: "1px solid #E5E7EB",
+                cursor: "pointer",
+                marginTop: 6,
+                fontFamily: "inherit",
               }}
             >
               Poništi filtere
@@ -860,8 +980,11 @@ export default function Home() {
           <div style={{ marginBottom: 16 }}>
             <h1
               style={{
-                margin: "0 0 2px", fontSize: 24, fontWeight: 800,
-                color: "#111827", fontFamily: "'DM Sans', sans-serif",
+                margin: "0 0 2px",
+                fontSize: 24,
+                fontWeight: 800,
+                color: "#111827",
+                fontFamily: "'DM Sans', sans-serif",
               }}
             >
               {ucitavanje
@@ -877,12 +1000,17 @@ export default function Home() {
           {greska && (
             <div
               style={{
-                background: "#FEF2F2", border: "1px solid #FECACA",
-                borderRadius: 12, padding: "14px 16px", marginBottom: 16,
-                color: "#DC2626", fontSize: 14,
+                background: "#FEF2F2",
+                border: "1px solid #FECACA",
+                borderRadius: 12,
+                padding: "14px 16px",
+                marginBottom: 16,
+                color: "#DC2626",
+                fontSize: 14,
               }}
             >
-              {"⚠️ "}{greska}
+              {"⚠️ "}
+              {greska}
             </div>
           )}
 
@@ -891,22 +1019,32 @@ export default function Home() {
               <div
                 key={i}
                 style={{
-                  background: "#fff", borderRadius: 16,
-                  border: "1.5px solid #E8EEFF", height: 130,
-                  marginBottom: 16, opacity: 0.5,
+                  background: "#fff",
+                  borderRadius: 16,
+                  border: "1.5px solid #E8EEFF",
+                  height: 130,
+                  marginBottom: 16,
+                  opacity: 0.5,
                 }}
               />
             ))
           ) : filtriraniObjekti.length === 0 ? (
             <div
               style={{
-                textAlign: "center", padding: "60px 20px",
-                background: "#fff", borderRadius: 16, border: "1.5px solid #E8EEFF",
+                textAlign: "center",
+                padding: "60px 20px",
+                background: "#fff",
+                borderRadius: 16,
+                border: "1.5px solid #E8EEFF",
               }}
             >
               <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-              <h3 style={{ color: "#374151", margin: "0 0 6px" }}>Nema rezultata</h3>
-              <p style={{ color: "#9CA3AF", margin: 0 }}>Pokušajte s drugačijim filterima</p>
+              <h3 style={{ color: "#374151", margin: "0 0 6px" }}>
+                Nema rezultata
+              </h3>
+              <p style={{ color: "#9CA3AF", margin: 0 }}>
+                Pokušajte s drugačijim filterima
+              </p>
             </div>
           ) : (
             <>
@@ -914,27 +1052,91 @@ export default function Home() {
                 <ObjektKartica key={obj.id} objekt={obj} />
               ))}
               {ukupnoStranica > 1 && (
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 6,
+                    marginTop: 8,
+                    flexWrap: "wrap",
+                  }}
+                >
                   <button
-                    onClick={() => { setTrenutnaStr((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    onClick={() => {
+                      setTrenutnaStr((p) => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
                     disabled={trenutnaStr === 1}
-                    style={{ width: 36, height: 36, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", color: trenutnaStr === 1 ? "#D1D5DB" : "#374151", fontWeight: 700, fontSize: 16, cursor: trenutnaStr === 1 ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      border: "1.5px solid #E5E7EB",
+                      background: "#fff",
+                      color: trenutnaStr === 1 ? "#D1D5DB" : "#374151",
+                      fontWeight: 700,
+                      fontSize: 16,
+                      cursor: trenutnaStr === 1 ? "default" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: "inherit",
+                    }}
                   >
                     <span>{"‹"}</span>
                   </button>
-                  {Array.from({ length: ukupnoStranica }, (_, i) => i + 1).map((br) => (
-                    <button
-                      key={br}
-                      onClick={() => { setTrenutnaStr(br); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                      style={{ width: 36, height: 36, borderRadius: "50%", border: `1.5px solid ${trenutnaStr === br ? "#1D4ED8" : "#E5E7EB"}`, background: trenutnaStr === br ? "#1D4ED8" : "#fff", color: trenutnaStr === br ? "#fff" : "#374151", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}
-                    >
-                      <span>{br}</span>
-                    </button>
-                  ))}
+                  {Array.from({ length: ukupnoStranica }, (_, i) => i + 1).map(
+                    (br) => (
+                      <button
+                        key={br}
+                        onClick={() => {
+                          setTrenutnaStr(br);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          border: `1.5px solid ${trenutnaStr === br ? "#1D4ED8" : "#E5E7EB"}`,
+                          background: trenutnaStr === br ? "#1D4ED8" : "#fff",
+                          color: trenutnaStr === br ? "#fff" : "#374151",
+                          fontWeight: 700,
+                          fontSize: 14,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        <span>{br}</span>
+                      </button>
+                    ),
+                  )}
                   <button
-                    onClick={() => { setTrenutnaStr((p) => Math.min(ukupnoStranica, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    onClick={() => {
+                      setTrenutnaStr((p) => Math.min(ukupnoStranica, p + 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
                     disabled={trenutnaStr === ukupnoStranica}
-                    style={{ width: 36, height: 36, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", color: trenutnaStr === ukupnoStranica ? "#D1D5DB" : "#374151", fontWeight: 700, fontSize: 16, cursor: trenutnaStr === ukupnoStranica ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      border: "1.5px solid #E5E7EB",
+                      background: "#fff",
+                      color:
+                        trenutnaStr === ukupnoStranica ? "#D1D5DB" : "#374151",
+                      fontWeight: 700,
+                      fontSize: 16,
+                      cursor:
+                        trenutnaStr === ukupnoStranica ? "default" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: "inherit",
+                    }}
                   >
                     <span>{"›"}</span>
                   </button>

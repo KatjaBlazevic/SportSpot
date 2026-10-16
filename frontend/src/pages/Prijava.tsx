@@ -17,7 +17,7 @@ export default function Prijava() {
     setUcitavanje(true);
 
     try {
-      const res = await fetch("https://sportspot-sxcq.onrender.com/api/auth/prijava", {
+      const res = await fetch("http://localhost:5000/api/auth/prijava", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, lozinka }),
@@ -41,7 +41,7 @@ export default function Prijava() {
 
   return (
     <div className="auth-wrapper">
-     <div className="auth-box">
+      <div className="auth-box">
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div
@@ -56,7 +56,14 @@ export default function Prijava() {
               margin: "0 auto 16px",
             }}
           >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+            >
               <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
               <polyline points="10 17 15 12 10 7" />
               <line x1="15" y1="12" x2="3" y2="12" />
@@ -79,7 +86,10 @@ export default function Prijava() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: 18 }}
+        >
           {/* Email */}
           <div>
             <label
@@ -185,7 +195,15 @@ export default function Prijava() {
                 gap: 8,
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{ flexShrink: 0 }}
+              >
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -215,7 +233,8 @@ export default function Prijava() {
               fontFamily: "inherit",
             }}
             onMouseEnter={(e) => {
-              if (!ucitavanje) (e.currentTarget as HTMLButtonElement).style.opacity = "0.9";
+              if (!ucitavanje)
+                (e.currentTarget as HTMLButtonElement).style.opacity = "0.9";
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.opacity = "1";
@@ -226,11 +245,22 @@ export default function Prijava() {
         </form>
 
         {/* Footer link */}
-        <p style={{ textAlign: "center", marginTop: 24, fontSize: 14, color: "#6B7280" }}>
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: 24,
+            fontSize: 14,
+            color: "#6B7280",
+          }}
+        >
           Nemaš račun?{" "}
           <Link
             to="/registracija"
-            style={{ color: "#1D4ED8", fontWeight: 600, textDecoration: "none" }}
+            style={{
+              color: "#1D4ED8",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
           >
             Registriraj se
           </Link>

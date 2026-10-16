@@ -31,10 +31,16 @@ export default function Registracija() {
     setUcitavanje(true);
 
     try {
-      const res = await fetch("https://sportspot-sxcq.onrender.com/api/auth/registracija", {
+      const res = await fetch("http://localhost:5000/api/auth/registracija", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ime, prezime, email, lozinka, brojMobitela: brojMobitela || undefined }),
+        body: JSON.stringify({
+          ime,
+          prezime,
+          email,
+          lozinka,
+          brojMobitela: brojMobitela || undefined,
+        }),
       });
 
       const data = await res.json();
@@ -80,7 +86,7 @@ export default function Registracija() {
 
   return (
     <div className="auth-wrapper">
-     <div className="auth-box">
+      <div className="auth-box">
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div
@@ -95,7 +101,14 @@ export default function Registracija() {
               margin: "0 auto 16px",
             }}
           >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+            >
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <line x1="19" y1="8" x2="19" y2="14" />
@@ -119,11 +132,24 @@ export default function Registracija() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        >
           {/* Ime + Prezime */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          >
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#374151",
+                  marginBottom: 6,
+                }}
+              >
                 Ime
               </label>
               <input
@@ -138,7 +164,15 @@ export default function Registracija() {
               />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#374151",
+                  marginBottom: 6,
+                }}
+              >
                 Prezime
               </label>
               <input
@@ -156,7 +190,15 @@ export default function Registracija() {
 
           {/* Email */}
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#374151",
+                marginBottom: 6,
+              }}
+            >
               Email adresa
             </label>
             <input
@@ -173,9 +215,19 @@ export default function Registracija() {
 
           {/* Broj mobitela */}
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#374151",
+                marginBottom: 6,
+              }}
+            >
               Broj mobitela{" "}
-              <span style={{ color: "#9CA3AF", fontWeight: 400 }}>(nije obavezno)</span>
+              <span style={{ color: "#9CA3AF", fontWeight: 400 }}>
+                (nije obavezno)
+              </span>
             </label>
             <input
               type="tel"
@@ -190,7 +242,15 @@ export default function Registracija() {
 
           {/* Lozinka */}
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#374151",
+                marginBottom: 6,
+              }}
+            >
               Lozinka
             </label>
             <input
@@ -207,7 +267,15 @@ export default function Registracija() {
 
           {/* Potvrda lozinke */}
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#374151",
+                marginBottom: 6,
+              }}
+            >
               Potvrda lozinke
             </label>
             <input
@@ -237,7 +305,15 @@ export default function Registracija() {
                 gap: 8,
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{ flexShrink: 0 }}
+              >
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -268,7 +344,8 @@ export default function Registracija() {
               marginTop: 4,
             }}
             onMouseEnter={(e) => {
-              if (!ucitavanje) (e.currentTarget as HTMLButtonElement).style.opacity = "0.9";
+              if (!ucitavanje)
+                (e.currentTarget as HTMLButtonElement).style.opacity = "0.9";
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.opacity = "1";
@@ -279,11 +356,22 @@ export default function Registracija() {
         </form>
 
         {/* Footer link */}
-        <p style={{ textAlign: "center", marginTop: 24, fontSize: 14, color: "#6B7280" }}>
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: 24,
+            fontSize: 14,
+            color: "#6B7280",
+          }}
+        >
           Već imaš račun?{" "}
           <Link
             to="/prijava"
-            style={{ color: "#1D4ED8", fontWeight: 600, textDecoration: "none" }}
+            style={{
+              color: "#1D4ED8",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
           >
             Prijavi se
           </Link>

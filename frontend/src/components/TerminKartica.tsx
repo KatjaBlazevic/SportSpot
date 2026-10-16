@@ -45,7 +45,7 @@ export default function TerminKartica({
     try {
       const token = localStorage.getItem("sportspot_token");
       const response = await fetch(
-        `https://sportspot-sxcq.onrender.com/api/termini/rezerviraj/${id}`,
+        `http://localhost:5000/api/termini/rezerviraj/${id}`,
         {
           method: "POST",
           headers: {
@@ -75,7 +75,7 @@ export default function TerminKartica({
 
     try {
       const response = await fetch(
-        `https://sportspot-sxcq.onrender.com/api/termini/rezerviraj-gost/${id}`,
+        `http://localhost:5000/api/termini/rezerviraj-gost/${id}`,
         {
           method: "PUT",
           headers: {
@@ -102,7 +102,7 @@ export default function TerminKartica({
     try {
       const token = localStorage.getItem("sportspot_token");
       const response = await fetch(
-        `https://sportspot-sxcq.onrender.com/api/termini/otkazi/${id}`,
+        `http://localhost:5000/api/termini/otkazi/${id}`,
         {
           method: "PUT",
           headers: {
@@ -129,7 +129,7 @@ export default function TerminKartica({
     try {
       const token = localStorage.getItem("sportspot_token");
       const response = await fetch(
-        `https://sportspot-sxcq.onrender.com/api/termini/uredi/${id}`,
+        `http://localhost:5000/api/termini/uredi/${id}`,
         {
           method: "PUT",
           headers: {
@@ -165,7 +165,7 @@ export default function TerminKartica({
     try {
       const token = localStorage.getItem("sportspot_token");
       const response = await fetch(
-        `https://sportspot-sxcq.onrender.com/api/termini/obrisi/${id}`,
+        `http://localhost:5000/api/termini/obrisi/${id}`,
         {
           method: "DELETE",
           headers: {
