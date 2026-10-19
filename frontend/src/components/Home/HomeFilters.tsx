@@ -106,7 +106,7 @@ export default function HomeFilters({
       className={`
         home-filter-aside
         ${filterOtvoren ? "home-filter-otvoren" : ""}
-        sticky top-20 z-[2]
+        sticky top-20 z-2
         max-h-[calc(100vh-100px)]
         overflow-y-auto
         rounded-card

@@ -1,4 +1,5 @@
 import HomeFilters from "../components/Home/HomeFilters";
+import HomeResultsHeader from "../components/Home/HomeResultsHeader";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -673,43 +674,13 @@ export default function Home() {
 />
 
         {/* MAIN - lista objekata */}
-        <main>
-          <div style={{ marginBottom: 16 }}>
-            <h1
-              style={{
-                margin: "0 0 2px",
-                fontSize: 24,
-                fontWeight: 800,
-                color: "#111827",
-                fontFamily: "'DM Sans', sans-serif",
-              }}
-            >
-              {ucitavanje
-                ? "Učitavanje..."
-                : `Pronađeno: ${filtriraniObjekti.length} terena`}
-            </h1>
-            <p style={{ margin: 0, fontSize: 13, color: "#9CA3AF" }}>
-              Rezultati za: Rijeka, Hrvatska
-              {searchQuery && ` · "${searchQuery}"`}
-            </p>
-          </div>
-
-          {greska && (
-            <div
-              style={{
-                background: "#FEF2F2",
-                border: "1px solid #FECACA",
-                borderRadius: 12,
-                padding: "14px 16px",
-                marginBottom: 16,
-                color: "#DC2626",
-                fontSize: 14,
-              }}
-            >
-              {"⚠️ "}
-              {greska}
-            </div>
-          )}
+<main>
+  <HomeResultsHeader
+    ucitavanje={ucitavanje}
+    brojRezultata={filtriraniObjekti.length}
+    searchQuery={searchQuery}
+    greska={greska}
+  />
 
           {ucitavanje ? (
             [1, 2, 3].map((i) => (
