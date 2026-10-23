@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import HomeFilters from "../components/Home/HomeFilters";
 import HomeResultsHeader from "../components/Home/HomeResultsHeader";
 import HomeResultsState from "../components/Home/HomeResultsState";
+import HomeMap from "../components/Home/HomeMap";
 import ObjectCard from "../components/ObjectCard";
 import Pagination from "../components/Pagination";
 import type { SportsFacility } from "../types/sportsFacility";
@@ -11,137 +12,6 @@ const API_URL = `http://localhost:5000/api`;
 
 type Objekt = SportsFacility;
 
-function MapaPlaceholder({ objekti }: { objekti: Objekt[] }) {
-  const mapaRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const leafletMapRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const markersRef = useRef<any[]>([]);
-
-  useEffect(() => {
-    if (!mapaRef.current) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const L = (window as any).L;
-    if (!L) return;
-
-    if (!leafletMapRef.current) {
-      const map = L.map(mapaRef.current, {
-        center: [45.3271, 14.4422],
-        zoom: 13,
-        zoomControl: true,
-        attributionControl: false,
-      });
-
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        { maxZoom: 19, subdomains: "abcd" },
-      ).addTo(map);
-
-      leafletMapRef.current = map;
-    }
-
-    const map = leafletMapRef.current;
-
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-
-    if (objekti.length === 0) return;
-
-    const sportIkone: Record<string, string> = {
-      Tenis: "🎾",
-      Padel: "🏓",
-      Nogomet: "⚽",
-      "Mali nogomet": "⚽",
-      Košarka: "🏀",
-      Odbojka: "🏐",
-      Plivanje: "🏊",
-      Vaterpolo: "🤽",
-    };
-
-    const dodajMarkere = () => {
-      const bounds: [number, number][] = [];
-
-      for (const obj of objekti) {
-        if (!obj.lat || !obj.lng) continue;
-
-        const koord: [number, number] = [obj.lat, obj.lng];
-        const ikona = sportIkone[obj.sportovi[0]] ?? "🏟️";
-        const cijena = obj.cijenaOd === 0 ? "Besplatno" : `${obj.cijenaOd}€/h`;
-
-        const customIcon = L.divIcon({
-          className: "",
-          html: `
-            <div style="
-              background: #1D4ED8; border: 2.5px solid #60A5FA;
-              border-radius: 50% 50% 50% 0; width: 36px; height: 36px;
-              transform: rotate(-45deg);
-              display: flex; align-items: center; justify-content: center;
-              box-shadow: 0 2px 12px rgba(29,78,216,0.5); cursor: pointer;
-            ">
-              <span style="transform: rotate(45deg); font-size: 16px;">${ikona}</span>
-            </div>
-          `,
-          iconSize: [36, 36],
-          iconAnchor: [18, 36],
-          popupAnchor: [0, -36],
-        });
-
-        const marker = L.marker(koord, { icon: customIcon }).addTo(map);
-        marker.bindPopup(`
-          <div style="font-family: 'DM Sans', sans-serif; min-width: 180px; padding: 4px 2px;">
-            <div style="font-weight: 700; font-size: 14px; color: #111827; margin-bottom: 4px;">${obj.naziv}</div>
-            <div style="font-size: 12px; color: #6B7280; margin-bottom: 6px;">📍 ${obj.adresa}, ${obj.kvart}</div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <span style="background: #EFF6FF; color: #1D4ED8; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;">${obj.sportovi[0] ?? "Sport"}</span>
-              <span style="font-weight: 700; color: #1D4ED8; font-size: 13px;">${cijena}</span>
-            </div>
-            ${obj.ocjena ? `<div style="font-size: 12px; color: #6B7280; margin-top: 4px;">⭐ ${obj.ocjena} (${obj.brojRecenzija} recenzija)</div>` : ""}
-          </div>
-        `);
-
-        markersRef.current.push(marker);
-        bounds.push(koord);
-      }
-
-      if (bounds.length > 0) {
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
-      }
-    };
-
-    dodajMarkere();
-  }, [objekti]);
-
-  return (
-    <div
-      style={{
-        height: "100%",
-        borderRadius: 20,
-        overflow: "hidden",
-        border: "1.5px solid #334155",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
-      }}
-    >
-      <div ref={mapaRef} style={{ width: "100%", height: "100%" }} />
-      <div
-        style={{
-          position: "absolute",
-          top: 12,
-          right: 12,
-          background: "rgba(15,23,42,0.85)",
-          color: "#94A3B8",
-          fontSize: 11,
-          padding: "4px 10px",
-          borderRadius: 999,
-          fontWeight: 500,
-          zIndex: 1000,
-          backdropFilter: "blur(6px)",
-        }}
-      >
-        📍 {objekti.length} objekata
-      </div>
-    </div>
-  );
-}
 
 export default function Home() {
   const [searchParams] = useSearchParams();
@@ -336,7 +206,7 @@ export default function Home() {
             </button>
           </div>
           <div style={{ flex: 1, position: "relative" }}>
-            <MapaPlaceholder objekti={filtriraniObjekti} />
+            <HomeMap facilities={filtriraniObjekti} />
           </div>
         </div>
       )}
@@ -467,12 +337,11 @@ export default function Home() {
         </main>
 
         {/* MAPA - desni aside, skriven na mobitelu */}
-        <aside
-          className="home-mapa-aside"
-          style={{ position: "sticky", top: 80, height: "calc(100vh - 96px)" }}
-        >
-          <MapaPlaceholder objekti={filtriraniObjekti} />
-        </aside>
+       
+<aside className="home-mapa-aside sticky top-20 h-[calc(100vh-96px)]">
+  <HomeMap facilities={filtriraniObjekti} />
+</aside>
+
       </div>
     </>
   );
