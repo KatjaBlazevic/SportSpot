@@ -8,6 +8,7 @@ import ObjectCard from "../components/ObjectCard";
 import Pagination from "../components/Pagination";
 import type { SportsFacility } from "../types/sportsFacility";
 import { buildFacilityQuery } from "../utils/buildFacilityQuery";
+import useHomeFilters from "../hooks/useHomeFilters";
 
 const API_URL = `http://localhost:5000/api`;
 
@@ -22,26 +23,31 @@ export default function Home() {
   const [ucitavanje, setUcitavanje] = useState(true);
   const [greska, setGreska] = useState<string | null>(null);
 
-  const [odabraniSportovi, setOdabraniSportovi] = useState<string[]>([]);
-  const [odabraniKvart, setOdabraniKvart] = useState("Svi kvartovi");
-  const [odabraniDatum, setOdabraniDatum] = useState("");
-  const [odabraniPeriod, setOdabraniPeriod] = useState("");
-  const [cijenaMin, setCijenaMin] = useState("");
-  const [cijenaMax, setCijenaMax] = useState("");
-  const [samoBesplatni, setSamoBesplatni] = useState(false);
-  const [sviKvartovi, setSviKvartovi] = useState<string[]>(["Svi kvartovi"]);
+
+  const {
+    selectedSports: odabraniSportovi,
+    setSelectedSports: setOdabraniSportovi,
+    selectedDistrict: odabraniKvart,
+    setSelectedDistrict: setOdabraniKvart,
+    selectedDate: odabraniDatum,
+    setSelectedDate: setOdabraniDatum,
+    selectedPeriod: odabraniPeriod,
+    setSelectedPeriod: setOdabraniPeriod,
+    minPrice: cijenaMin,
+    setMinPrice: setCijenaMin,
+    maxPrice: cijenaMax,
+    setMaxPrice: setCijenaMax,
+    freeOnly: samoBesplatni,
+    setFreeOnly: setSamoBesplatni,
+    districts: sviKvartovi,
+    toggleSport,
+    hasActiveFilters: aktivniFilteri,
+  } = useHomeFilters();
+
   const [filterOtvoren, setFilterOtvoren] = useState(false);
   const [trenutnaStr, setTrenutnaStr] = useState(1);
   const PO_STRANICI = 6;
   const [mapaOtvorena, setMapaOtvorena] = useState(false);
-
-  useEffect(() => {
-    fetch(`${API_URL}/objekti/kvartovi`)
-      .then((r) => r.json())
-      .then((data) => setSviKvartovi(["Svi kvartovi", ...data]))
-      .catch(() => setSviKvartovi(["Svi kvartovi"]));
-  }, []);
-
   
   // TODO: Refaktorirati dohvaćanje objekata.
   // Trenutno se objekti dohvaćaju automatski kroz useEffect,
@@ -133,19 +139,6 @@ export default function Home() {
           o.kvart.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : objekti;
-
-  const toggleSport = (sport: string) =>
-    setOdabraniSportovi((prev) =>
-      prev.includes(sport) ? prev.filter((s) => s !== sport) : [...prev, sport],
-    );
-
-  const aktivniFilteri =
-    odabraniSportovi.length > 0 ||
-    odabraniKvart !== "Svi kvartovi" ||
-    !!odabraniDatum ||
-    !!cijenaMin ||
-    !!cijenaMax ||
-    samoBesplatni;
 
   const ukupnoStranica = Math.ceil(filtriraniObjekti.length / PO_STRANICI);
   const vidljiviObjekti = filtriraniObjekti.slice(
