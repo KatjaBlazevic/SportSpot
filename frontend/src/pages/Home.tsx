@@ -1,5 +1,6 @@
 import HomeFilters from "../components/Home/HomeFilters";
 import HomeResultsHeader from "../components/Home/HomeResultsHeader";
+import HomeResultsState from "../components/Home/HomeResultsState";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -682,39 +683,13 @@ export default function Home() {
     greska={greska}
   />
 
-          {ucitavanje ? (
-            [1, 2, 3].map((i) => (
-              <div
-                key={i}
-                style={{
-                  background: "#fff",
-                  borderRadius: 16,
-                  border: "1.5px solid #E8EEFF",
-                  height: 130,
-                  marginBottom: 16,
-                  opacity: 0.5,
-                }}
-              />
-            ))
-          ) : filtriraniObjekti.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "60px 20px",
-                background: "#fff",
-                borderRadius: 16,
-                border: "1.5px solid #E8EEFF",
-              }}
-            >
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-              <h3 style={{ color: "#374151", margin: "0 0 6px" }}>
-                Nema rezultata
-              </h3>
-              <p style={{ color: "#9CA3AF", margin: 0 }}>
-                Pokušajte s drugačijim filterima
-              </p>
-            </div>
-          ) : (
+          
+{ucitavanje ? (
+  <HomeResultsState state="loading" />
+) : filtriraniObjekti.length === 0 ? (
+  <HomeResultsState state="empty" />
+) : (
+
             <>
               {vidljiviObjekti.map((obj) => (
                 <ObjektKartica key={obj.id} objekt={obj} />
