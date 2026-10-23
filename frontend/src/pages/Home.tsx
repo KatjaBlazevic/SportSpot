@@ -4,6 +4,7 @@ import HomeFilters from "../components/Home/HomeFilters";
 import HomeResultsHeader from "../components/Home/HomeResultsHeader";
 import HomeResultsState from "../components/Home/HomeResultsState";
 import ObjectCard from "../components/ObjectCard";
+import Pagination from "../components/Pagination";
 import type { SportsFacility } from "../types/sportsFacility";
 
 const API_URL = `http://localhost:5000/api`;
@@ -454,97 +455,13 @@ export default function Home() {
               {vidljiviObjekti.map((obj) => (
   <ObjectCard key={obj.id} facility={obj} />
 ))}
-              {ukupnoStranica > 1 && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: 6,
-                    marginTop: 8,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <button
-                    onClick={() => {
-                      setTrenutnaStr((p) => Math.max(1, p - 1));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    disabled={trenutnaStr === 1}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "50%",
-                      border: "1.5px solid #E5E7EB",
-                      background: "#fff",
-                      color: trenutnaStr === 1 ? "#D1D5DB" : "#374151",
-                      fontWeight: 700,
-                      fontSize: 16,
-                      cursor: trenutnaStr === 1 ? "default" : "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    <span>{"‹"}</span>
-                  </button>
-                  {Array.from({ length: ukupnoStranica }, (_, i) => i + 1).map(
-                    (br) => (
-                      <button
-                        key={br}
-                        onClick={() => {
-                          setTrenutnaStr(br);
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: "50%",
-                          border: `1.5px solid ${trenutnaStr === br ? "#1D4ED8" : "#E5E7EB"}`,
-                          background: trenutnaStr === br ? "#1D4ED8" : "#fff",
-                          color: trenutnaStr === br ? "#fff" : "#374151",
-                          fontWeight: 700,
-                          fontSize: 14,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontFamily: "inherit",
-                        }}
-                      >
-                        <span>{br}</span>
-                      </button>
-                    ),
-                  )}
-                  <button
-                    onClick={() => {
-                      setTrenutnaStr((p) => Math.min(ukupnoStranica, p + 1));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    disabled={trenutnaStr === ukupnoStranica}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "50%",
-                      border: "1.5px solid #E5E7EB",
-                      background: "#fff",
-                      color:
-                        trenutnaStr === ukupnoStranica ? "#D1D5DB" : "#374151",
-                      fontWeight: 700,
-                      fontSize: 16,
-                      cursor:
-                        trenutnaStr === ukupnoStranica ? "default" : "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    <span>{"›"}</span>
-                  </button>
-                </div>
-              )}
+              
+<Pagination
+  currentPage={trenutnaStr}
+  totalPages={ukupnoStranica}
+  onPageChange={setTrenutnaStr}
+/>
+
             </>
           )}
         </main>
