@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import HomeFilters from "../components/Home/HomeFilters";
 import HomeResultsHeader from "../components/Home/HomeResultsHeader";
@@ -6,23 +6,12 @@ import HomeResultsState from "../components/Home/HomeResultsState";
 import HomeMap from "../components/Home/HomeMap";
 import ObjectCard from "../components/ObjectCard";
 import Pagination from "../components/Pagination";
-import type { SportsFacility } from "../types/sportsFacility";
-import { buildFacilityQuery } from "../utils/buildFacilityQuery";
 import useHomeFilters from "../hooks/useHomeFilters";
-
-const API_URL = `http://localhost:5000/api`;
-
-type Objekt = SportsFacility;
-
+import useFacilities from "../hooks/useFacilities";
 
 export default function Home() {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") ?? "";
-
-  const [objekti, setObjekti] = useState<Objekt[]>([]);
-  const [ucitavanje, setUcitavanje] = useState(true);
-  const [greska, setGreska] = useState<string | null>(null);
-
 
   const {
     selectedSports: odabraniSportovi,
@@ -42,95 +31,28 @@ export default function Home() {
     districts: sviKvartovi,
     toggleSport,
     hasActiveFilters: aktivniFilteri,
+
   } = useHomeFilters();
+
+  const {
+    facilities: objekti,
+    isLoading: ucitavanje,
+    error: greska,
+    refetch: dohvatiObjekte,
+  } = useFacilities({
+    selectedSports: odabraniSportovi,
+    selectedDistrict: odabraniKvart,
+    selectedDate: odabraniDatum,
+    selectedPeriod: odabraniPeriod,
+    minPrice: cijenaMin,
+    maxPrice: cijenaMax,
+    freeOnly: samoBesplatni,
+  });
 
   const [filterOtvoren, setFilterOtvoren] = useState(false);
   const [trenutnaStr, setTrenutnaStr] = useState(1);
   const PO_STRANICI = 6;
   const [mapaOtvorena, setMapaOtvorena] = useState(false);
-  
-  // TODO: Refaktorirati dohvaćanje objekata.
-  // Trenutno se objekti dohvaćaju automatski kroz useEffect,
-  // ali i ručno pozivom dohvatiObjekte() na gumb "Primijeni filtere".
-  // Potrebno je odlučiti hoće li se filteri primjenjivati
-  // automatski ili tek nakon klika, kako bi se izbjegli
-  // duplicirani API zahtjevi.
-
-  const dohvatiObjekte = useCallback(async () => {
-    setUcitavanje(true);
-    setGreska(null);
-    try {
-      setTrenutnaStr(1);
-      const params = buildFacilityQuery({
-        selectedSports: odabraniSportovi,
-        selectedDistrict: odabraniKvart,
-        selectedDate: odabraniDatum,
-        selectedPeriod: odabraniPeriod,
-        minPrice: cijenaMin,
-        maxPrice: cijenaMax,
-        freeOnly: samoBesplatni,
-      });
-
-      const res = await fetch(`${API_URL}/objekti?${params.toString()}`);
-      if (!res.ok) throw new Error("Greška pri dohvaćanju podataka");
-      const data = await res.json();
-      setObjekti(data);
-    } catch (err) {
-      setGreska(
-        "Nije moguće dohvatiti objekte. Provjeri je li backend pokrenut na portu 5000.",
-      );
-      console.error(err);
-    } finally {
-      setUcitavanje(false);
-    }
-  }, [
-    odabraniSportovi,
-    odabraniKvart,
-    odabraniDatum,
-    odabraniPeriod,
-    cijenaMin,
-    cijenaMax,
-    samoBesplatni,
-    setTrenutnaStr,
-  ]);
-
-  useEffect(() => {
-    (async () => {
-      setUcitavanje(true);
-      setGreska(null);
-      try {
-        const params = buildFacilityQuery({
-          selectedSports: odabraniSportovi,
-          selectedDistrict: odabraniKvart,
-          selectedDate: odabraniDatum,
-          selectedPeriod: odabraniPeriod,
-          minPrice: cijenaMin,
-          maxPrice: cijenaMax,
-          freeOnly: samoBesplatni,
-        });
-
-        const res = await fetch(`${API_URL}/objekti?${params.toString()}`);
-        if (!res.ok) throw new Error("Greška pri dohvaćanju podataka");
-        const data = await res.json();
-        setObjekti(data);
-      } catch (err) {
-        setGreska(
-          "Nije moguće dohvatiti objekte. Provjeri je li backend pokrenut na portu 5000.",
-        );
-        console.error(err);
-      } finally {
-        setUcitavanje(false);
-      }
-    })();
-  }, [
-    odabraniSportovi,
-    odabraniKvart,
-    odabraniDatum,
-    odabraniPeriod,
-    cijenaMin,
-    cijenaMax,
-    samoBesplatni,
-  ]);
 
   const filtriraniObjekti = searchQuery
     ? objekti.filter(
@@ -295,7 +217,8 @@ export default function Home() {
   setSamoBesplatni={setSamoBesplatni}
 
   onApply={() => {
-    dohvatiObjekte();
+    setTrenutnaStr(1);
+    void dohvatiObjekte();
     setFilterOtvoren(false);
   }}
 />
