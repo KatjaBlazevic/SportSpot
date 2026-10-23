@@ -1,10 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import type { DetaljiObjekta } from "../types/index.ts";
 import InfoSekcija from "../components/InfoSekcija";
 import TerminKartica from "../components/TerminKartica";
-import RecenzijaKartica from "../components/RecenzijaKartica";
+import FacilityReviews from "../components/FacilityDetails/FacilityReviews";
 import NovaRecenzijaObrazac from "../components/NovaRecenzijaObrazac.tsx";
 import NoviTerminObrazac from "../components/NoviTerminObrazac.tsx";
 import TjedniFilter from "../components/TjedniFilter.tsx";
@@ -26,14 +26,14 @@ export default function ObjektDetalji() {
     return false;
   });
 
-  const dohvatiPodatke = () => {
+  const dohvatiPodatke = useCallback(() => {
     fetch(`http://localhost:5000/api/objekti/${id}`)
       .then((res) => res.json())
       .then((json: DetaljiObjekta) => {
         setData(json);
       })
       .catch((err) => console.error("Greška:", err));
-  };
+  }, [id]);
 
   const toggleOmiljeni = () => {
     if (!korisnik) return;
@@ -148,7 +148,7 @@ export default function ObjektDetalji() {
 
   useEffect(() => {
     dohvatiPodatke();
-  }, [id]);
+  }, [dohvatiPodatke]);
 
   const handleWeekChange = (start: Date, end: Date) => {
     setRaspon({ start, end });
@@ -177,7 +177,7 @@ export default function ObjektDetalji() {
     Number(korisnik.id) === Number(data.idKorisnika);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
         <FacilityHeader
           name={data.naziv}
@@ -354,68 +354,13 @@ export default function ObjektDetalji() {
             </div>
           </div>
 
-          {/* Recenzije */}
-          <section className="bg-white lg:col-start-2 p-4 sm:p-10 rounded-[40px] border border-blue-50 shadow-xl shadow-blue-900/5">
-            {data.brojRecenzija > 0 ? (
-              <div className="flex flex-wrap justify-between items-start gap-3 mb-8 pb-8 border-b border-slate-50">
-                <div>
-                  <p className="text-xs font-black text-blue-400 uppercase tracking-widest">
-                    Dojmovi igrača
-                  </p>
-                  <h2 className="text-5xl font-black text-slate-800 mt-2">
-                    ⭐ {data.ocjena}
-                  </h2>
-                </div>
-                {korisnik && (
-                  <button
-                    onClick={() => setIsObrazacOpen(true)}
-                    className="flex items-center gap-2 px-6 mt-2 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase text-xs transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-600/20"
-                  >
-                    <span>Dodaj</span>
-                    <span className="text-xl leading-none">+</span>
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-wrap justify-between items-center gap-3 mb-10 pb-8 border-b border-slate-50">
-                <div className="text-center lg:text-left">
-                  <p className="text-xs font-black text-slate-300 uppercase tracking-widest">
-                    Dojmovi igrača
-                  </p>
-                  <h2 className="text-2xl font-bold text-slate-400 mt-2">
-                    Još nema ocjena
-                  </h2>
-                </div>
-                {korisnik && (
-                  <button
-                    onClick={() => setIsObrazacOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase text-xs transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-600/20"
-                  >
-                    <span>Budi prvi</span>
-                    <span className="text-xl leading-none">+</span>
-                  </button>
-                )}
-              </div>
-            )}
-
-            {data.recenzije && data.recenzije.length > 0 ? (
-              <div className="grid grid-cols-1 gap-6">
-                <p className="text-slate-400 font-bold uppercase text-[10px] -mb-3 tracking-widest italic">
-                  Baza od {data.brojRecenzija} recenzija
-                </p>
-                {data.recenzije.map((r, i) => (
-                  <RecenzijaKartica key={i} r={r} />
-                ))}
-              </div>
-            ) : (
-              <div className="py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                <div className="text-4xl mb-4 opacity-50">💬</div>
-                <p className="text-slate-400 font-medium italic">
-                  Postani prvi koji će ostaviti recenziju!
-                </p>
-              </div>
-            )}
-          </section>
+          <FacilityReviews
+            rating={data.ocjena}
+            reviewCount={data.brojRecenzija}
+            reviews={data.recenzije ?? []}
+            isAuthenticated={Boolean(korisnik)}
+            onAddReview={() => setIsObrazacOpen(true)}
+          />
         </div>
       </main>
 
