@@ -20,7 +20,7 @@ export default function HomeResultsState({
             key={index}
             aria-hidden="true"
             className="
-              h-[130px] rounded-card
+              h-32.5 rounded-card
               border border-primary-border
               bg-surface opacity-50
             "
@@ -34,7 +34,7 @@ export default function HomeResultsState({
     <div
       className="
         rounded-card border border-primary-border
-        bg-surface px-5 py-[60px] text-center
+        bg-surface px-5 py-15 text-center
       "
     >
       <div
