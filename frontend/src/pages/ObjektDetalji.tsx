@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import type { DetaljiObjekta } from "../types/index.ts";
 import InfoSekcija from "../components/InfoSekcija";
@@ -8,6 +8,7 @@ import RecenzijaKartica from "../components/RecenzijaKartica";
 import NovaRecenzijaObrazac from "../components/NovaRecenzijaObrazac.tsx";
 import NoviTerminObrazac from "../components/NoviTerminObrazac.tsx";
 import TjedniFilter from "../components/TjedniFilter.tsx";
+import FacilityHeader from "../components/FacilityDetails/FacilityHeader";
 
 export default function ObjektDetalji() {
   const { id } = useParams<{ id: string }>();
@@ -178,40 +179,13 @@ export default function ObjektDetalji() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
-        {/* Naslov + omiljeni */}
-        <div className="text-center mb-8 sm:mb-12 relative">
-          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tighter uppercase">
-            {data.naziv}
-          </h1>
-          {korisnik && (
-            <button
-              onClick={toggleOmiljeni}
-              className="absolute right-0 top-0 text-4xl hover:scale-110 transition-transform"
-              title={omiljen ? "Ukloni iz omiljenih" : "Dodaj u omiljene"}
-            >
-              {omiljen ? "❤️" : "🤍"}
-            </button>
-          )}
-          {!korisnik && (
-            <Link
-              to="/prijava"
-              className="absolute right-0 top-0 text-4xl hover:scale-110 transition-transform"
-              title="Prijavi se da spremiš omiljene"
-            >
-              🤍
-            </Link>
-          )}
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {data.sportovi.map((s) => (
-              <span
-                key={s}
-                className="px-4 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        </div>
+        <FacilityHeader
+          name={data.naziv}
+          sports={data.sportovi}
+          isAuthenticated={Boolean(korisnik)}
+          isFavorite={omiljen}
+          onToggleFavorite={toggleOmiljeni}
+        />
 
         {/* Glavni grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-8 mb-12">

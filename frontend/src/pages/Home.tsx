@@ -31,7 +31,6 @@ export default function Home() {
     districts: sviKvartovi,
     toggleSport,
     hasActiveFilters: aktivniFilteri,
-
   } = useHomeFilters();
 
   const {
@@ -191,74 +190,62 @@ export default function Home() {
           </button>
         </div>
         
-{/* FILTER ASIDE */}
-<HomeFilters
-  filterOtvoren={filterOtvoren}
+        <HomeFilters
+          filterOtvoren={filterOtvoren}
+          odabraniSportovi={odabraniSportovi}
+          odabraniKvart={odabraniKvart}
+          odabraniDatum={odabraniDatum}
+          odabraniPeriod={odabraniPeriod}
+          cijenaMin={cijenaMin}
+          cijenaMax={cijenaMax}
+          samoBesplatni={samoBesplatni}
+          sviKvartovi={sviKvartovi}
+          aktivniFilteri={aktivniFilteri}
+          toggleSport={toggleSport}
+          setOdabraniSportovi={setOdabraniSportovi}
+          setOdabraniKvart={setOdabraniKvart}
+          setOdabraniDatum={setOdabraniDatum}
+          setOdabraniPeriod={setOdabraniPeriod}
+          setCijenaMin={setCijenaMin}
+          setCijenaMax={setCijenaMax}
+          setSamoBesplatni={setSamoBesplatni}
+          onApply={() => {
+            setTrenutnaStr(1);
+            void dohvatiObjekte();
+            setFilterOtvoren(false);
+          }}
+        />
 
-  odabraniSportovi={odabraniSportovi}
-  odabraniKvart={odabraniKvart}
-  odabraniDatum={odabraniDatum}
-  odabraniPeriod={odabraniPeriod}
-  cijenaMin={cijenaMin}
-  cijenaMax={cijenaMax}
-  samoBesplatni={samoBesplatni}
+        <main>
+          <HomeResultsHeader
+            ucitavanje={ucitavanje}
+            brojRezultata={filtriraniObjekti.length}
+            searchQuery={searchQuery}
+            greska={greska}
+          />
 
-  sviKvartovi={sviKvartovi}
-  aktivniFilteri={aktivniFilteri}
-
-  toggleSport={toggleSport}
-
-  setOdabraniSportovi={setOdabraniSportovi}
-  setOdabraniKvart={setOdabraniKvart}
-  setOdabraniDatum={setOdabraniDatum}
-  setOdabraniPeriod={setOdabraniPeriod}
-  setCijenaMin={setCijenaMin}
-  setCijenaMax={setCijenaMax}
-  setSamoBesplatni={setSamoBesplatni}
-
-  onApply={() => {
-    setTrenutnaStr(1);
-    void dohvatiObjekte();
-    setFilterOtvoren(false);
-  }}
-/>
-
-        {/* MAIN - lista objekata */}
-<main>
-  <HomeResultsHeader
-    ucitavanje={ucitavanje}
-    brojRezultata={filtriraniObjekti.length}
-    searchQuery={searchQuery}
-    greska={greska}
-  />
-
-          
-{ucitavanje ? (
-  <HomeResultsState state="loading" />
-) : filtriraniObjekti.length === 0 ? (
-  <HomeResultsState state="empty" />
-) : (
-
+          {ucitavanje ? (
+            <HomeResultsState state="loading" />
+          ) : filtriraniObjekti.length === 0 ? (
+            <HomeResultsState state="empty" />
+          ) : (
             <>
               {vidljiviObjekti.map((obj) => (
-  <ObjectCard key={obj.id} facility={obj} />
-))}
-              
-<Pagination
-  currentPage={trenutnaStr}
-  totalPages={ukupnoStranica}
-  onPageChange={setTrenutnaStr}
-/>
+                <ObjectCard key={obj.id} facility={obj} />
+              ))}
 
+              <Pagination
+                currentPage={trenutnaStr}
+                totalPages={ukupnoStranica}
+                onPageChange={setTrenutnaStr}
+              />
             </>
           )}
         </main>
 
-        {/* MAPA - desni aside, skriven na mobitelu */}
-       
-<aside className="home-mapa-aside sticky top-20 h-[calc(100vh-96px)]">
-  <HomeMap facilities={filtriraniObjekti} />
-</aside>
+        <aside className="home-mapa-aside sticky top-20 h-[calc(100vh-96px)]">
+          <HomeMap facilities={filtriraniObjekti} />
+        </aside>
 
       </div>
     </>
