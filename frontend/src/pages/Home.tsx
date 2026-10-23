@@ -7,6 +7,7 @@ import HomeMap from "../components/Home/HomeMap";
 import ObjectCard from "../components/ObjectCard";
 import Pagination from "../components/Pagination";
 import type { SportsFacility } from "../types/sportsFacility";
+import { buildFacilityQuery } from "../utils/buildFacilityQuery";
 
 const API_URL = `http://localhost:5000/api`;
 
@@ -54,14 +55,15 @@ export default function Home() {
     setGreska(null);
     try {
       setTrenutnaStr(1);
-      const params = new URLSearchParams();
-      odabraniSportovi.forEach((sport) => params.append("sport", sport));
-      if (odabraniKvart !== "Svi kvartovi") params.set("kvart", odabraniKvart);
-      if (odabraniDatum) params.set("datum", odabraniDatum);
-      if (odabraniPeriod) params.set("period", odabraniPeriod);
-      if (samoBesplatni) params.set("besplatni", "true");
-      if (!samoBesplatni && cijenaMin) params.set("cijenaMin", cijenaMin);
-      if (!samoBesplatni && cijenaMax) params.set("cijenaMax", cijenaMax);
+      const params = buildFacilityQuery({
+        selectedSports: odabraniSportovi,
+        selectedDistrict: odabraniKvart,
+        selectedDate: odabraniDatum,
+        selectedPeriod: odabraniPeriod,
+        minPrice: cijenaMin,
+        maxPrice: cijenaMax,
+        freeOnly: samoBesplatni,
+      });
 
       const res = await fetch(`${API_URL}/objekti?${params.toString()}`);
       if (!res.ok) throw new Error("Greška pri dohvaćanju podataka");
@@ -91,15 +93,15 @@ export default function Home() {
       setUcitavanje(true);
       setGreska(null);
       try {
-        const params = new URLSearchParams();
-        odabraniSportovi.forEach((sport) => params.append("sport", sport));
-        if (odabraniKvart !== "Svi kvartovi")
-          params.set("kvart", odabraniKvart);
-        if (odabraniDatum) params.set("datum", odabraniDatum);
-        if (odabraniPeriod) params.set("period", odabraniPeriod);
-        if (samoBesplatni) params.set("besplatni", "true");
-        if (!samoBesplatni && cijenaMin) params.set("cijenaMin", cijenaMin);
-        if (!samoBesplatni && cijenaMax) params.set("cijenaMax", cijenaMax);
+        const params = buildFacilityQuery({
+          selectedSports: odabraniSportovi,
+          selectedDistrict: odabraniKvart,
+          selectedDate: odabraniDatum,
+          selectedPeriod: odabraniPeriod,
+          minPrice: cijenaMin,
+          maxPrice: cijenaMax,
+          freeOnly: samoBesplatni,
+        });
 
         const res = await fetch(`${API_URL}/objekti?${params.toString()}`);
         if (!res.ok) throw new Error("Greška pri dohvaćanju podataka");
