@@ -77,7 +77,7 @@ export default function NewSlotsForm({
                 onChange={(e) =>
                   setFormData({ ...formData, vrijemePocetka: e.target.value })
                 }
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600/70 focus:blue-600 outline-none transition-all font-bold text-slate-700"
+                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600/70 focus:border-blue-600 outline-none transition-all font-bold text-slate-700"
               />
             </div>
             <div>
@@ -90,7 +90,7 @@ export default function NewSlotsForm({
                 onChange={(e) =>
                   setFormData({ ...formData, vrijemeKraja: e.target.value })
                 }
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600/70 focus:blue-600 outline-none transition-all font-bold text-slate-700"
+                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600/70 focus:border-blue-600 outline-none transition-all font-bold text-slate-700"
               />
             </div>
           </div>
