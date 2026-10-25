@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import type { Termin } from "../../types";
-import TerminKartica from "../TerminKartica";
+import TimeSlotCard from "./TimeSlotCard";
 
 type FacilityScheduleProps = {
   slots: Termin[];
@@ -207,7 +207,7 @@ visibleSlots.map((slot) => {
 
               return (
                 <div key={slot.id} className="relative">
-                  <TerminKartica
+                  <TimeSlotCard
                     id={slot.id}
                     idKorisnika={slot.idKorisnika}
                     datum={slot.datum}

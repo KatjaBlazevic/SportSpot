@@ -1,13 +1,13 @@
 import { useState } from "react";
-import type { Termin } from "../types";
-import { useAuth } from "../context/useAuth";
-interface TerminKarticaProps extends Termin {
+import type { Termin } from "../../types";
+import { useAuth } from "../../context/useAuth";
+interface TimeSlotCardProps extends Termin {
   onRezervacija?: () => void;
   jeMojTermin?: boolean;
   jeVlasnikObjekta?: boolean;
 }
 
-export default function TerminKartica({
+export default function TimeSlotCard({
   id,
   datum,
   vrijemePocetka,
@@ -18,7 +18,7 @@ export default function TerminKartica({
   jeMojTermin,
   jeVlasnikObjekta,
   idKorisnika,
-}: TerminKarticaProps) {
+}: TimeSlotCardProps) {
   //popupovi
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isOtkaziPopupOpen, setIsOtkaziPopupOpen] = useState(false);
