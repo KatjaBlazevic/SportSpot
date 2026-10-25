@@ -14,7 +14,7 @@ import FacilityHeader from "../components/FacilityDetails/FacilityHeader";
 export default function ObjektDetalji() {
   const { id } = useParams<{ id: string }>();
   const { korisnik } = useAuth();
-  
+
   const { data, refetch } = useFacilityDetails(id);
 
   const { isFavorite, toggleFavorite } = useFacilityFavorites({
@@ -27,13 +27,11 @@ export default function ObjektDetalji() {
   const [isObrazacOpen, setIsObrazacOpen] = useState(false);
   const [isTerminObrazacOpen, setIsTerminObrazacOpen] = useState(false);
 
-  
   const { submitReview, submitSlots } = useFacilityActions({
     facilityId: data?.id,
     onReviewSuccess: () => setIsObrazacOpen(false),
     onSlotsSuccess: () => setIsTerminObrazacOpen(false),
   });
-
 
   if (!data)
     return (
@@ -73,7 +71,7 @@ export default function ObjektDetalji() {
               sportovi={data.sportovi}
             />
           </div>
-          
+
           <FacilitySchedule
             slots={data.termini ?? []}
             currentUserId={korisnik ? Number(korisnik.id) : null}
@@ -82,7 +80,7 @@ export default function ObjektDetalji() {
             onAddSlot={() => setIsTerminObrazacOpen(true)}
             onRefresh={refetch}
           />
-  
+
           <FacilityReviews
             rating={data.ocjena}
             reviewCount={data.brojRecenzija}
@@ -92,7 +90,6 @@ export default function ObjektDetalji() {
           />
         </div>
       </main>
-
 
       <ReviewForm
         isOpen={isObrazacOpen}
@@ -106,7 +103,6 @@ export default function ObjektDetalji() {
         onSubmit={submitSlots}
         objektNaziv={data.naziv}
       />
-
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import type { Termin } from "../../types";
 import TimeSlotCard from "./TimeSlotCard";
@@ -185,19 +184,21 @@ export default function FacilitySchedule({
 
         <div className="space-y-3">
           {visibleSlots.length > 0 ? (
-visibleSlots.map((slot) => {
-  const slotStart = new Date(slot.datum);
-  const [hours, minutes] = slot.vrijemePocetka.split(":").map(Number);
+            visibleSlots.map((slot) => {
+              const slotStart = new Date(slot.datum);
+              const [hours, minutes] = slot.vrijemePocetka
+                .split(":")
+                .map(Number);
 
-  slotStart.setHours(hours, minutes, 0, 0);
+              slotStart.setHours(hours, minutes, 0, 0);
 
-  const isPastSlot = slotStart <= new Date();
+              const isPastSlot = slotStart <= new Date();
 
-  const isMySlot = Boolean(
-    slot.status !== "Slobodan" &&
-      currentUserId &&
-      Number(slot.idKorisnika) === currentUserId,
-  );
+              const isMySlot = Boolean(
+                slot.status !== "Slobodan" &&
+                currentUserId &&
+                Number(slot.idKorisnika) === currentUserId,
+              );
 
               const waitingListIds = slot.lista_ids || [];
               const waitingListPosition = waitingListIds.indexOf(
@@ -221,11 +222,11 @@ visibleSlots.map((slot) => {
                     jeVlasnikObjekta={isOwner}
                   />
 
-{slot.status !== "Slobodan" &&
-  !isPastSlot &&
-  isAuthenticated &&
-  !isMySlot &&
-  !isOwner && (
+                  {slot.status !== "Slobodan" &&
+                    !isPastSlot &&
+                    isAuthenticated &&
+                    !isMySlot &&
+                    !isOwner && (
                       <div className="mt-2 w-full">
                         {isOnWaitingList ? (
                           <div className="flex w-full items-center gap-2">
