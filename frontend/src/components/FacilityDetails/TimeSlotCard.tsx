@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Termin } from "../../types";
 import { useAuth } from "../../context/useAuth";
+import TimeSlotDialogs from "./TimeSlotDialogs";
 interface TimeSlotCardProps extends Termin {
   onRezervacija?: () => void;
   jeMojTermin?: boolean;
@@ -295,214 +296,35 @@ export default function TimeSlotCard({
         </div>
       </div>
 
-      {isPopupOpen && jeSlobodan && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform transition-all scale-100 animate-in fade-in zoom-in duration-200">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-                📅
-              </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">
-                Potvrda rezervacije
-              </h3>
-              <p className="text-slate-500 text-sm mb-6">
-                Želite li rezervirati termin u{" "}
-                <span className="font-bold text-slate-700">
-                  {vrijemePocetka}h
-                </span>{" "}
-                dana{" "}
-                <span className="font-bold text-slate-700">
-                  {new Date(datum).toLocaleDateString("hr-HR")}
-                </span>
-                ?
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setIsPopupOpen(false)}
-                  className="flex-1 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-100 transition-colors"
-                >
-                  Odustani
-                </button>
-                <button
-                  onClick={handlePotvrdiRezervaciju}
-                  className="flex-1 px-4 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
-                >
-                  Rezerviraj
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+     
+      <TimeSlotDialogs
+        date={datum}
+        startTime={vrijemePocetka}
+        isAvailable={jeSlobodan}
+        isMySlot={Boolean(jeMojTermin)}
+        isBookingOpen={isPopupOpen}
+        isCancellationOpen={isOtkaziPopupOpen}
+        isEditingOpen={isUrediPopupOpen}
+        isGuestBookingOpen={isGostPopupOpen}
+        guestEmail={emailGosta}
+        onGuestEmailChange={setEmailGosta}
+        newPrice={novaCijena}
+        onNewPriceChange={setNovaCijena}
+        newStartTime={novoVrijemePocetka}
+        onNewStartTimeChange={setNovoVrijemePocetka}
+        newEndTime={novoVrijemeKraja}
+        onNewEndTimeChange={setNovoVrijemeKraja}
+        onCloseBooking={() => setIsPopupOpen(false)}
+        onCloseCancellation={() => setIsOtkaziPopupOpen(false)}
+        onCloseEditing={() => setIsUrediPopupOpen(false)}
+        onCloseGuestBooking={() => setIsGostPopupOpen(false)}
+        onConfirmBooking={handlePotvrdiRezervaciju}
+        onConfirmCancellation={handlePotvrdiOtkazivanje}
+        onSaveChanges={handleSpremiIzmjene}
+        onDeleteSlot={handleObrisiTermin}
+        onConfirmGuestBooking={handleRezervacijaGosta}
+      />
 
-      {isOtkaziPopupOpen && jeMojTermin && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform transition-all scale-100 animate-in fade-in zoom-in duration-200">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-                🗑️
-              </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">
-                Otkaži rezervaciju
-              </h3>
-              <p className="text-slate-500 text-sm mb-6">
-                Jeste li sigurni da želite otkazati termin u{" "}
-                <span className="font-bold text-red-700">
-                  {vrijemePocetka}h
-                </span>{" "}
-                dana{" "}
-                <span className="font-bold text-slate-700">
-                  {new Date(datum).toLocaleDateString("hr-HR")}
-                </span>
-                ?
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setIsOtkaziPopupOpen(false)}
-                  className="flex-1 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-100 transition-colors"
-                >
-                  Odustani
-                </button>
-                <button
-                  onClick={handlePotvrdiOtkazivanje}
-                  className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-95"
-                >
-                  Otkaži
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {isUrediPopupOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-start mb-6">
-              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-                Uredi termin
-              </h3>
-
-              {/* Gumb za brisanje */}
-              <button
-                onClick={handleObrisiTermin}
-                className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
-                  Cijena (€)
-                </label>
-                <input
-                  type="number"
-                  value={novaCijena}
-                  onChange={(e) => setNovaCijena(Number(e.target.value))}
-                  className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl font-bold mt-1"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
-                    Početak
-                  </label>
-                  <input
-                    type="time"
-                    value={novoVrijemePocetka}
-                    onChange={(e) => setNovoVrijemePocetka(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl mt-1"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
-                    Kraj
-                  </label>
-                  <input
-                    type="time"
-                    value={novoVrijemeKraja}
-                    onChange={(e) => setNovoVrijemeKraja(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl mt-1"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <button
-                  onClick={() => setIsUrediPopupOpen(false)}
-                  className="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl"
-                >
-                  Odustani
-                </button>
-                <button
-                  onClick={handleSpremiIzmjene}
-                  className="flex-1 py-3 bg-slate-900 text-white font-black uppercase text-xs rounded-xl hover:bg-black shadow-lg"
-                >
-                  Spremi
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* POPUP za gosta */}
-      {isGostPopupOpen && jeSlobodan && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-                📧
-              </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2 uppercase italic">
-                Brza Rezervacija
-              </h3>
-              <p className="text-slate-500 text-sm mb-6">
-                Niste prijavljeni? Nema problema. Unesite email i termin je vaš!
-              </p>
-
-              <div className="mb-6">
-                <input
-                  type="email"
-                  placeholder="Vaš email adresa..."
-                  value={emailGosta}
-                  onChange={(e) => setEmailGosta(e.target.value)}
-                  className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-center"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setIsGostPopupOpen(false)}
-                  className="flex-1 px-4 py-3 rounded-xl text-slate-400 font-bold hover:bg-slate-50 transition-colors"
-                >
-                  Odustani
-                </button>
-                <button
-                  onClick={handleRezervacijaGosta}
-                  className="flex-1 px-4 py-4 rounded-xl bg-blue-600 text-white font-black uppercase text-xs hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
-                >
-                  Potvrdi
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
