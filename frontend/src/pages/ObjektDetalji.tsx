@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import type { DetaljiObjekta } from "../types/index.ts";
+import useFacilityDetails from "../hooks/useFacilityDetails";
+import useFacilityFavorites from "../hooks/useFacilityFavorites";
 import FacilityInfo from "../components/FacilityDetails/FacilityInfo";
 import FacilitySchedule from "../components/FacilityDetails/FacilitySchedule";
 import FacilityReviews from "../components/FacilityDetails/FacilityReviews";
@@ -12,43 +13,19 @@ import FacilityHeader from "../components/FacilityDetails/FacilityHeader";
 export default function ObjektDetalji() {
   const { id } = useParams<{ id: string }>();
   const { korisnik } = useAuth();
-  const [data, setData] = useState<DetaljiObjekta | null>(null);
-  const [isObrazacOpen, setIsObrazacOpen] = useState(false);
-  const [isTerminObrazacOpen, setIsTerminObrazacOpen] = useState(false);
-  const [omiljen, setOmiljen] = useState<boolean>(() => {
-    const saved = localStorage.getItem("sportspot_omiljeni");
-    if (saved && id) {
-      const omiljeni = JSON.parse(saved) as { id: number }[];
-      return omiljeni.some((o) => o.id === Number(id));
-    }
-    return false;
+  
+  const { data, refetch } = useFacilityDetails(id);
+
+  const { isFavorite, toggleFavorite } = useFacilityFavorites({
+    facilityId: id,
+    facilityName: data?.naziv ?? "",
+    facilityAddress: data?.adresa ?? "",
+    isAuthenticated: Boolean(korisnik),
   });
 
-  const dohvatiPodatke = useCallback(() => {
-    fetch(`http://localhost:5000/api/objekti/${id}`)
-      .then((res) => res.json())
-      .then((json: DetaljiObjekta) => {
-        setData(json);
-      })
-      .catch((err) => console.error("Greška:", err));
-  }, [id]);
+  const [isObrazacOpen, setIsObrazacOpen] = useState(false);
+  const [isTerminObrazacOpen, setIsTerminObrazacOpen] = useState(false);
 
-  const toggleOmiljeni = () => {
-    if (!korisnik) return;
-    const saved = localStorage.getItem("sportspot_omiljeni");
-    let omiljeni = saved ? JSON.parse(saved) : [];
-    if (omiljen) {
-      omiljeni = omiljeni.filter((o: { id: number }) => o.id !== Number(id));
-    } else {
-      omiljeni.push({
-        id: Number(id),
-        naziv: data?.naziv || "",
-        adresa: data?.adresa || "",
-      });
-    }
-    localStorage.setItem("sportspot_omiljeni", JSON.stringify(omiljeni));
-    setOmiljen(!omiljen);
-  };
 
   const handleRecenzijaSubmit = async (ocjena: number, komentar: string) => {
     try {
@@ -119,9 +96,7 @@ export default function ObjektDetalji() {
     }
   };
 
-  useEffect(() => {
-    dohvatiPodatke();
-  }, [dohvatiPodatke]);
+
 
   if (!data)
     return (
@@ -141,8 +116,8 @@ export default function ObjektDetalji() {
           name={data.naziv}
           sports={data.sportovi}
           isAuthenticated={Boolean(korisnik)}
-          isFavorite={omiljen}
-          onToggleFavorite={toggleOmiljeni}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
         />
 
         {/* Glavni grid */}
@@ -168,7 +143,7 @@ export default function ObjektDetalji() {
             isAuthenticated={Boolean(korisnik)}
             isOwner={jeVlasnik}
             onAddSlot={() => setIsTerminObrazacOpen(true)}
-            onRefresh={dohvatiPodatke}
+            onRefresh={refetch}
           />
   
           <FacilityReviews
