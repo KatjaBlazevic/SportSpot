@@ -1,10 +1,10 @@
 import { useState } from "react";
+import type { NewSlotsData } from "../../hooks/useFacilityActions";
 
 interface NewSlotsFormProps {
   isOpen: boolean;
   onClose: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSubmit: (data: any) => void;
+  onSubmit: (data: NewSlotsData) => void;
   objektNaziv: string;
 }
 
