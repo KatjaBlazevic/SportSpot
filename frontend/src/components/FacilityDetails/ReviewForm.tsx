@@ -1,18 +1,18 @@
 import { useState } from "react";
 
-interface Props {
+interface ReviewFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (ocjena: number, komentar: string) => void;
   objektNaziv: string;
 }
 
-export default function NovaRecenzijaObrazac({
+export default function ReviewForm({
   isOpen,
   onClose,
   onSubmit,
   objektNaziv,
-}: Props) {
+}: ReviewFormProps) {
   const [ocjena, setOcjena] = useState(0);
   const [hover, setHover] = useState(0);
   const [komentar, setKomentar] = useState("");

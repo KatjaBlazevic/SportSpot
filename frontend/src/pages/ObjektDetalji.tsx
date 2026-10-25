@@ -5,8 +5,8 @@ import type { DetaljiObjekta } from "../types/index.ts";
 import FacilityInfo from "../components/FacilityDetails/FacilityInfo";
 import FacilitySchedule from "../components/FacilityDetails/FacilitySchedule";
 import FacilityReviews from "../components/FacilityDetails/FacilityReviews";
-import NovaRecenzijaObrazac from "../components/NovaRecenzijaObrazac.tsx";
-import NoviTerminObrazac from "../components/NoviTerminObrazac.tsx";
+import ReviewForm from "../components/FacilityDetails/ReviewForm";
+import NewSlotsForm from "../components/FacilityDetails/NewSlotsForm";
 import FacilityHeader from "../components/FacilityDetails/FacilityHeader";
 
 export default function ObjektDetalji() {
@@ -181,13 +181,13 @@ export default function ObjektDetalji() {
         </div>
       </main>
 
-      <NovaRecenzijaObrazac
+      <ReviewForm
         isOpen={isObrazacOpen}
         onClose={() => setIsObrazacOpen(false)}
         onSubmit={handleRecenzijaSubmit}
         objektNaziv={data.naziv}
       />
-      <NoviTerminObrazac
+      <NewSlotsForm
         isOpen={isTerminObrazacOpen}
         onClose={() => setIsTerminObrazacOpen(false)}
         onSubmit={handleTerminSubmit}

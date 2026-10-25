@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-interface Props {
+interface NewSlotsFormProps {
   isOpen: boolean;
   onClose: () => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -8,12 +8,12 @@ interface Props {
   objektNaziv: string;
 }
 
-export default function NoviTerminObrazac({
+export default function NewSlotsForm({
   isOpen,
   onClose,
   onSubmit,
   objektNaziv,
-}: Props) {
+}: NewSlotsFormProps) {
   const [formData, setFormData] = useState({
     datumPocetka: "",
     vrijemePocetka: "",
