@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import type { DetaljiObjekta } from "../types/index.ts";
-import InfoSekcija from "../components/InfoSekcija";
+import FacilityInfo from "../components/FacilityDetails/FacilityInfo";
 import FacilitySchedule from "../components/FacilityDetails/FacilitySchedule";
 import FacilityReviews from "../components/FacilityDetails/FacilityReviews";
 import NovaRecenzijaObrazac from "../components/NovaRecenzijaObrazac.tsx";
@@ -147,9 +147,8 @@ export default function ObjektDetalji() {
 
         {/* Glavni grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-8 mb-12">
-          {/* InfoSekcija - desno na desktopu, prvo na mobitelu */}
-          <div className="lg:col-span-1 lg:col-start-2 lg:row-start-1 space-y-8">
-            <InfoSekcija
+          <div className="space-y-8 lg:col-span-1 lg:col-start-2 lg:row-start-1">
+            <FacilityInfo
               slikaUrl={data.slikaUrl || ""}
               adresa={data.adresa}
               kvart={data.kvart}

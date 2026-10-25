@@ -37,13 +37,3 @@ export interface DetaljiObjekta {
   lng: number | null;
 }
 
-export interface InfoSekcijaProps {
-  adresa: string;
-  kvart: string;
-  kapacitet: number;
-  klub: string;
-  opis: string;
-  lat?: number | null;
-  lng?: number | null;
-  naziv?: string;
-}
