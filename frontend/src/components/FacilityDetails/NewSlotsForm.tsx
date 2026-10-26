@@ -8,6 +8,19 @@ interface NewSlotsFormProps {
   objektNaziv: string;
 }
 
+// TODO: Implementirati napredno kreiranje i ponavljanje termina.
+// - Omogućiti odabir dana u tjednu kojima objekt radi (npr. ponedjeljak–petak).
+// - Omogućiti isključivanje pojedinih dana iz tjednog ponavljanja (npr. vikenda).
+// - Omogućiti unos početka i kraja radnog vremena (npr. 08:00–20:00).
+// - Automatski generirati termine unutar zadanog radnog vremena.
+// - Omogućiti odabir trajanja termina (npr. 30, 60, 90 ili 120 minuta).
+// - Omogućiti definiranje pauza i nedostupnih sati (npr. 12:00–14:00).
+// - Podržati različito radno vrijeme za pojedine dane u tjednu.
+// - Omogućiti izuzimanje određenih datuma (praznici, neradni dani i sl.).
+// - Prikazati pregled svih generiranih termina prije spremanja.
+// - Omogućiti ručno uklanjanje ili izmjenu pojedinih generiranih termina.
+// - Prilagoditi backend logiku za generiranje termina prema zadanim pravilima.
+
 export default function NewSlotsForm({
   isOpen,
   onClose,
