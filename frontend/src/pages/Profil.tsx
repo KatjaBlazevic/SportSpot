@@ -1,9 +1,8 @@
-import { useAuth } from "../context/useAuth";
-import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import ProfilKorisnik from "./ProfilKorisnik";
-import ProfilVlasnik from "./ProfilVlasnik";
-import ProfilAdmin from "./ProfilAdmin";
+import { useNavigate } from "react-router-dom";
+
+import { useAuth } from "../context/useAuth";
+import ProfileLayout from "../components/Profile/ProfileLayout";
 
 export default function Profil() {
   const { korisnik, ucitavanje } = useAuth();
@@ -11,7 +10,7 @@ export default function Profil() {
 
   useEffect(() => {
     if (!ucitavanje && !korisnik) {
-      navigate("/prijava");
+      navigate("/prijava", { replace: true });
     }
   }, [ucitavanje, korisnik, navigate]);
 
@@ -19,13 +18,5 @@ export default function Profil() {
     return null;
   }
 
-  if (korisnik.uloga === "Admin") {
-    return <ProfilAdmin />;
-  }
-
-  if (korisnik.uloga === "Vlasnik") {
-    return <ProfilVlasnik />;
-  }
-
-  return <ProfilKorisnik />;
+  return <ProfileLayout key={korisnik.uloga} korisnik={korisnik} />;
 }
