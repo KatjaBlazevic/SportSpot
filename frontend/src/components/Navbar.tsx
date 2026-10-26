@@ -6,11 +6,13 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobMenuOtvoren, setMobMenuOtvoren] = useState(false);
   const [mobSearchOtvoren, setMobSearchOtvoren] = useState(false);
+
   const navigate = useNavigate();
   const { korisnik, odjava } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
       setMobSearchOtvoren(false);
@@ -24,155 +26,78 @@ export default function Navbar() {
     setMobMenuOtvoren(false);
   };
 
+  const searchInputClass =
+    "w-full rounded-full border border-border-default " +
+    "bg-surface-soft py-2.5 pr-4 pl-[42px] " +
+    "text-sm text-text-primary outline-none transition-all " +
+    "placeholder:text-text-muted " +
+    "focus:border-primary-light focus:bg-surface " +
+    "focus:ring-3 focus:ring-primary-light/10";
+
   return (
-    <nav
-      style={{
-        background: "#FFFFFF",
-        borderBottom: "1px solid #E8EEFF",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        boxShadow: "0 2px 12px rgba(37,99,235,0.07)",
-      }}
-    >
+    <nav className="sticky top-0 z-[100] border-b border-primary-border bg-surface shadow-sport-card">
       {/* Glavna navbar traka */}
-      <div
-        style={{
-          maxWidth: 1400,
-          margin: "0 auto",
-          padding: "0 24px",
-          height: 64,
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-        }}
-      >
+      <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-4 px-6">
         {/* Logo */}
-        <Link
-          to="/"
-          style={{
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
-              borderRadius: 10,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <Link to="/" className="flex shrink-0 items-center gap-2 no-underline">
+          <div className="bg-brand-gradient flex size-9 items-center justify-center rounded-[10px]">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden="true"
+            >
               <path
                 d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
-                fill="white"
+                fill="currentColor"
+                className="text-text-inverse"
               />
             </svg>
           </div>
-          <span
-            style={{
-              fontFamily: "'DM Sans', 'Outfit', sans-serif",
-              fontWeight: 800,
-              fontSize: 22,
-              color: "#1D4ED8",
-              letterSpacing: "-0.5px",
-            }}
-          >
+
+          <span className="text-[22px] font-extrabold tracking-tight text-primary">
             SportSpot
           </span>
         </Link>
 
-        {/* Search Bar - desktop */}
-        <form
-          onSubmit={handleSearch}
-          className="navbar-search-wrapper"
-          style={{ flex: 1, maxWidth: 480, margin: "0 auto" }}
-        >
-          <div
-            style={{ position: "relative", display: "flex", alignItems: "center" }}
-          >
+        {/* Search bar - desktop */}
+        <form onSubmit={handleSearch} className="navbar-search-wrapper">
+          <div className="relative flex items-center">
             <svg
-              style={{
-                position: "absolute",
-                left: 14,
-                color: "#9CA3AF",
-                flexShrink: 0,
-              }}
+              className="pointer-events-none absolute left-3.5 shrink-0 text-text-muted"
               width="18"
               height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
+              aria-hidden="true"
             >
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
+
             <input
               type="text"
               placeholder="Pretraži terene..."
+              aria-label="Pretraži terene"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 16px 10px 42px",
-                borderRadius: 999,
-                border: "1.5px solid #E5E7EB",
-                background: "#F9FAFB",
-                fontSize: 14,
-                fontFamily: "inherit",
-                color: "#111827",
-                outline: "none",
-                transition: "border-color 0.2s, box-shadow 0.2s",
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = "#3B82F6";
-                e.target.style.boxShadow = "0 0 0 3px rgba(59,130,246,0.12)";
-                e.target.style.background = "#fff";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "#E5E7EB";
-                e.target.style.boxShadow = "none";
-                e.target.style.background = "#F9FAFB";
-              }}
+              className={searchInputClass}
             />
           </div>
         </form>
 
         {/* Desna strana */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            flexShrink: 0,
-            marginLeft: "auto",
-          }}
-        >
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           {/* Mobilna ikona pretrage */}
           <button
-            className="navbar-mob-search"
+            type="button"
+            className="navbar-mob-search size-10 shrink-0 cursor-pointer rounded-full border border-border-default bg-surface text-text-secondary"
             onClick={() => setMobSearchOtvoren(!mobSearchOtvoren)}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: "50%",
-              border: "1.5px solid #E5E7EB",
-              background: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: "#6B7280",
-              flexShrink: 0,
-            }}
+            aria-label="Pretraži"
+            aria-expanded={mobSearchOtvoren}
           >
             <svg
               width="18"
@@ -181,6 +106,7 @@ export default function Navbar() {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
+              aria-hidden="true"
             >
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
@@ -189,9 +115,11 @@ export default function Navbar() {
 
           {/* Hamburger gumb */}
           <button
+            type="button"
             className="navbar-hamburger"
             onClick={() => setMobMenuOtvoren(!mobMenuOtvoren)}
             aria-label="Izbornik"
+            aria-expanded={mobMenuOtvoren}
           >
             {mobMenuOtvoren ? (
               <svg
@@ -201,6 +129,7 @@ export default function Navbar() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
+                aria-hidden="true"
               >
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
@@ -212,6 +141,7 @@ export default function Navbar() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
+                aria-hidden="true"
               >
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <line x1="3" y1="12" x2="21" y2="12" />
@@ -220,7 +150,7 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Pomoć + Auth gumbi (wrappani za hamburger menu) */}
+          {/* Pomoć i autentikacija */}
           <div
             className={
               mobMenuOtvoren
@@ -233,119 +163,55 @@ export default function Navbar() {
               href="/sportspot-pomoc.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                border: "1.5px solid #E5E7EB",
-                background: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                color: "#6B7280",
-                textDecoration: "none",
-                fontWeight: 700,
-                fontSize: 18,
-                flexShrink: 0,
-              }}
+              aria-label="Pomoć"
+              className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border-default bg-surface text-lg font-bold text-text-secondary no-underline transition-colors hover:bg-surface-soft"
             >
-              <span>{"?"}</span>
+              ?
             </a>
 
             {korisnik ? (
               <>
+                {/* Korisnički profil */}
                 <Link
                   to="/profil"
                   onClick={() => setMobMenuOtvoren(false)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "6px 12px",
-                    borderRadius: 999,
-                    border: "1.5px solid #E5E7EB",
-                    background: "#F9FAFB",
-                    textDecoration: "none",
-                  }}
+                  className="flex items-center gap-2 rounded-full border border-border-default bg-surface-soft px-3 py-1.5 no-underline transition-colors hover:bg-primary-soft"
                 >
-                  <div
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      background:
-                        "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      fontWeight: 700,
-                      fontSize: 12,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span>{korisnik.ime.charAt(0).toUpperCase()}</span>
+                  <div className="bg-brand-gradient flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-text-inverse">
+                    {korisnik.ime.charAt(0).toUpperCase()}
                   </div>
-                  <span
-                    style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}
-                  >
+
+                  <span className="text-sm font-semibold text-text-primary">
                     {korisnik.ime}
                   </span>
                 </Link>
 
                 <button
+                  type="button"
                   onClick={handleOdjava}
-                  style={{
-                    padding: "8px 18px",
-                    borderRadius: 999,
-                    border: "1.5px solid #E5E7EB",
-                    background: "transparent",
-                    color: "#6B7280",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
+                  className="cursor-pointer rounded-full border border-border-default bg-transparent px-[18px] py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-surface-soft"
                 >
-                  <span>Odjavi se</span>
+                  Odjavi se
                 </button>
               </>
             ) : (
               <>
+                {/* Prijava */}
                 <Link
                   to="/prijava"
                   onClick={() => setMobMenuOtvoren(false)}
-                  style={{
-                    padding: "8px 18px",
-                    borderRadius: 999,
-                    border: "1.5px solid #1D4ED8",
-                    color: "#1D4ED8",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    textDecoration: "none",
-                    fontFamily: "inherit",
-                  }}
+                  className="btn-secondary rounded-full px-[18px] py-2 text-sm font-semibold no-underline"
                 >
-                  <span>Prijavi se</span>
+                  Prijavi se
                 </Link>
 
+                {/* Registracija */}
                 <Link
                   to="/registracija"
                   onClick={() => setMobMenuOtvoren(false)}
-                  style={{
-                    padding: "8px 18px",
-                    borderRadius: 999,
-                    background:
-                      "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
-                    color: "#fff",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    textDecoration: "none",
-                    boxShadow: "0 2px 8px rgba(29,78,216,0.25)",
-                  }}
+                  className="bg-brand-gradient rounded-full px-[18px] py-2 text-sm font-semibold text-text-inverse no-underline shadow-sport-primary transition-opacity hover:opacity-90"
                 >
-                  <span>Registriraj se</span>
+                  Registriraj se
                 </Link>
               </>
             )}
@@ -353,54 +219,33 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobilna search traka - ispod navbara */}
+      {/* Mobilna search traka */}
       {mobSearchOtvoren && (
-        <div
-          style={{
-            padding: "8px 16px 12px",
-            borderTop: "1px solid #F3F4F6",
-            background: "#fff",
-          }}
-        >
+        <div className="border-t border-border-light bg-surface px-4 pt-2 pb-3">
           <form onSubmit={handleSearch}>
-            <div
-              style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
+            <div className="relative flex items-center">
               <svg
-                style={{ position: "absolute", left: 14, color: "#9CA3AF" }}
+                className="pointer-events-none absolute left-3.5 text-text-muted"
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
+                aria-hidden="true"
               >
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.35-4.35" />
               </svg>
+
               <input
                 type="text"
                 placeholder="Pretraži terene..."
+                aria-label="Pretraži terene"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
-                style={{
-                  width: "100%",
-                  padding: "10px 16px 10px 42px",
-                  borderRadius: 999,
-                  border: "1.5px solid #3B82F6",
-                  background: "#fff",
-                  fontSize: 14,
-                  fontFamily: "inherit",
-                  color: "#111827",
-                  outline: "none",
-                  boxShadow: "0 0 0 3px rgba(59,130,246,0.12)",
-                  boxSizing: "border-box",
-                }}
+                className={`${searchInputClass} border-primary-light bg-surface ring-3 ring-primary-light/10`}
               />
             </div>
           </form>

@@ -170,7 +170,7 @@
   border: none;
   cursor: pointer;
   padding: 6px;
-  color: #1d4ed8;
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
@@ -212,12 +212,12 @@
     top: 64px;
     left: 0;
     right: 0;
-    background: #fff;
-    border-bottom: 1.5px solid #e8eeff;
+    background: var(--color-surface);
+    border-bottom: 1.5px solid var(--color-primary-border);
     padding: 16px;
     gap: 10px;
     z-index: 150;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sport-elevated);
   }
 
   .navbar-auth-gumbi.mob-menu-otvoren a,
