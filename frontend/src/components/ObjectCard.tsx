@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import type { SportsFacility } from "../types/sportsFacility";
 
@@ -33,9 +32,7 @@ function SportIcon({ sport }: { sport: string }) {
 // TODO: Tijekom mobilnog refaktoriranja zamijeniti postojeće
 // responsive CSS klase Tailwind breakpoint klasama.
 
-export default function ObjectCard({
-  facility,
-}: ObjectCardProps) {
+export default function ObjectCard({ facility }: ObjectCardProps) {
   const availableSlots = facility.termini.filter(
     (slot) => slot.status === "Slobodan",
   );
@@ -60,7 +57,7 @@ export default function ObjectCard({
             flex h-22.5 w-27.5 shrink-0
             items-center justify-center
             overflow-hidden rounded-control
-            bg-linear-to-br from-blue-100 to-violet-100
+            bg-linear-to-br from-primary-soft to-background-accent
             text-[32px]
           "
         >
@@ -78,10 +75,7 @@ export default function ObjectCard({
         </div>
 
         <div className="min-w-0 flex-1">
-          <Link
-            to={`/objekt/${facility.id}`}
-            className="no-underline"
-          >
+          <Link to={`/objekt/${facility.id}`} className="no-underline">
             <h3
               className="
                 text-[17px] font-bold text-primary
@@ -117,9 +111,7 @@ export default function ObjectCard({
 
             {facility.ocjena !== null && (
               <>
-                <span className="ml-1.5">
-                  ⭐ {facility.ocjena}
-                </span>
+                <span className="ml-1.5">⭐ {facility.ocjena}</span>
 
                 <span className="text-text-muted">
                   ({facility.brojRecenzija} recenzija)
@@ -163,7 +155,6 @@ export default function ObjectCard({
           ) : (
             <div className="text-section-heading font-extrabold text-text-primary">
               {facility.cijenaOd}€
-
               <span className="text-[13px] font-medium text-text-secondary">
                 /h
               </span>
@@ -175,11 +166,7 @@ export default function ObjectCard({
       <div
         className={`
           border-t border-border-light px-4 py-2.5
-          ${
-            hasAvailableSlots
-              ? "bg-green-50"
-              : "bg-surface-soft"
-          }
+          ${hasAvailableSlots ? "bg-success-soft" : "bg-surface-soft"}
         `}
       >
         {hasAvailableSlots ? (
@@ -194,10 +181,9 @@ export default function ObjectCard({
               className="
                 h-2 w-2 shrink-0 rounded-full
                 bg-success
-                shadow-[0_0_8px_rgb(5_150_105_/0.4)]
+                shadow-[0_0_8px_color-mix(in_srgb,var(--color-success)_40%,transparent)]
               "
             />
-
             Dostupno slobodnih termina: {availableSlots.length}
           </div>
         ) : (

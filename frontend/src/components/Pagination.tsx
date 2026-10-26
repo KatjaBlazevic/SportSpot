@@ -1,4 +1,3 @@
-
 type PaginationProps = {
   currentPage: number;
   totalPages: number;
@@ -17,7 +16,7 @@ export default function Pagination({
     rounded-full border font-bold
     transition-colors cursor-pointer
     disabled:cursor-default
-    disabled:text-gray-300
+    disabled:text-text-muted
   `;
 
   const navigationButtonClass = `
@@ -50,20 +49,18 @@ export default function Pagination({
         <span aria-hidden="true">‹</span>
       </button>
 
-      {Array.from(
-        { length: totalPages },
-        (_, index) => index + 1,
-      ).map((page) => {
-        const isActive = currentPage === page;
+      {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+        (page) => {
+          const isActive = currentPage === page;
 
-        return (
-          <button
-            key={page}
-            type="button"
-            onClick={() => handlePageChange(page)}
-            aria-label={`Stranica ${page}`}
-            aria-current={isActive ? "page" : undefined}
-            className={`
+          return (
+            <button
+              key={page}
+              type="button"
+              onClick={() => handlePageChange(page)}
+              aria-label={`Stranica ${page}`}
+              aria-current={isActive ? "page" : undefined}
+              className={`
               ${baseButtonClass}
               text-body-sm
               ${
@@ -72,11 +69,12 @@ export default function Pagination({
                   : "border-border-default bg-surface text-text-primary hover:bg-surface-soft"
               }
             `}
-          >
-            {page}
-          </button>
-        );
-      })}
+            >
+              {page}
+            </button>
+          );
+        },
+      )}
 
       <button
         type="button"

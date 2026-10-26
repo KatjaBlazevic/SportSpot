@@ -70,15 +70,11 @@ export default function Home() {
   return (
     <>
       {/* OVERLAY za filter na mobitelu */}
+
       {filterOtvoren && (
         <div
           onClick={() => setFilterOtvoren(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.4)",
-            zIndex: 1,
-          }}
+          className="fixed inset-0 z-1 bg-black/40"
         />
       )}
 
@@ -131,65 +127,32 @@ export default function Home() {
         {/* MOBILNI akcijski gumbi */}
         <div className="mob-akcijski-gumbi">
           <button
+            type="button"
             onClick={() => setFilterOtvoren(!filterOtvoren)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 18px",
-              borderRadius: 999,
-              background: filterOtvoren ? "#1D4ED8" : "#fff",
-              color: filterOtvoren ? "#fff" : "#1D4ED8",
-              border: "1.5px solid #1D4ED8",
-              fontWeight: 700,
-              fontSize: 14,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              boxShadow: "0 2px 8px rgba(29,78,216,0.15)",
-            }}
+            className={`flex cursor-pointer items-center gap-2 rounded-full border border-primary px-[18px] py-2.5 text-sm font-bold shadow-sport-sm transition-colors ${
+              filterOtvoren
+                ? "bg-primary text-text-inverse"
+                : "bg-surface text-primary"
+            }`}
           >
-            <span>{"🔍 Filtri"}</span>
+            <span>🔍 Filtri</span>
+
             {aktivniFilteri && (
-              <span
-                style={{
-                  background: "#EF4444",
-                  color: "#fff",
-                  borderRadius: "50%",
-                  width: 18,
-                  height: 18,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <span>{"!"}</span>
+              <span className="flex size-[18px] items-center justify-center rounded-full bg-danger text-[11px] font-extrabold text-text-inverse">
+                !
               </span>
             )}
           </button>
+
           <button
+            type="button"
             onClick={() => setMapaOtvorena(true)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 18px",
-              borderRadius: 999,
-              background: "#fff",
-              color: "#374151",
-              border: "1.5px solid #E5E7EB",
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            }}
+            className="flex cursor-pointer items-center gap-2 rounded-full border border-border-default bg-surface px-[18px] py-2.5 text-sm font-semibold text-text-primary shadow-sport-sm transition-colors hover:bg-surface-soft"
           >
-            <span>{"🗺️ Karta"}</span>
+            <span>🗺️ Karta</span>
           </button>
         </div>
-        
+
         <HomeFilters
           filterOtvoren={filterOtvoren}
           odabraniSportovi={odabraniSportovi}
@@ -246,7 +209,6 @@ export default function Home() {
         <aside className="home-mapa-aside sticky top-20 h-[calc(100vh-96px)]">
           <HomeMap facilities={filtriraniObjekti} />
         </aside>
-
       </div>
     </>
   );

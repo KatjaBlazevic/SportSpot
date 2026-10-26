@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from "react";
 import type { SportsFacility } from "../../types/sportsFacility";
 
@@ -37,8 +36,18 @@ export default function HomeMap({ facilities }: HomeMapProps) {
 
   // TODO: Zamijeniti any odgovarajućim Leaflet tipovima
   // kada budemo uređivali integraciju Leaflet biblioteke.
-// TODO: Istražiti zašto se karta nakon izdvajanja
-// u HomeMap komponentu više ne prikazuje.
+  // TODO: Istražiti zašto se karta nakon izdvajanja
+  // u HomeMap komponentu više ne prikazuje.
+
+  // TODO: Uskladiti Leaflet karte s globalnim dizajnerskim sustavom.
+  // - Izdvojiti zajednički izgled markera koji se koristi u HomeMap i FacilityMiniMap.
+  // - Ukloniti hardkodirane boje i duplicirane inline stilove markera.
+  // - Koristiti postojeće varijable iz config.css za boje i sjene.
+  // - Definirati zajedničke CSS klase za Leaflet markere i popupove.
+  // - Uskladiti izgled popupova na početnoj stranici i detaljima objekta.
+  // - Provjeriti prikaz markera, sportskih ikona i popupova na obje karte.
+  // - Provjeriti postojeći problem s prikazivanjem HomeMap karte.
+  // - Nakon izmjena testirati prikaz karata na desktopu i mobitelu.
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const leafletMapRef = useRef<any>(null);
@@ -86,17 +95,12 @@ export default function HomeMap({ facilities }: HomeMapProps) {
         continue;
       }
 
-      const coordinates: [number, number] = [
-        facility.lat,
-        facility.lng,
-      ];
+      const coordinates: [number, number] = [facility.lat, facility.lng];
 
       const icon = sportIcons[facility.sportovi[0]] ?? "🏟️";
 
       const price =
-        facility.cijenaOd === 0
-          ? "Besplatno"
-          : `${facility.cijenaOd}€/h`;
+        facility.cijenaOd === 0 ? "Besplatno" : `${facility.cijenaOd}€/h`;
 
       const markerIcon = L.divIcon({
         className: "",

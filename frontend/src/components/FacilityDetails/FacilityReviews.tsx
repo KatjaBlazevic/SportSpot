@@ -1,4 +1,3 @@
-
 import type { Recenzija } from "../../types";
 
 type FacilityReviewsProps = {
@@ -22,9 +21,7 @@ export default function FacilityReviews({
     return Array.from({ length: 5 }, (_, index) => (
       <span
         key={index}
-        className={
-          index < rating ? "text-yellow-400" : "text-slate-200"
-        }
+        className={index < rating ? "text-chart-amber" : "text-border-default"}
       >
         ★
       </span>
@@ -32,7 +29,7 @@ export default function FacilityReviews({
   };
 
   return (
-    <section className="rounded-[40px] border border-primary-soft bg-surface p-4 shadow-xl shadow-blue-900/5 sm:p-10 lg:col-start-2">
+    <section className="rounded-[40px] border border-primary-soft bg-surface p-4 shadow-sport-card sm:p-10 lg:col-start-2">
       {hasReviews ? (
         <div className="mb-8 flex flex-wrap items-start justify-between gap-3 border-b border-border-light pb-8">
           <div>
@@ -49,7 +46,7 @@ export default function FacilityReviews({
             <button
               type="button"
               onClick={onAddReview}
-              className="mt-2 flex cursor-pointer items-center gap-2 rounded-2xl bg-primary px-6 py-3 text-xs font-black text-white uppercase shadow-lg shadow-blue-600/20 transition-all hover:scale-105 hover:bg-primary-hover active:scale-95"
+              className="btn-primary mt-2 rounded-2xl px-6 py-3 text-xs font-black uppercase shadow-sport-primary hover:scale-105 active:scale-95"
             >
               <span>Dodaj</span>
               <span className="text-xl leading-none">+</span>
@@ -72,7 +69,7 @@ export default function FacilityReviews({
             <button
               type="button"
               onClick={onAddReview}
-              className="flex cursor-pointer items-center gap-2 rounded-2xl bg-primary px-6 py-3 text-xs font-black text-white uppercase shadow-lg shadow-blue-600/20 transition-all hover:scale-105 hover:bg-primary-hover active:scale-95"
+              className="btn-primary rounded-2xl px-6 py-3 text-xs font-black uppercase shadow-sport-primary hover:scale-105 active:scale-95"
             >
               <span>Budi prvi</span>
               <span className="text-xl leading-none">+</span>
@@ -84,7 +81,7 @@ export default function FacilityReviews({
       {reviews.length > 0 ? (
         <div className="grid grid-cols-1 gap-6">
           <p className="-mb-3 text-[10px] font-bold tracking-widest text-text-muted uppercase italic">
-            Baza od {reviewCount} recenzija
+            Ukupno recenzija: {reviewCount}
           </p>
 
           {reviews.map((review, index) => (
@@ -100,21 +97,17 @@ export default function FacilityReviews({
                   </div>
 
                   <div>
-                    <h4 className="font-bold text-slate-800">
+                    <h4 className="font-bold text-text-primary">
                       {review.ime} {review.prezime}
                     </h4>
 
                     <p className="text-[10px] font-bold text-text-muted uppercase">
-                      {new Date(
-                        review.datumObjave,
-                      ).toLocaleDateString("hr-HR")}
+                      {new Date(review.datumObjave).toLocaleDateString("hr-HR")}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex text-lg">
-                  {renderStars(review.ocjena)}
-                </div>
+                <div className="flex text-lg">{renderStars(review.ocjena)}</div>
               </div>
 
               <p className="text-body-sm leading-relaxed text-text-secondary italic">

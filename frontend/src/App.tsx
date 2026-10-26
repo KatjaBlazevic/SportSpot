@@ -11,7 +11,7 @@ import { AuthProvider } from "./context/AuthContext";
 function App() {
   return (
     <AuthProvider>
-      <div className="min-h-screen" style={{ background: "#F0F4FF" }}>
+      <div className="min-h-screen bg-background-accent">
         <ScrollToTop />
         <Navbar />
         <Routes>

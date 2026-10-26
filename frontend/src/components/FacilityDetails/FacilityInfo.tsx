@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from "react";
 
 type FacilityInfoProps = {
@@ -32,12 +31,7 @@ const sportIcons: Record<string, string> = {
   Vaterpolo: "🤽",
 };
 
-function FacilityMiniMap({
-  lat,
-  lng,
-  naziv,
-  sport,
-}: FacilityMiniMapProps) {
+function FacilityMiniMap({ lat, lng, naziv, sport }: FacilityMiniMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const icon = sportIcons[sport] ?? "🏟️";
 
@@ -101,15 +95,7 @@ function FacilityMiniMap({
   }, [lat, lng, naziv, icon]);
 
   return (
-    <div
-      ref={mapRef}
-      style={{
-        width: "100%",
-        height: 220,
-        borderRadius: "0 0 24px 24px",
-        overflow: "hidden",
-      }}
-    />
+    <div ref={mapRef} className="h-55 w-full overflow-hidden rounded-b-panel" />
   );
 }
 
@@ -132,7 +118,7 @@ export default function FacilityInfo({
   const primarySport = sportovi?.[0] ?? "";
 
   return (
-    <div className="space-y-6 rounded-[32px] border border-primary-soft bg-surface p-5 shadow-xl shadow-blue-900/5">
+    <div className="space-y-6 rounded-[32px] border border-primary-soft bg-surface p-5 shadow-sport-card">
       <div className="h-[25rem] w-full overflow-hidden rounded-2xl border-4 border-background shadow-inner">
         <img
           src={imageUrl}
@@ -146,36 +132,25 @@ export default function FacilityInfo({
           O objektu
         </h3>
 
-        <div className="grid gap-4 text-slate-700">
+        <div className="grid gap-4 text-text-primary">
           <div className="flex items-center gap-3">
-            <span className="rounded-lg bg-primary-soft p-2 text-lg">
-              📍
-            </span>
+            <span className="rounded-lg bg-primary-soft p-2 text-lg">📍</span>
 
             <p className="font-medium">
-              {adresa},{" "}
-              <span className="text-text-muted">{kvart}</span>
+              {adresa}, <span className="text-text-muted">{kvart}</span>
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="rounded-lg bg-primary-soft p-2 text-lg">
-              👥
-            </span>
+            <span className="rounded-lg bg-primary-soft p-2 text-lg">👥</span>
 
-            <p className="font-medium">
-              Kapacitet: {kapacitet} osoba
-            </p>
+            <p className="font-medium">Kapacitet: {kapacitet} osoba</p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="rounded-lg bg-primary-soft p-2 text-lg">
-              🛡️
-            </span>
+            <span className="rounded-lg bg-primary-soft p-2 text-lg">🛡️</span>
 
-            <p className="font-medium">
-              Klub: {klub}
-            </p>
+            <p className="font-medium">Klub: {klub}</p>
           </div>
         </div>
       </div>
@@ -187,18 +162,8 @@ export default function FacilityInfo({
       </div>
 
       {lat && lng && naziv && (
-        <div
-          className="border-t border-border-light"
-          style={{ margin: "0 -20px -20px -20px" }}
-        >
-          <div
-            style={{
-              padding: "12px 20px",
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#374151",
-            }}
-          >
+        <div className="-mx-5 -mb-5 border-t border-border-light">
+          <div className="px-5 py-3 text-[13px] font-bold text-text-primary">
             📍 Lokacija na karti
           </div>
 

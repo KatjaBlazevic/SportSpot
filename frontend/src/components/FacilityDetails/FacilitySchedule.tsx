@@ -128,7 +128,7 @@ export default function FacilitySchedule({
 
   return (
     <div className="lg:col-span-1 lg:col-start-1 lg:row-span-2">
-      <section className="rounded-[32px] border border-primary-soft bg-surface p-4 shadow-xl shadow-blue-900/5 sm:p-8">
+      <section className="rounded-[32px] border border-primary-soft bg-surface p-4 shadow-sport-card sm:p-8">
         <div
           className={`mx-auto mb-6 flex items-center p-4 transition-colors ${
             isOwner
@@ -144,7 +144,7 @@ export default function FacilitySchedule({
             <button
               type="button"
               onClick={onAddSlot}
-              className="flex cursor-pointer items-center gap-2 rounded-2xl bg-primary px-3 py-2 text-xs font-black text-white uppercase shadow-lg shadow-blue-600/20 transition-all hover:scale-105 hover:bg-primary-hover active:scale-95"
+              className="btn-primary rounded-2xl px-3 py-2 text-xs font-black uppercase shadow-sport-primary hover:scale-105 active:scale-95"
             >
               <span>Dodaj</span>
               <span className="text-lg">+</span>
@@ -230,8 +230,8 @@ export default function FacilitySchedule({
                       <div className="mt-2 w-full">
                         {isOnWaitingList ? (
                           <div className="flex w-full items-center gap-2">
-                            <div className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 py-2 shadow-inner">
-                              <span className="text-[10px] font-black tracking-tight text-amber-800 uppercase">
+                            <div className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-warning/30 bg-warning-soft py-2 shadow-inner">
+                              <span className="text-[10px] font-black tracking-tight text-warning uppercase">
                                 {waitingListPosition + 1}. na listi čekanja
                               </span>
                             </div>
@@ -249,7 +249,7 @@ export default function FacilitySchedule({
                                   await leaveWaitingList(slot.id);
                                 }
                               }}
-                              className="cursor-pointer whitespace-nowrap rounded-xl border border-red-200 bg-surface px-4 py-2 text-[10px] font-black text-red-600 uppercase transition-colors hover:bg-red-50"
+                              className="cursor-pointer whitespace-nowrap rounded-xl border border-danger-border bg-surface px-4 py-2 text-[10px] font-black text-danger uppercase transition-colors hover:bg-danger-soft"
                             >
                               Otkaži
                             </button>
@@ -261,7 +261,7 @@ export default function FacilitySchedule({
                               event.stopPropagation();
                               await joinWaitingList(slot.id);
                             }}
-                            className="w-full cursor-pointer rounded-xl bg-amber-500 py-2.5 text-[10px] font-black text-white uppercase shadow-lg shadow-amber-900/20 transition-all hover:bg-amber-600 active:scale-[0.98]"
+                            className="w-full cursor-pointer rounded-xl bg-warning py-2.5 text-[10px] font-black text-text-inverse uppercase shadow-sport-sm transition-all hover:brightness-90 active:scale-[0.98]"
                           >
                             Prijava na listu čekanja
                           </button>

@@ -20,21 +20,21 @@ export default function ReviewForm({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-      <div className="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl border border-blue-50 animate-in fade-in zoom-in duration-300">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-text-primary/60 p-4 backdrop-blur-md">
+      <div className="sport-modal w-full max-w-md border border-primary-soft p-8 animate-in fade-in zoom-in duration-300">
         <div className="text-center mb-8">
-          <h3 className="text-2xl font-black text-slate-800 tracking-tight">
+          <h3 className="text-section-heading text-text-primary tracking-tight">
             Vaš dojam
           </h3>
-          <p className="text-slate-500 text-sm mt-1 font-medium">
-            Objekt: <span className="text-blue-600">{objektNaziv}</span>
+          <p className="mt-1 text-sm font-medium text-text-secondary">
+            Objekt: <span className="text-primary">{objektNaziv}</span>
           </p>
         </div>
 
         <div className="space-y-6">
           {/* INTERAKTIVNE ZVJEZDICE */}
           <div className="flex flex-col items-center gap-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+            <label className="sport-label text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
               Ocjena
             </label>
             <div className="flex gap-2">
@@ -44,8 +44,8 @@ export default function ReviewForm({
                   type="button"
                   className={`text-4xl transition-all duration-200 transform hover:scale-125 active:scale-90 ${
                     star <= (hover || ocjena)
-                      ? "text-amber-400"
-                      : "text-slate-200"
+                      ? "text-chart-amber"
+                      : "text-border-default"
                   }`}
                   onClick={() => setOcjena(star)}
                   onMouseEnter={() => setHover(star)}
@@ -58,13 +58,13 @@ export default function ReviewForm({
           </div>
 
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+            <label className="sport-label mb-2 ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
               Komentar
             </label>
             <textarea
               value={komentar}
               onChange={(e) => setKomentar(e.target.value)}
-              className="w-full h-32 p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none text-slate-700 font-medium placeholder:text-slate-300"
+              className="sport-input h-32 resize-none rounded-2xl p-4 font-medium placeholder:text-text-muted"
               placeholder="Napišite nešto o terenu, dvorani, osoblju..."
             />
           </div>
@@ -72,14 +72,14 @@ export default function ReviewForm({
           <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
-              className="flex-1 py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all"
+              className="btn-secondary flex-1 rounded-2xl px-6 py-4 text-[10px] font-bold uppercase tracking-widest"
             >
               Odustani
             </button>
             <button
               onClick={() => onSubmit(ocjena, komentar)}
               disabled={ocjena === 0}
-              className="flex-1 py-4 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-blue-600/20"
+              className="btn-primary flex-1 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-widest shadow-sport-primary disabled:shadow-none"
             >
               Objavi recenziju
             </button>

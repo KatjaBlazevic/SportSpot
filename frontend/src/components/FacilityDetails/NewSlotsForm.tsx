@@ -52,21 +52,21 @@ export default function NewSlotsForm({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-      <div className="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl border border-blue-50 animate-in fade-in zoom-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-text-primary/60 p-4 backdrop-blur-md">
+      <div className="sport-modal w-full max-w-md border border-primary-soft p-8 animate-in fade-in zoom-in duration-300">
         <div className="text-center mb-8">
-          <h3 className="text-2xl font-black text-slate-800 tracking-tight uppercase">
+          <h3 className="text-section-heading text-text-primary tracking-tight uppercase">
             Novi Termini
           </h3>
-          <p className="text-slate-500 text-sm mt-1 font-medium">
+          <p className="mt-1 text-sm font-medium text-text-secondary">
             Upravljanje objektom:{" "}
-            <span className="text-blue-600 font-bold">{objektNaziv}</span>
+            <span className="font-bold text-primary">{objektNaziv}</span>
           </p>
         </div>
 
         <div className="space-y-5">
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+            <label className="sport-label mb-2 ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
               Datum termina
             </label>
             <input
@@ -75,13 +75,13 @@ export default function NewSlotsForm({
               onChange={(e) =>
                 setFormData({ ...formData, datumPocetka: e.target.value })
               }
-              className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600/70 focus:border-blue-600 outline-none transition-all font-bold text-slate-700"
+              className="sport-input rounded-2xl p-4 font-bold"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+              <label className="sport-label mb-2 ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
                 Početak
               </label>
               <input
@@ -90,11 +90,11 @@ export default function NewSlotsForm({
                 onChange={(e) =>
                   setFormData({ ...formData, vrijemePocetka: e.target.value })
                 }
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600/70 focus:border-blue-600 outline-none transition-all font-bold text-slate-700"
+                className="sport-input rounded-2xl p-4 font-bold"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+              <label className="sport-label mb-2 ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
                 Kraj
               </label>
               <input
@@ -103,13 +103,13 @@ export default function NewSlotsForm({
                 onChange={(e) =>
                   setFormData({ ...formData, vrijemeKraja: e.target.value })
                 }
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600/70 focus:border-blue-600 outline-none transition-all font-bold text-slate-700"
+                className="sport-input rounded-2xl p-4 font-bold"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
+            <label className="sport-label mb-2 ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
               Cijena (€)
             </label>
             <input
@@ -119,13 +119,17 @@ export default function NewSlotsForm({
               onChange={(e) =>
                 setFormData({ ...formData, cijena: e.target.value })
               }
-              className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600/70 focus:border-blue-600 outline-none transition-all font-bold text-slate-700"
+              className="sport-input rounded-2xl p-4 font-bold"
             />
           </div>
 
           {/* RECURRING LOGIKA */}
           <div
-            className={`p-5 rounded-[24px] border-2 transition-all ${formData.recurring ? "border-blue-600 bg-blue-50" : "border-slate-100 bg-slate-50"}`}
+            className={`rounded-panel border-2 p-5 transition-all ${
+              formData.recurring
+                ? "border-primary bg-primary-soft"
+                : "border-border-light bg-surface-soft"
+            }`}
           >
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -134,16 +138,16 @@ export default function NewSlotsForm({
                 onChange={(e) =>
                   setFormData({ ...formData, recurring: e.target.checked })
                 }
-                className="w-5 h-5 accent-blue-600 rounded-lg"
+                className="size-5 rounded-lg accent-primary"
               />
-              <span className="text-xs font-black uppercase tracking-wider text-slate-700">
+              <span className="text-xs font-black uppercase tracking-wider text-text-primary">
                 Ponavljaj tjedno
               </span>
             </label>
 
             {formData.recurring && (
               <div className="mt-4 animate-in slide-in-from-top-2 duration-300">
-                <label className="block text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-2">
+                <label className="sport-label mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
                   Ponavljaj do datuma
                 </label>
                 <input
@@ -152,7 +156,7 @@ export default function NewSlotsForm({
                   onChange={(e) =>
                     setFormData({ ...formData, ponavljajDo: e.target.value })
                   }
-                  className="w-full p-3 bg-white border border-blue-200 rounded-xl outline-none focus:border-blue-600 font-bold text-slate-700"
+                  className="sport-input rounded-xl bg-surface p-3 font-bold"
                 />
               </div>
             )}
@@ -161,13 +165,13 @@ export default function NewSlotsForm({
           <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
-              className="flex-1 py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all"
+              className="btn-secondary flex-1 rounded-2xl px-6 py-4 text-[10px] font-bold uppercase tracking-widest"
             >
               Odustani
             </button>
             <button
               onClick={handleSubmit}
-              className="flex-1 py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-emerald-600/20"
+              className="btn-primary flex-1 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-widest shadow-sport-primary"
             >
               Dodaj Termine
             </button>

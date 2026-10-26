@@ -117,17 +117,18 @@
 }
 
 /* PRIJAVA / REGISTRACIJA */
+
 .auth-wrapper {
   min-height: calc(100vh - 64px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f4ff;
+  background: var(--color-background-accent);
   padding: 24px 16px;
 }
 
 .auth-box {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 20px;
   box-shadow: 0 4px 32px rgba(29, 78, 216, 0.1);
   padding: 48px 40px;

@@ -191,50 +191,48 @@ export default function TimeSlotCard({
     <>
       <div
         onClick={() => {
-          //Ako je vlasnik objekta - otvori uredi popup
           if (jeVlasnikObjekta) {
             setIsUrediPopupOpen(true);
             return;
           }
 
-          //Ako je termin u prošlosti - ne dozvoli nikakvu akciju
           if (jeProslost) {
             return;
           }
 
-          //Ako je korisnik ulogiran i to je njegov termin - otvori otkazivanje
           if (korisnik && jeMojTermin) {
             setIsOtkaziPopupOpen(true);
             return;
           }
 
-          //Ako je termin slobodan
           if (jeSlobodan) {
             if (korisnik) {
-              // Logiran je  - standardna potvrda
               setIsPopupOpen(true);
             } else {
-              // Nije logiran - unos emaila
               setIsGostPopupOpen(true);
             }
             return;
           }
         }}
-        className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all group relative overflow-hidden
-      ${
-        jeSlobodan
-          ? "bg-slate-50 border-slate-100 cursor-pointer hover:border-blue-500 hover:bg-white hover:shadow-xl"
-          : jeMojTermin
-            ? "bg-blue-50 border-blue-200 cursor-pointer hover:border-red-500 hover:bg-white hover:shadow-xl"
-            : "bg-slate-100 border-slate-200 cursor-not-allowed opacity-75"
-      }`}
+        className={`group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border p-5 transition-all ${
+          jeSlobodan
+            ? "cursor-pointer border-border-light bg-surface-soft hover:border-primary-light hover:bg-surface hover:shadow-sport-card"
+            : jeMojTermin
+              ? "cursor-pointer border-primary-border bg-primary-soft hover:border-danger hover:bg-surface hover:shadow-sport-card"
+              : "cursor-not-allowed border-border-default bg-background opacity-75"
+        }`}
       >
         {!jeProslost && (jeSlobodan || jeMojTermin || jeVlasnikObjekta) && (
           <div
-            className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 
-    ${jeVlasnikObjekta ? "bg-slate-800/90" : jeMojTermin ? "bg-red-600/90" : "bg-blue-600/90"}`}
+            className={`absolute inset-0 z-10 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 ${
+              jeVlasnikObjekta
+                ? "bg-text-primary/90"
+                : jeMojTermin
+                  ? "bg-danger/90"
+                  : "bg-primary/90"
+            }`}
           >
-            <p className="text-white font-black tracking-widest text-sm uppercase translate-y-2 group-hover:translate-y-0 transition-transform">
+            <p className="translate-y-2 text-sm font-black tracking-widest text-text-inverse uppercase transition-transform group-hover:translate-y-0">
               {jeVlasnikObjekta
                 ? "Uredi termin"
                 : jeMojTermin
@@ -245,25 +243,26 @@ export default function TimeSlotCard({
         )}
 
         {jeProslost && jeVlasnikObjekta && (
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 bg-slate-800/90">
-            <p className="text-white font-black tracking-widest text-sm uppercase translate-y-2 group-hover:translate-y-0 transition-transform">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-text-primary/90 opacity-0 transition-opacity group-hover:opacity-100">
+            <p className="translate-y-2 text-sm font-black tracking-widest text-text-inverse uppercase transition-transform group-hover:translate-y-0">
               Uredi prošli termin ⚙️
             </p>
           </div>
         )}
 
         <div className="text-left">
-          <div className="flex items-center gap-2 mb-1">
-            <p className="text-[10px] font-bold text-slate-400 uppercase">
+          <div className="mb-1 flex items-center gap-2">
+            <p className="text-[10px] font-bold text-text-muted uppercase">
               {new Date(datum).toLocaleDateString("hr-HR")}
             </p>
+
             <span
-              className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-tighter ${
+              className={`rounded-md border px-2 py-0.5 text-[8px] font-black tracking-tighter uppercase ${
                 jeSlobodan
-                  ? "bg-green-100 text-green-600 border border-green-200"
+                  ? "badge-success border-success"
                   : jeMojTermin
-                    ? "bg-blue-100 text-blue-600 border border-blue-200"
-                    : "bg-red-100 text-red-600 border border-red-200"
+                    ? "border-primary bg-primary-soft text-primary"
+                    : "badge-danger border-danger-border"
               }`}
             >
               {jeMojTermin ? "Moja Rezervacija" : status}
@@ -273,8 +272,8 @@ export default function TimeSlotCard({
           <p
             className={`text-lg font-black ${
               jeSlobodan || jeMojTermin
-                ? "text-slate-800"
-                : "text-slate-500 line-through"
+                ? "text-text-primary"
+                : "text-text-secondary line-through"
             }`}
           >
             {vrijemePocetka} — {vrijemeKraja}
@@ -284,11 +283,7 @@ export default function TimeSlotCard({
         <div className="text-right">
           <p
             className={`text-2xl font-black ${
-              jeSlobodan
-                ? "text-blue-600"
-                : jeMojTermin
-                  ? "text-blue-700"
-                  : "text-slate-400"
+              jeSlobodan || jeMojTermin ? "text-primary" : "text-text-muted"
             }`}
           >
             {cijena}€
@@ -296,7 +291,6 @@ export default function TimeSlotCard({
         </div>
       </div>
 
-     
       <TimeSlotDialogs
         date={datum}
         startTime={vrijemePocetka}
@@ -324,7 +318,6 @@ export default function TimeSlotCard({
         onDeleteSlot={handleObrisiTermin}
         onConfirmGuestBooking={handleRezervacijaGosta}
       />
-
     </>
   );
 }
