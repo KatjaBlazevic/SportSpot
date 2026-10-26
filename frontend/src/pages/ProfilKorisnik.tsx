@@ -189,167 +189,72 @@ export default function ProfilKorisnik() {
     ];
     return `${d.getDate()}. ${m[d.getMonth()]} ${d.getFullYear()}.`;
   };
-  const getStatusBoja = (status: string) =>
-    status === "Potvrđeno"
-      ? { bg: "#D1FAE5", color: "#059669" }
-      : status === "Odbijeno"
-        ? { bg: "#FEE2E2", color: "#DC2626" }
-        : { bg: "#FEF3C7", color: "#D97706" };
 
   if (ucitavanje || !korisnik) return null;
 
   return (
-    <div
-      style={{
-        minHeight: "calc(100vh - 64px)",
-        background: "#F5F7FA",
-        padding: "16px 12px",
-      }}
-    >
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <div
-          style={{
-            background: "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
-            borderRadius: 24,
-            padding: 32,
-            marginBottom: 24,
-            color: "#fff",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: -50,
-              right: -50,
-              width: 200,
-              height: 200,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.1)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              bottom: -30,
-              right: 100,
-              width: 100,
-              height: 100,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.05)",
-            }}
-          />
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              position: "relative",
-              zIndex: 1,
-              flexWrap: "wrap",
-            }}
-          >
-            <div
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: "50%",
-                background: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 28,
-                fontWeight: 800,
-                color: "#1D4ED8",
-                flexShrink: 0,
-                boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-              }}
-            >
+    <div className="min-h-[calc(100vh-64px)] bg-background px-3 py-4">
+      <div className="mx-auto max-w-225">
+        <div className="bg-brand-gradient relative mb-6 overflow-hidden rounded-panel p-8 text-text-inverse">
+          <div className="absolute -top-[50px] -right-[50px] size-[200px] rounded-full bg-surface/10" />
+          <div className="absolute -bottom-[30px] right-[100px] size-[100px] rounded-full bg-surface/5" />
+
+          <div className="relative z-1 flex flex-wrap items-center gap-4">
+            <div className="flex size-[72px] shrink-0 items-center justify-center rounded-full bg-surface text-[28px] font-extrabold text-primary shadow-sport-elevated">
               {korisnik.ime.charAt(0)}
               {korisnik.prezime.charAt(0)}
             </div>
-            <div style={{ flex: 1 }}>
-              <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>
+
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl font-extrabold text-text-inverse">
                 {korisnik.ime} {korisnik.prezime}
               </h1>
-              <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.9 }}>
+
+              <p className="mt-1.5 break-all text-[13px] text-text-inverse/90">
                 {korisnik.email}
               </p>
             </div>
+
             <button
+              type="button"
               onClick={otvoriModal}
-              style={{
-                padding: "10px 16px",
-                borderRadius: 12,
-                background: "#fff",
-                color: "#1D4ED8",
-                fontWeight: 700,
-                fontSize: 13,
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                boxShadow: "0 4px 15px rgba(0,0,0,0.15)",
-                flexShrink: 0,
-              }}
+              className="shrink-0 cursor-pointer rounded-control bg-surface px-4 py-2.5 text-[13px] font-bold text-primary shadow-sport-elevated transition-colors hover:bg-primary-soft"
             >
               Uredi profil
             </button>
           </div>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 20,
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="mb-5 flex flex-wrap gap-2">
           <button
+            type="button"
             onClick={() => setAktivnaTab("rezervacije")}
-            style={{
-              padding: "14px 24px",
-              borderRadius: 14,
-              background: aktivnaTab === "rezervacije" ? "#1D4ED8" : "#fff",
-              color: aktivnaTab === "rezervacije" ? "#fff" : "#374151",
-              fontWeight: 600,
-              fontSize: 15,
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
+            className={`cursor-pointer rounded-[14px] px-6 py-3.5 text-[15px] font-semibold transition-colors ${
+              aktivnaTab === "rezervacije"
+                ? "bg-primary text-text-inverse"
+                : "bg-surface text-text-primary hover:bg-primary-soft"
+            }`}
           >
             📅 Moje rezervacije
           </button>
+
           <button
+            type="button"
             onClick={() => setAktivnaTab("omiljeni")}
-            style={{
-              padding: "14px 24px",
-              borderRadius: 14,
-              background: aktivnaTab === "omiljeni" ? "#1D4ED8" : "#fff",
-              color: aktivnaTab === "omiljeni" ? "#fff" : "#374151",
-              fontWeight: 600,
-              fontSize: 15,
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
+            className={`cursor-pointer rounded-[14px] px-6 py-3.5 text-[15px] font-semibold transition-colors ${
+              aktivnaTab === "omiljeni"
+                ? "bg-primary text-text-inverse"
+                : "bg-surface text-text-primary hover:bg-primary-soft"
+            }`}
           >
-            ❤️ Omiljeni{" "}
+            ❤️ Omiljeni
             {omiljeni.length > 0 && (
               <span
-                style={{
-                  marginLeft: 4,
-                  padding: "2px 8px",
-                  borderRadius: 10,
-                  background:
-                    aktivnaTab === "omiljeni"
-                      ? "rgba(255,255,255,0.2)"
-                      : "#FEE2E2",
-                  fontSize: 12,
-                  color: aktivnaTab === "omiljeni" ? "#fff" : "#EF4444",
-                }}
+                className={`ml-1 rounded-[10px] px-2 py-0.5 text-xs ${
+                  aktivnaTab === "omiljeni"
+                    ? "bg-surface/20 text-text-inverse"
+                    : "bg-danger-soft text-danger"
+                }`}
               >
                 {omiljeni.length}
               </span>
@@ -358,227 +263,129 @@ export default function ProfilKorisnik() {
         </div>
 
         {aktivnaTab === "rezervacije" && (
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 20,
-              padding: 28,
-              boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                color: "#111827",
-                margin: "0 0 20px",
-              }}
-            >
+          <div className="rounded-[20px] bg-surface p-7 shadow-sport-card">
+            <h2 className="mb-5 text-card-heading text-text-primary">
               📅 Moje rezervacije
             </h2>
+
             {ucitavanjeRez ? (
-              <p style={{ color: "#6B7280", textAlign: "center", padding: 40 }}>
+              <p className="p-10 text-center text-text-secondary">
                 Učitavam...
               </p>
             ) : rezervacije.length === 0 ? (
-              <div
-                style={{ textAlign: "center", padding: 40, color: "#9CA3AF" }}
-              >
-                <div style={{ fontSize: 48, marginBottom: 12 }}>📅</div>
-                <p style={{ fontSize: 16 }}>Nemate niti jednu rezervaciju.</p>
+              <div className="p-10 text-center text-text-muted">
+                <div className="mb-3 text-5xl">📅</div>
+                <p className="text-body">Nemate niti jednu rezervaciju.</p>
                 <Link
                   to="/"
-                  style={{
-                    color: "#1D4ED8",
-                    fontWeight: 600,
-                    marginTop: 12,
-                    display: "inline-block",
-                  }}
+                  className="mt-3 inline-block font-semibold text-primary hover:text-primary-hover"
                 >
                   Pronađi teren →
                 </Link>
               </div>
             ) : (
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 14 }}
-              >
-                {rezervacije.map((rez) => {
-                  const statusStil = getStatusBoja(rez.Status);
-                  return (
-                    <div
-                      key={rez.ID_termina}
-                      style={{
-                        padding: 20,
-                        borderRadius: 16,
-                        border: "1px solid #E5E7EB",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "flex-start",
-                        }}
+              <div className="flex flex-col gap-3.5">
+                {rezervacije.map((rez) => (
+                  <div
+                    key={rez.ID_termina}
+                    className="rounded-card border border-border-default p-5"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <Link
+                        to={`/objekt/${rez.ID_objekta}`}
+                        className="min-w-0 flex-1 no-underline"
                       >
-                        <Link
-                          to={`/objekt/${rez.ID_objekta}`}
-                          style={{ textDecoration: "none", flex: 1 }}
-                        >
-                          <div
-                            style={{
-                              fontWeight: 700,
-                              fontSize: 17,
-                              color: "#111827",
-                              marginBottom: 4,
-                            }}
-                          >
-                            {rez.Naziv_objekta}
+                        <div className="mb-1 text-[17px] font-bold text-text-primary">
+                          {rez.Naziv_objekta}
+                        </div>
+
+                        <div className="text-body-sm text-text-secondary">
+                          {rez.Adresa}
+                        </div>
+
+                        {rez.Naziv_kluba && (
+                          <div className="mt-1 text-[13px] text-primary">
+                            🏟️ {rez.Naziv_kluba}
                           </div>
-                          <div style={{ fontSize: 14, color: "#6B7280" }}>
-                            {rez.Adresa}
-                          </div>
-                          {rez.Naziv_kluba && (
-                            <div
-                              style={{
-                                fontSize: 13,
-                                color: "#1D4ED8",
-                                marginTop: 4,
-                              }}
-                            >
-                              🏟️ {rez.Naziv_kluba}
-                            </div>
-                          )}
-                        </Link>
-                        <span
-                          style={{
-                            padding: "6px 12px",
-                            borderRadius: 8,
-                            background: statusStil.bg,
-                            color: statusStil.color,
-                            fontSize: 12,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {rez.Status}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          marginTop: 12,
-                          display: "flex",
-                          gap: 10,
-                          fontSize: 13,
-                          color: "#374151",
-                          flexWrap: "wrap",
-                        }}
+                        )}
+                      </Link>
+
+                      <span
+                        className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold ${
+                          rez.Status === "Potvrđeno"
+                            ? "badge-success"
+                            : rez.Status === "Odbijeno"
+                              ? "badge-danger"
+                              : "badge-warning"
+                        }`}
                       >
-                        <span>📆 {formatirajDatum(rez.Datum)}</span>
-                        <span>
-                          ⏰ {rez.vrijeme_pocetka} - {rez.vrijeme_kraja}
-                        </span>
-                        <span style={{ fontWeight: 700, color: "#1D4ED8" }}>
-                          {rez.Cijena} €
-                        </span>
-                      </div>
+                        {rez.Status}
+                      </span>
                     </div>
-                  );
-                })}
+
+                    <div className="mt-3 flex flex-wrap gap-2.5 text-[13px] text-text-secondary">
+                      <span>📆 {formatirajDatum(rez.Datum)}</span>
+
+                      <span>
+                        ⏰ {rez.vrijeme_pocetka} - {rez.vrijeme_kraja}
+                      </span>
+
+                      <span className="font-bold text-primary">
+                        {rez.Cijena} €
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         )}
 
         {aktivnaTab === "omiljeni" && (
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 20,
-              padding: 28,
-              boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                color: "#111827",
-                margin: "0 0 20px",
-              }}
-            >
+          <div className="rounded-[20px] bg-surface p-7 shadow-sport-card">
+            <h2 className="mb-5 text-card-heading text-text-primary">
               ❤️ Omiljeni objekti
             </h2>
+
             {omiljeni.length === 0 ? (
-              <div
-                style={{ textAlign: "center", padding: 40, color: "#9CA3AF" }}
-              >
-                <div style={{ fontSize: 48, marginBottom: 12 }}>❤️</div>
-                <p style={{ fontSize: 16 }}>Nemate omiljenih objekata.</p>
+              <div className="p-10 text-center text-text-muted">
+                <div className="mb-3 text-5xl">❤️</div>
+
+                <p className="text-body">Nemate omiljenih objekata.</p>
+
                 <Link
                   to="/"
-                  style={{
-                    color: "#1D4ED8",
-                    fontWeight: 600,
-                    marginTop: 12,
-                    display: "inline-block",
-                  }}
+                  className="mt-3 inline-block font-semibold text-primary hover:text-primary-hover"
                 >
                   Pronađi teren →
                 </Link>
               </div>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-                  gap: 14,
-                }}
-              >
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-3.5">
                 {omiljeni.map((obj) => (
                   <div
                     key={obj.id}
-                    style={{
-                      padding: 20,
-                      borderRadius: 16,
-                      border: "1px solid #E5E7EB",
-                      position: "relative",
-                    }}
+                    className="relative rounded-card border border-border-default p-5 transition-colors hover:border-primary-border"
                   >
                     <Link
                       to={`/objekt/${obj.id}`}
-                      style={{ textDecoration: "none" }}
+                      className="block pr-6 no-underline"
                     >
-                      <div
-                        style={{
-                          fontWeight: 700,
-                          fontSize: 16,
-                          color: "#111827",
-                          marginBottom: 6,
-                        }}
-                      >
+                      <div className="mb-1.5 text-subsection-heading text-text-primary">
                         {obj.naziv}
                       </div>
-                      <div style={{ fontSize: 14, color: "#6B7280" }}>
+
+                      <div className="text-body-sm text-text-secondary">
                         {obj.adresa}
                       </div>
                     </Link>
+
                     <button
+                      type="button"
                       onClick={() => ukloniOmiljeni(obj.id)}
-                      style={{
-                        position: "absolute",
-                        top: 12,
-                        right: 12,
-                        width: 28,
-                        height: 28,
-                        borderRadius: "50%",
-                        border: "1px solid #FEE2E2",
-                        background: "#FEF2F2",
-                        color: "#EF4444",
-                        fontSize: 14,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
+                      aria-label={`Ukloni ${obj.naziv} iz omiljenih`}
+                      title="Ukloni iz omiljenih"
+                      className="absolute top-3 right-3 flex size-7 cursor-pointer items-center justify-center rounded-full border border-danger-border bg-danger-soft text-sm text-danger transition-colors hover:bg-danger-soft/70"
                     >
                       ✕
                     </button>
@@ -590,261 +397,138 @@ export default function ProfilKorisnik() {
         )}
 
         {showModal && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0,0,0,0.5)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1000,
-            }}
-          >
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 20,
-                padding: 32,
-                width: "90%",
-                maxWidth: 480,
-                maxHeight: "90vh",
-                overflowY: "auto",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 24,
-                }}
-              >
-                <h2
-                  style={{
-                    fontSize: 22,
-                    fontWeight: 800,
-                    color: "#111827",
-                    margin: 0,
-                  }}
-                >
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-text-primary/50 p-4">
+            <div className="sport-modal max-h-[90vh] w-full max-w-[480px] overflow-y-auto rounded-[20px] p-8">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-[22px] font-extrabold text-text-primary">
                   Uredi profil
                 </h2>
+
                 <button
+                  type="button"
                   onClick={zatvoriModal}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "50%",
-                    border: "1px solid #E5E7EB",
-                    background: "#fff",
-                    color: "#6B7280",
-                    fontSize: 18,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  aria-label="Zatvori uređivanje profila"
+                  className="flex size-9 cursor-pointer items-center justify-center rounded-full border border-border-default bg-surface text-lg text-text-secondary hover:bg-surface-soft"
                 >
                   ✕
                 </button>
               </div>
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 16 }}
-              >
+
+              <div className="flex flex-col gap-4">
                 {[
                   { label: "Ime", key: "ime" as const },
                   { label: "Prezime", key: "prezime" as const },
                   { label: "Email", key: "email" as const },
-                ].map((f) => (
-                  <div key={f.key}>
-                    <label
-                      style={{
-                        display: "block",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "#374151",
-                        marginBottom: 6,
-                      }}
-                    >
-                      {f.label}
+                ].map((field) => (
+                  <div key={field.key}>
+                    <label className="sport-label mb-1.5 text-[13px]">
+                      {field.label}
                     </label>
+
                     <input
-                      type={f.key === "email" ? "email" : "text"}
-                      value={editData[f.key]}
-                      onChange={(e) =>
-                        setEditData({ ...editData, [f.key]: e.target.value })
+                      type={field.key === "email" ? "email" : "text"}
+                      value={editData[field.key]}
+                      onChange={(event) =>
+                        setEditData({
+                          ...editData,
+                          [field.key]: event.target.value,
+                        })
                       }
-                      style={{
-                        width: "100%",
-                        padding: "12px 14px",
-                        borderRadius: 10,
-                        border: "1.5px solid #E5E7EB",
-                        fontSize: 15,
-                        fontFamily: "inherit",
-                        boxSizing: "border-box",
-                      }}
+                      aria-label={field.label}
+                      className="sport-input text-[15px]"
                     />
                   </div>
                 ))}
+
                 <div>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "#374151",
-                      marginBottom: 6,
-                    }}
-                  >
-                    Broj mobitela{" "}
-                    <span style={{ color: "#9CA3AF", fontWeight: 400 }}>
+                  <label className="sport-label mb-1.5 text-[13px]">
+                    Broj mobitela
+                    <span className="ml-1 font-normal text-text-muted">
                       (nije obavezno)
                     </span>
                   </label>
+
                   <input
                     type="tel"
                     value={editData.brojMobitela}
-                    onChange={(e) =>
-                      setEditData({ ...editData, brojMobitela: e.target.value })
+                    onChange={(event) =>
+                      setEditData({
+                        ...editData,
+                        brojMobitela: event.target.value,
+                      })
                     }
                     placeholder="+385 91 234 5678"
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 10,
-                      border: "1.5px solid #E5E7EB",
-                      fontSize: 15,
-                      fontFamily: "inherit",
-                      boxSizing: "border-box",
-                    }}
+                    aria-label="Broj mobitela"
+                    className="sport-input text-[15px]"
                   />
                 </div>
-                <div
-                  style={{
-                    borderTop: "1px solid #E5E7EB",
-                    paddingTop: 16,
-                    marginTop: 8,
-                  }}
-                >
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "#374151",
-                      marginBottom: 6,
-                    }}
-                  >
-                    Nova lozinka{" "}
-                    <span style={{ color: "#9CA3AF", fontWeight: 400 }}>
+
+                <div className="mt-2 border-t border-border-default pt-4">
+                  <label className="sport-label mb-1.5 text-[13px]">
+                    Nova lozinka
+                    <span className="ml-1 font-normal text-text-muted">
                       (ostavi prazno ako ne mijenjaš)
                     </span>
                   </label>
+
                   <input
                     type="password"
                     value={editData.novaLozinka}
-                    onChange={(e) =>
-                      setEditData({ ...editData, novaLozinka: e.target.value })
+                    onChange={(event) =>
+                      setEditData({
+                        ...editData,
+                        novaLozinka: event.target.value,
+                      })
                     }
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 10,
-                      border: "1.5px solid #E5E7EB",
-                      fontSize: 15,
-                      fontFamily: "inherit",
-                      boxSizing: "border-box",
-                      marginBottom: 12,
-                    }}
+                    aria-label="Nova lozinka"
+                    className="sport-input mb-3 text-[15px]"
                   />
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "#374151",
-                      marginBottom: 6,
-                    }}
-                  >
+
+                  <label className="sport-label mb-1.5 text-[13px]">
                     Potvrdi lozinku
                   </label>
+
                   <input
                     type="password"
                     value={editData.potvrdaLozinke}
-                    onChange={(e) =>
+                    onChange={(event) =>
                       setEditData({
                         ...editData,
-                        potvrdaLozinke: e.target.value,
+                        potvrdaLozinke: event.target.value,
                       })
                     }
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 10,
-                      border: "1.5px solid #E5E7EB",
-                      fontSize: 15,
-                      fontFamily: "inherit",
-                      boxSizing: "border-box",
-                    }}
+                    aria-label="Potvrdi lozinku"
+                    className="sport-input text-[15px]"
                   />
                 </div>
+
                 {poruka && (
                   <div
-                    style={{
-                      padding: "12px 14px",
-                      borderRadius: 10,
-                      background: poruka.includes("uspješno")
-                        ? "#D1FAE5"
-                        : "#FEE2E2",
-                      color: poruka.includes("uspješno")
-                        ? "#059669"
-                        : "#DC2626",
-                      fontSize: 14,
-                      fontWeight: 600,
-                    }}
+                    role="alert"
+                    className={`rounded-control px-3.5 py-3 text-sm font-semibold ${
+                      poruka.includes("uspješno")
+                        ? "badge-success"
+                        : "badge-danger"
+                    }`}
                   >
                     {poruka}
                   </div>
                 )}
-                <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+
+                <div className="mt-2 flex gap-3">
                   <button
+                    type="button"
                     onClick={zatvoriModal}
-                    style={{
-                      flex: 1,
-                      padding: "14px",
-                      borderRadius: 10,
-                      background: "#fff",
-                      color: "#374151",
-                      fontWeight: 600,
-                      fontSize: 15,
-                      border: "1.5px solid #E5E7EB",
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                    }}
+                    className="btn-secondary flex-1 px-4 py-3.5 text-[15px]"
                   >
                     Odustani
                   </button>
+
                   <button
+                    type="button"
                     onClick={spremiPromjene}
                     disabled={spremanje}
-                    style={{
-                      flex: 1,
-                      padding: "14px",
-                      borderRadius: 10,
-                      background: spremanje
-                        ? "#93C5FD"
-                        : "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)",
-                      color: "#fff",
-                      fontWeight: 700,
-                      fontSize: 15,
-                      border: "none",
-                      cursor: spremanje ? "not-allowed" : "pointer",
-                      fontFamily: "inherit",
-                    }}
+                    className="btn-primary bg-brand-gradient flex-1 px-4 py-3.5 text-[15px]"
                   >
                     {spremanje ? "Spremam..." : "Spremi"}
                   </button>
