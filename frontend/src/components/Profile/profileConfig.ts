@@ -35,7 +35,7 @@ const adminTabs: ProfileTabConfig[] = [
   { id: "objekti", label: "🏟️ Objekti" },
   { id: "klubovi", label: "⚽ Klubovi" },
   { id: "recenzije", label: "⭐ Recenzije" },
-  ...userTabs,
+  ...userTabs, //vjv treba maknut
 ];
 
 export const profileTabs: Record<ProfileRole, ProfileTabConfig[]> = {

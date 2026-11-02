@@ -166,7 +166,7 @@ export default function ObjectCard({ facility }: ObjectCardProps) {
       <div
         className={`
           border-t border-border-light px-4 py-2.5
-          ${hasAvailableSlots ? "bg-success-soft" : "bg-surface-soft"}
+          ${hasAvailableSlots ? "bg-gray-100" : "bg-gray-200"}
         `}
       >
         {hasAvailableSlots ? (
@@ -176,14 +176,6 @@ export default function ObjectCard({ facility }: ObjectCardProps) {
               text-[13px] font-bold text-success
             "
           >
-            <span
-              aria-hidden="true"
-              className="
-                h-2 w-2 shrink-0 rounded-full
-                bg-success
-                shadow-[0_0_8px_color-mix(in_srgb,var(--color-success)_40%,transparent)]
-              "
-            />
             Dostupno slobodnih termina: {availableSlots.length}
           </div>
         ) : (
