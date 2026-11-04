@@ -1,9 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { GoogleMap, OverlayView, useJsApiLoader } from "@react-google-maps/api";
 import type { SportsFacility } from "../../types/sportsFacility";
 
 type HomeMapProps = {
   facilities: SportsFacility[];
 };
+
+// API ključ se čita iz frontend/.env (VITE_GOOGLE_MAPS_KEY).
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string;
 
 const sportIcons: Record<string, string> = {
   Tenis: "🎾",
@@ -16,208 +21,199 @@ const sportIcons: Record<string, string> = {
   Vaterpolo: "🤽",
 };
 
-// Escape API podataka prije umetanja u Leaflet HTML popup.
-function escapeHtml(value: string | number): string {
-  return String(value).replace(/[&<>"']/g, (character) => {
-    const entities: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
+const MAP_CONTAINER_STYLE = { width: "100%", height: "100%" };
+const DEFAULT_CENTER = { lat: 45.3271, lng: 14.4422 };
+const DEFAULT_ZOOM = 13;
+const MAX_ZOOM = 14;
 
-    return entities[character];
-  });
+// Sidri donji vrh markera na točku na karti.
+const markerPixelOffset = (width: number, height: number) => ({
+  x: -(width / 2),
+  y: -height,
+});
+
+// Čita design tokene definirane u config.css (@theme blok).
+function cssVar(name: string, fallback: string): string {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+
+  return value || fallback;
+}
+
+// Gradi dark stil Google karte iz tokena definiranih u config.css
+// (--color-google-map-dark-* varijable).
+function buildDarkMapStyles(): google.maps.MapTypeStyle[] {
+  const geometry = cssVar("--color-google-map-dark-geometry", "#242f3e");
+  const textStroke = cssVar("--color-google-map-dark-text-stroke", "#242f3e");
+  const textFill = cssVar("--color-google-map-dark-text-fill", "#746855");
+  const textAccent = cssVar("--color-google-map-dark-text-accent", "#d59563");
+  const park = cssVar("--color-google-map-dark-park", "#263c3f");
+  const road = cssVar("--color-google-map-dark-road", "#38414e");
+  const roadStroke = cssVar("--color-google-map-dark-road-stroke", "#212a37");
+  const roadLabel = cssVar("--color-google-map-dark-road-label", "#9ca5b3");
+  const highway = cssVar("--color-google-map-dark-highway", "#746855");
+  const transit = cssVar("--color-google-map-dark-transit", "#2f3948");
+  const water = cssVar("--color-google-map-dark-water", "#17263c");
+  const waterLabel = cssVar("--color-google-map-dark-water-label", "#515c6d");
+
+  return [
+    { elementType: "geometry", stylers: [{ color: geometry }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: textStroke }] },
+    { elementType: "labels.text.fill", stylers: [{ color: textFill }] },
+    {
+      featureType: "administrative.locality",
+      elementType: "labels.text.fill",
+      stylers: [{ color: textAccent }],
+    },
+    {
+      featureType: "poi",
+      elementType: "labels.text.fill",
+      stylers: [{ color: textAccent }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "geometry",
+      stylers: [{ color: park }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: road }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry.stroke",
+      stylers: [{ color: roadStroke }],
+    },
+    {
+      featureType: "road",
+      elementType: "labels.text.fill",
+      stylers: [{ color: roadLabel }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry",
+      stylers: [{ color: highway }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry.stroke",
+      stylers: [{ color: roadStroke }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "labels.text.fill",
+      stylers: [{ color: textAccent }],
+    },
+    {
+      featureType: "transit",
+      elementType: "geometry",
+      stylers: [{ color: transit }],
+    },
+    {
+      featureType: "transit.station",
+      elementType: "labels.text.fill",
+      stylers: [{ color: textAccent }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: water }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.fill",
+      stylers: [{ color: waterLabel }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.stroke",
+      stylers: [{ color: water }],
+    },
+  ];
 }
 
 export default function HomeMap({ facilities }: HomeMapProps) {
-  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+  });
 
-  // TODO: Zamijeniti any odgovarajućim Leaflet tipovima
-  // kada budemo uređivali integraciju Leaflet biblioteke.
-  // TODO: Istražiti zašto se karta nakon izdvajanja
-  // u HomeMap komponentu više ne prikazuje.
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const navigate = useNavigate();
 
-  // TODO: Uskladiti Leaflet karte s globalnim dizajnerskim sustavom.
-  // - Izdvojiti zajednički izgled markera koji se koristi u HomeMap i FacilityMiniMap.
-  // - Ukloniti hardkodirane boje i duplicirane inline stilove markera.
-  // - Koristiti postojeće varijable iz config.css za boje i sjene.
-  // - Definirati zajedničke CSS klase za Leaflet markere i popupove.
-  // - Uskladiti izgled popupova na početnoj stranici i detaljima objekta.
-  // - Provjeriti prikaz markera, sportskih ikona i popupova na obje karte.
-  // - Provjeriti postojeći problem s prikazivanjem HomeMap karte.
-  // - Nakon izmjena testirati prikaz karata na desktopu i mobitelu.
+  // Stil karte i opcije grade se iz config.css design tokena.
+  const mapStyles = useMemo(() => buildDarkMapStyles(), []);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const leafletMapRef = useRef<any>(null);
+  const mapOptions = useMemo<google.maps.MapOptions>(
+    () => ({
+      styles: mapStyles,
+      disableDefaultUI: true,
+      zoomControl: true,
+      clickableIcons: false,
+    }),
+    [mapStyles],
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const markersRef = useRef<any[]>([]);
+  // Koordinate iz API-ja mogu doći kao stringovi ili null,
+  // pa ih pretvaramo u brojeve i odbacujemo nevažeće.
+  const visibleFacilities = useMemo(
+    () =>
+      facilities
+        .filter((facility) => facility.lat !== null && facility.lng !== null)
+        .map((facility) => ({
+          facility,
+          position: {
+            lat: Number(facility.lat),
+            lng: Number(facility.lng),
+          },
+        }))
+        .filter(
+          ({ position }) =>
+            Number.isFinite(position.lat) && Number.isFinite(position.lng),
+        ),
+    [facilities],
+  );
+
+  const fitBounds = useCallback(() => {
+    const map = mapRef.current;
+    if (!map || visibleFacilities.length === 0) return;
+
+    const bounds = new google.maps.LatLngBounds();
+
+    for (const { position } of visibleFacilities) {
+      bounds.extend(position);
+    }
+
+    map.fitBounds(bounds, 40);
+
+    google.maps.event.addListenerOnce(map, "idle", () => {
+      const zoom = map.getZoom();
+      if (zoom && zoom > MAX_ZOOM) {
+        map.setZoom(MAX_ZOOM);
+      }
+    });
+  }, [visibleFacilities]);
 
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const L = (window as any).L;
-    if (!L) return;
-
-    if (!leafletMapRef.current) {
-      const map = L.map(mapContainerRef.current, {
-        center: [45.3271, 14.4422],
-        zoom: 13,
-        zoomControl: true,
-        attributionControl: false,
-      });
-
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        {
-          maxZoom: 19,
-          subdomains: "abcd",
-        },
-      ).addTo(map);
-
-      leafletMapRef.current = map;
+    if (isLoaded) {
+      fitBounds();
     }
+  }, [isLoaded, fitBounds]);
 
-    const map = leafletMapRef.current;
-
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
-    if (facilities.length === 0) return;
-
-    const bounds: [number, number][] = [];
-
-    for (const facility of facilities) {
-      if (facility.lat === null || facility.lng === null) {
-        continue;
-      }
-
-      const coordinates: [number, number] = [facility.lat, facility.lng];
-
-      const icon = sportIcons[facility.sportovi[0]] ?? "🏟️";
-
-      const price =
-        facility.cijenaOd === 0 ? "Besplatno" : `${facility.cijenaOd}€/h`;
-
-      const markerIcon = L.divIcon({
-        className: "",
-        html: `
-          <div style="
-            background: #1D4ED8;
-            border: 2.5px solid #60A5FA;
-            border-radius: 50% 50% 50% 0;
-            width: 36px;
-            height: 36px;
-            transform: rotate(-45deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 12px rgba(29,78,216,0.5);
-            cursor: pointer;
-          ">
-            <span style="
-              transform: rotate(45deg);
-              font-size: 16px;
-            ">
-              ${icon}
-            </span>
-          </div>
-        `,
-        iconSize: [36, 36],
-        iconAnchor: [18, 36],
-        popupAnchor: [0, -36],
-      });
-
-      const marker = L.marker(coordinates, {
-        icon: markerIcon,
-      }).addTo(map);
-
-      const ratingHtml =
-        facility.ocjena !== null
-          ? `
-            <div style="
-              font-size: 12px;
-              color: #6B7280;
-              margin-top: 4px;
-            ">
-              ⭐ ${escapeHtml(facility.ocjena)}
-              (${escapeHtml(facility.brojRecenzija)} recenzija)
-            </div>
-          `
-          : "";
-
-      // TODO: Izdvojiti stilove Leaflet markera i popupova
-      // u CSS klase povezane s globalnim design tokenima.
-      // TODO: Nakon desktop refaktoriranja provjeriti
-      // ponašanje karte u mobilnom modalu.
-
-      marker.bindPopup(`
-        <div style="
-          font-family: 'DM Sans', sans-serif;
-          min-width: 180px;
-          padding: 4px 2px;
-        ">
-          <div style="
-            font-weight: 700;
-            font-size: 14px;
-            color: #111827;
-            margin-bottom: 4px;
-          ">
-            ${escapeHtml(facility.naziv)}
-          </div>
-
-          <div style="
-            font-size: 12px;
-            color: #6B7280;
-            margin-bottom: 6px;
-          ">
-            📍 ${escapeHtml(facility.adresa)},
-            ${escapeHtml(facility.kvart)}
-          </div>
-
-          <div style="
-            display: flex;
-            gap: 8px;
-            align-items: center;
-          ">
-            <span style="
-              background: #EFF6FF;
-              color: #1D4ED8;
-              padding: 2px 8px;
-              border-radius: 999px;
-              font-size: 11px;
-              font-weight: 600;
-            ">
-              ${escapeHtml(facility.sportovi[0] ?? "Sport")}
-            </span>
-
-            <span style="
-              font-weight: 700;
-              color: #1D4ED8;
-              font-size: 13px;
-            ">
-              ${escapeHtml(price)}
-            </span>
-          </div>
-
-          ${ratingHtml}
-        </div>
-      `);
-
-      markersRef.current.push(marker);
-      bounds.push(coordinates);
-    }
-
-    if (bounds.length > 0) {
-      map.fitBounds(bounds, {
-        padding: [40, 40],
-        maxZoom: 14,
-      });
-    }
-  }, [facilities]);
+  if (loadError) {
+    return (
+      <div
+        className="
+          flex h-full items-center justify-center
+          rounded-[20px] border border-slate-700
+          bg-slate-900 text-sm text-slate-400
+        "
+      >
+        Greška pri učitavanju karte.
+      </div>
+    );
+  }
 
   return (
     <div
@@ -228,11 +224,95 @@ export default function HomeMap({ facilities }: HomeMapProps) {
         shadow-[0_4px_24px_rgb(0_0_0_/0.15)]
       "
     >
-      <div ref={mapContainerRef} className="h-full w-full" />
+      {isLoaded ? (
+        <GoogleMap
+          mapContainerStyle={MAP_CONTAINER_STYLE}
+          center={DEFAULT_CENTER}
+          zoom={DEFAULT_ZOOM}
+          options={mapOptions}
+          onLoad={(map) => {
+            mapRef.current = map;
+            fitBounds();
+          }}
+        >
+          {visibleFacilities.map(({ facility, position }) => (
+            <OverlayView
+              key={facility.id}
+              position={position}
+              mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+              getPixelPositionOffset={markerPixelOffset}
+            >
+              <div className="group relative">
+                {/* Tooltip na hover: slika i naziv objekta.
+                    Apsolutno je pozicioniran da ne mijenja sidro markera. */}
+                <div
+                  className="
+                    pointer-events-none absolute bottom-full left-1/2 z-30
+                    mb-2 w-44 -translate-x-1/2 overflow-hidden
+                    rounded-control border border-border-default
+                    bg-surface opacity-0 shadow-sport-elevated
+                    transition-opacity duration-150
+                    group-hover:opacity-100
+                  "
+                >
+                  {facility.slikaUrl ? (
+                    <img
+                      src={facility.slikaUrl}
+                      alt={facility.naziv}
+                      className="h-24 w-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="
+                        flex h-24 w-full items-center justify-center
+                        bg-primary-soft text-[32px]
+                      "
+                    >
+                      {sportIcons[facility.sportovi[0]] ?? "🏟️"}
+                    </div>
+                  )}
+
+                  <div className="px-2.5 py-2">
+                    <div className="truncate text-[12px] font-bold text-text-primary">
+                      {facility.naziv}
+                    </div>
+
+                    <div className="mt-0.5 truncate text-[11px] text-text-secondary">
+                      📍 {facility.adresa}, {facility.kvart}
+                    </div>
+
+                    {facility.ocjena !== null && (
+                      <div className="mt-0.5 text-[11px] text-text-secondary">
+                        ⭐ {facility.ocjena} ({facility.brojRecenzija}{" "}
+                        recenzija)
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="google-map-marker"
+                  aria-label={facility.naziv}
+                  onClick={() => navigate(`/objekt/${facility.id}`)}
+                >
+                  <span className="google-map-marker-icon">
+                    {sportIcons[facility.sportovi[0]] ?? "🏟️"}
+                  </span>
+                </button>
+              </div>
+            </OverlayView>
+          ))}
+        </GoogleMap>
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-slate-400">
+          Učitavanje karte…
+        </div>
+      )}
 
       <div
         className="
-          absolute top-3 right-3 z-1000
+          absolute top-3 right-3 z-10
           rounded-full bg-slate-900/85
           px-2.5 py-1 text-[11px]
           font-medium text-slate-400

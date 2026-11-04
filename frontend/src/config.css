@@ -1,4 +1,3 @@
-
 /* =========================================
    SPORTSPOT DESIGN SYSTEM
    ========================================= */
@@ -8,66 +7,58 @@
    ========================================= */
 
 @theme {
-
   /* FONTOVI */
 
   --font-sans: "DM Sans", sans-serif;
 
-
   /* BRAND BOJE */
 
-  --color-primary: #1D4ED8;
-  --color-primary-hover: #1E40AF;
-  --color-primary-light: #3B82F6;
-  --color-primary-soft: #EFF6FF;
-  --color-primary-border: #E8EEFF;
-
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-primary-light: #3b82f6;
+  --color-primary-soft: #eff6ff;
+  --color-primary-border: #e8eeff;
 
   /* POZADINE */
 
-  --color-background: #F8FAFC;
-  --color-background-accent: #F0F4FF;
+  --color-background: #f8fafc;
+  --color-background-accent: #f0f4ff;
 
-  --color-surface: #FFFFFF;
-  --color-surface-soft: #F9FAFB;
-
+  --color-surface: #ffffff;
+  --color-surface-soft: #f9fafb;
 
   /* BOJE TEKSTA */
 
   --color-text-primary: #111827;
-  --color-text-secondary: #6B7280;
-  --color-text-muted: #9CA3AF;
-  --color-text-inverse: #FFFFFF;
-
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-inverse: #ffffff;
 
   /* OBRUBI */
 
-  --color-border-default: #E5E7EB;
-  --color-border-light: #F3F4F6;
-
+  --color-border-default: #e5e7eb;
+  --color-border-light: #f3f4f6;
 
   /* STATUSI */
 
   --color-success: #059669;
-  --color-success-soft: #D1FAE5;
+  --color-success-soft: #d1fae5;
 
-  --color-warning: #D97706;
-  --color-warning-soft: #FEF3C7;
+  --color-warning: #d97706;
+  --color-warning-soft: #fef3c7;
 
-  --color-danger: #DC2626;
-  --color-danger-soft: #FEE2E2;
-  --color-danger-border: #FECACA;
-
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
+  --color-danger-border: #fecaca;
 
   /* BOJE ZA STATISTIKU I GRAFOVE */
 
-  --color-chart-blue: #3B82F6;
-  --color-chart-indigo: #6366F1;
-  --color-chart-purple: #8B5CF6;
-  --color-chart-cyan: #06B6D4;
-  --color-chart-green: #10B981;
-  --color-chart-amber: #F59E0B;
-
+  --color-chart-blue: #3b82f6;
+  --color-chart-indigo: #6366f1;
+  --color-chart-purple: #8b5cf6;
+  --color-chart-cyan: #06b6d4;
+  --color-chart-green: #10b981;
+  --color-chart-amber: #f59e0b;
 
   /* TIPOGRAFIJA */
 
@@ -95,7 +86,6 @@
   --text-caption: 0.75rem;
   --text-caption--line-height: 1rem;
 
-
   /* ZAOBLJENJA */
 
   --radius-control: 0.75rem;
@@ -103,30 +93,22 @@
   --radius-panel: 1.5rem;
   --radius-modal: 2rem;
 
-
   /* SJENE */
 
-  --shadow-sport-sm:
-    0 2px 8px rgb(0 0 0 / 0.05);
+  --shadow-sport-sm: 0 2px 8px rgb(0 0 0 / 0.05);
 
-  --shadow-sport-card:
-    0 2px 12px rgb(29 78 216 / 0.06);
+  --shadow-sport-card: 0 2px 12px rgb(29 78 216 / 0.06);
 
-  --shadow-sport-elevated:
-    0 8px 24px rgb(0 0 0 / 0.12);
+  --shadow-sport-elevated: 0 8px 24px rgb(0 0 0 / 0.12);
 
-  --shadow-sport-primary:
-    0 2px 10px rgb(29 78 216 / 0.20);
-
+  --shadow-sport-primary: 0 2px 10px rgb(29 78 216 / 0.2);
 }
-
 
 /* =========================================
    2. GLOBALNI OSNOVNI STILOVI
    ========================================= */
 
 @layer base {
-
   body {
     font-family: var(--font-sans);
     background-color: var(--color-background);
@@ -139,9 +121,7 @@
   textarea {
     font: inherit;
   }
-
 }
-
 
 /* =========================================
    3. TIPOGRAFIJA
@@ -186,7 +166,6 @@
   color: var(--color-text-muted);
 }
 
-
 /* =========================================
    4. KARTICE I POVRŠINE
    ========================================= */
@@ -210,7 +189,6 @@
   border-radius: var(--radius-modal);
   box-shadow: var(--shadow-sport-elevated);
 }
-
 
 /* =========================================
    5. GUMBI
@@ -307,7 +285,6 @@
   }
 }
 
-
 /* =========================================
    6. FORM ELEMENTI
    ========================================= */
@@ -351,7 +328,6 @@
   color: var(--color-text-primary);
 }
 
-
 /* =========================================
    7. STATUSNE OZNAKE
    ========================================= */
@@ -371,7 +347,6 @@
   color: var(--color-danger);
 }
 
-
 /* =========================================
    8. BRAND GRADIENT
    ========================================= */
@@ -382,4 +357,82 @@
     var(--color-primary) 0%,
     var(--color-primary-light) 100%
   );
+}
+
+/* =========================================
+   9. GOOGLE MAPS
+   ========================================= */
+
+@theme {
+  /* MARKER */
+  --color-google-map-marker-fill: var(--color-primary);
+  --color-google-map-marker-stroke: var(--color-primary-light);
+  --color-google-map-marker-emoji: var(--color-text-inverse);
+  --shadow-google-map-marker: 0 2px 12px rgb(29 78 216 / 0.5);
+
+  /* POPUP */
+  --color-google-map-popup-bg: var(--color-surface);
+  --color-google-map-popup-text: var(--color-text-primary);
+  --color-google-map-popup-muted: var(--color-text-secondary);
+
+  /* DARK MODE PALETTE */
+  --color-google-map-dark-geometry: #242f3e;
+  --color-google-map-dark-text-stroke: #242f3e;
+  --color-google-map-dark-text-fill: #746855;
+  --color-google-map-dark-text-accent: #d59563;
+  --color-google-map-dark-park: #263c3f;
+  --color-google-map-dark-road: #38414e;
+  --color-google-map-dark-road-stroke: #212a37;
+  --color-google-map-dark-road-label: #9ca5b3;
+  --color-google-map-dark-highway: #746855;
+  --color-google-map-dark-transit: #2f3948;
+  --color-google-map-dark-water: #17263c;
+  --color-google-map-dark-water-label: #515c6d;
+}
+
+@utility google-map-popup {
+  font-family: var(--font-sans);
+  background-color: var(--color-google-map-popup-bg);
+  color: var(--color-google-map-popup-text);
+}
+
+/* Pin marker: kružni vrh s istaknutom donjom špicom.
+   Donja špica je sidro koje stoji na točki na karti. */
+@utility google-map-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+  padding: 0;
+
+  background-color: var(--color-google-map-marker-fill);
+  color: var(--color-google-map-marker-emoji);
+
+  border: 2px solid var(--color-google-map-marker-stroke);
+  border-radius: 50% 50% 50% 0;
+  box-shadow: var(--shadow-google-map-marker);
+
+  cursor: pointer;
+
+  transform: rotate(-45deg);
+
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+
+  &:hover {
+    transform: rotate(-45deg) scale(1.12);
+    box-shadow: var(--shadow-sport-elevated);
+  }
+}
+
+/* Ikona se rotira natrag da stoji uspravno unutar pina. */
+@utility google-map-marker-icon {
+  font-size: 15px;
+  line-height: 1;
+  transform: rotate(45deg);
+  pointer-events: none;
+  user-select: none;
 }
